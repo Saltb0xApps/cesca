@@ -1,0 +1,22 @@
+{
+  "notion_offering": {
+    "company": "Company",
+    "role_title": "Role",
+    "description": "Description",
+    "requirements": "Requirements",
+    "skills": "Skills",
+    "location": "Location",
+    "remote": "Remote",
+    "seniority": "Seniority"
+  },
+  "pipedrive_candidate": {
+    "current_role": "current_role_custom_field_key",
+    "target_role": "target_role_custom_field_key",
+    "summary": "summary_custom_field_key",
+    "skills": "skills_custom_field_key",
+    "location": "location_custom_field_key",
+    "remote_ok": "remote_ok_custom_field_key",
+    "years_experience": "years_exp_custom_field_key",
+    "application_notes": "notes_custom_field_key"
+  }
+}
