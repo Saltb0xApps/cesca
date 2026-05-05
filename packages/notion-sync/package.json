@@ -1,0 +1,14 @@
+{
+  "name": "@cesca/notion-sync",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tiny CLI to verify Notion integration token + target page for the Cesca iPad app.",
+  "type": "module",
+  "scripts": {
+    "check": "node --experimental-strip-types src/check.ts",
+    "append": "node --experimental-strip-types src/append.ts"
+  },
+  "engines": {
+    "node": ">=22.6.0"
+  }
+}

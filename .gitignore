@@ -1,0 +1,25 @@
+# macOS / Xcode
+.DS_Store
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# XcodeGen — the project is generated, don't commit it
+apps/Cesca/Cesca.xcodeproj/
+apps/Cesca/Cesca.xcworkspace/
+
+# SwiftPM
+.swiftpm/
+.build/
+Package.resolved
+
+# Node
+node_modules/
+npm-debug.log
+.env
+.env.local

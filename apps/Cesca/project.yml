@@ -1,0 +1,43 @@
+name: Cesca
+options:
+  bundleIdPrefix: com.cesca
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    DEVELOPMENT_TEAM: ""
+    TARGETED_DEVICE_FAMILY: "2" # iPad only
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+    SUPPORTS_MACCATALYST: NO
+
+targets:
+  Cesca:
+    type: application
+    platform: iOS
+    sources:
+      - path: Cesca
+    resources:
+      - path: Cesca/Resources
+    info:
+      path: Cesca/Info.plist
+      properties:
+        CFBundleDisplayName: Cesca
+        UILaunchScreen:
+          UIColorName: ""
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        NSPhotoLibraryAddUsageDescription: "Save exported pages to your Photos library."
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.cesca.app
+        GENERATE_INFOPLIST_FILE: NO
+    entitlements:
+      path: Cesca/Cesca.entitlements
+      properties:
+        com.apple.developer.icloud-services:
+          - CloudKit
+        com.apple.developer.icloud-container-identifiers:
+          - iCloud.com.cesca.app
