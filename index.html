@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="A personal brand strategy companion for multi-passionate people who do too many things to fit one neat narrative." />
+<title>Cesca — a personal brand companion for multi-passionate people</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">◐</span>
+    <span class="name">cesca</span>
+  </div>
+  <nav id="nav" class="nav" hidden>
+    <button class="nav-btn" data-go="home">Home</button>
+    <button class="nav-btn" data-go="map">Brand map</button>
+    <button class="nav-btn" data-go="checkins">Check-ins</button>
+    <button class="nav-btn" data-go="unknowns">Open loops</button>
+    <button class="nav-btn ghost" id="reset-btn" title="Erase everything and start over">Reset</button>
+  </nav>
+</header>
+
+<main id="app">
+
+  <!-- ========== WELCOME ========== -->
+  <section class="view" data-view="welcome">
+    <div class="hero">
+      <p class="kicker">for people who do too many things</p>
+      <h1>Find the thread<br/>that ties it all together.</h1>
+      <p class="lede">
+        You're not unfocused. You're <em>multi-passionate</em>.
+        Cesca is a slow, patient companion that helps you turn the
+        beautiful mess of everything you do into a personal brand
+        with a real spine.
+      </p>
+      <p class="lede small">
+        We'll start with questions — about what you do, why you're
+        doing this, what you actually want. Some you'll answer
+        easily. Others you won't, and that's fine — we mark those
+        and come back to them. Then we build a content map together,
+        and I'll check in on you every week or two to see how it's going.
+      </p>
+      <button class="btn primary big" id="start-btn">Begin</button>
+      <p class="microcopy">Takes about 15 minutes. Saved on your device. No account.</p>
+    </div>
+  </section>
+
+  <!-- ========== QUESTION FLOW ========== -->
+  <section class="view" data-view="flow">
+    <div class="flow-shell">
+      <div class="progress">
+        <div class="progress-bar"><div id="progress-fill"></div></div>
+        <p class="progress-label"><span id="progress-section"></span> · <span id="progress-count"></span></p>
+      </div>
+
+      <div class="question-card" id="question-card">
+        <p class="phase-tag" id="phase-tag"></p>
+        <h2 id="question-title"></h2>
+        <p class="question-help" id="question-help"></p>
+
+        <div id="answer-area"></div>
+
+        <div class="dont-know-row">
+          <button class="link-btn" id="dont-know-btn">I don't know yet — come back to this</button>
+        </div>
+
+        <div class="flow-controls">
+          <button class="btn ghost" id="back-btn">Back</button>
+          <button class="btn primary" id="next-btn">Continue</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== HOME / DASHBOARD ========== -->
+  <section class="view" data-view="home">
+    <div class="dash">
+      <header class="dash-head">
+        <p class="kicker" id="greeting">Welcome back</p>
+        <h1 id="home-title">Your brand, in motion.</h1>
+      </header>
+
+      <div id="checkin-banner" class="banner" hidden>
+        <div>
+          <strong>It's check-in time.</strong>
+          <p id="checkin-banner-text">Last time we talked was a while ago. Let's see how you're doing.</p>
+        </div>
+        <button class="btn primary" id="start-checkin-btn">Start check-in</button>
+      </div>
+
+      <div class="dash-grid">
+        <article class="card">
+          <h3>Your sentence</h3>
+          <p class="big-quote" id="dash-sentence">—</p>
+          <button class="link-btn" data-go="map">See the full map →</button>
+        </article>
+
+        <article class="card">
+          <h3>Content pillars</h3>
+          <ul class="pill-list" id="dash-pillars"><li class="empty">Not set yet</li></ul>
+        </article>
+
+        <article class="card">
+          <h3>Open loops</h3>
+          <p class="muted">Questions you said "I don't know" to. They're worth coming back to.</p>
+          <p class="counter" id="dash-unknowns-count">0</p>
+          <button class="link-btn" data-go="unknowns">Revisit them →</button>
+        </article>
+
+        <article class="card">
+          <h3>Next check-in</h3>
+          <p id="dash-next-checkin" class="muted">—</p>
+          <label class="toggle">
+            <input type="checkbox" id="notif-toggle" />
+            <span>Remind me with a browser notification</span>
+          </label>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== BRAND MAP ========== -->
+  <section class="view" data-view="map">
+    <div class="map-shell">
+      <header class="dash-head">
+        <p class="kicker">your brand map</p>
+        <h1>The thread, made visible.</h1>
+        <p class="lede small">
+          This is everything you've told me, arranged so you can see the whole.
+          Edit anything that doesn't feel right — this should sound like you, not me.
+        </p>
+      </header>
+      <div id="map-content" class="map-content"></div>
+      <div class="map-actions">
+        <button class="btn ghost" id="export-btn">Export as text</button>
+        <button class="btn primary" data-go="flow-resume">Edit answers</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== CHECK-INS ========== -->
+  <section class="view" data-view="checkins">
+    <div class="map-shell">
+      <header class="dash-head">
+        <p class="kicker">check-ins</p>
+        <h1>How's it actually going?</h1>
+        <p class="lede small">
+          Personal brands aren't built in a sprint. Every week or two,
+          I'll ask you a few short questions so we can adjust together.
+        </p>
+      </header>
+      <div id="checkin-area"></div>
+      <h2 class="section-h">Past check-ins</h2>
+      <div id="checkin-history" class="history"></div>
+    </div>
+  </section>
+
+  <!-- ========== UNKNOWNS ========== -->
+  <section class="view" data-view="unknowns">
+    <div class="map-shell">
+      <header class="dash-head">
+        <p class="kicker">open loops</p>
+        <h1>The questions you parked.</h1>
+        <p class="lede small">
+          You said "I don't know yet" to these — and that's a real answer.
+          Come back when one of them starts feeling answerable.
+        </p>
+      </header>
+      <div id="unknowns-list"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <p>Built slow. Saved locally. Made for the multi-passionate.</p>
+</footer>
+
+<script src="questions.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
