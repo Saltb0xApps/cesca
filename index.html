@@ -3,182 +3,265 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="A personal brand strategy companion for multi-passionate people who do too many things to fit one neat narrative." />
-<title>Cesca — a personal brand companion for multi-passionate people</title>
+<meta name="description" content="Ariadne — for the multi-passionate who can't find the thread. The labyrinth has an exit, and we'll help you find it." />
+<title>Ariadne — the thread for multi-passionate people</title>
 <link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="landing.css" />
 </head>
-<body>
-<header class="topbar">
-  <div class="brand">
-    <span class="logo">◐</span>
-    <span class="name">cesca</span>
-  </div>
-  <nav id="nav" class="nav" hidden>
-    <button class="nav-btn" data-go="home">Home</button>
-    <button class="nav-btn" data-go="map">Brand map</button>
-    <button class="nav-btn" data-go="checkins">Check-ins</button>
-    <button class="nav-btn" data-go="unknowns">Open loops</button>
-    <button class="nav-btn ghost" id="reset-btn" title="Erase everything and start over">Reset</button>
+<body class="landing">
+
+<header class="topbar landing-topbar">
+  <a href="index.html" class="brand">
+    <svg class="logo" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.4"/>
+      <path d="M 12 4 C 7 8 17 16 12 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="12" cy="4" r="1.6" fill="currentColor"/>
+    </svg>
+    <span class="name">Ariadne</span>
+  </a>
+  <nav class="nav">
+    <a class="nav-btn" href="#how">How it works</a>
+    <a class="nav-btn" href="#myth">The myth</a>
+    <a class="nav-btn" href="#waitlist">Waitlist</a>
+    <a class="nav-btn ghost" href="app.html">Try the prototype →</a>
   </nav>
 </header>
 
-<main id="app">
+<!-- ============================================================ -->
+<!-- HERO with animated labyrinth                                  -->
+<!-- ============================================================ -->
+<section class="hero-stage">
+  <div class="hero-copy">
+    <p class="kicker">a companion for the multi-passionate</p>
+    <h1>
+      You're not lost.<br/>
+      You're in a <em>labyrinth</em>.
+    </h1>
+    <p class="lede">
+      You do too many things to fit one neat narrative.
+      You can't tell people what you "are" without flattening yourself.
+      That's not a flaw — it's the labyrinth.<br/><br/>
+      Ariadne hands you the thread that gets you out of it,
+      and turns the mess into a personal brand with a real spine.
+    </p>
+    <div class="hero-cta">
+      <a class="btn primary big" href="#waitlist">Join the waitlist</a>
+      <a class="btn ghost big" href="app.html">Or try the prototype</a>
+    </div>
+    <p class="microcopy">Free. No app to install. We're shaping it slowly with the first hundred people.</p>
+  </div>
 
-  <!-- ========== WELCOME ========== -->
-  <section class="view" data-view="welcome">
-    <div class="hero">
-      <p class="kicker">for people who do too many things</p>
-      <h1>Find the thread<br/>that ties it all together.</h1>
+  <div class="hero-art" aria-hidden="true">
+    <!-- ============ animated labyrinth ============ -->
+    <svg id="labyrinth" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A labyrinth with a thread leading out of it">
+      <defs>
+        <radialGradient id="ariadneGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"  stop-color="#ffd9a8" stop-opacity="1"/>
+          <stop offset="60%" stop-color="#f59f4d" stop-opacity="0.5"/>
+          <stop offset="100%" stop-color="#c2410c" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="theseusGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"  stop-color="#fff5e1" stop-opacity="1"/>
+          <stop offset="100%" stop-color="#fff5e1" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="threadGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   stop-color="#c2410c"/>
+          <stop offset="100%" stop-color="#f59f4d"/>
+        </linearGradient>
+      </defs>
+
+      <!-- decorative labyrinth walls (drawn as concentric squarish paths) -->
+      <g class="labyrinth-walls" stroke="#d9cfbe" stroke-width="2" fill="none" stroke-linecap="square">
+        <rect x="60"  y="60"  width="480" height="480" rx="6"/>
+        <rect x="100" y="100" width="400" height="400" rx="4"/>
+        <rect x="140" y="140" width="320" height="320" rx="4"/>
+        <rect x="180" y="180" width="240" height="240" rx="4"/>
+        <rect x="220" y="220" width="160" height="160" rx="4"/>
+        <!-- gaps in the walls -->
+        <line x1="280" y1="60"  x2="320" y2="60"  stroke="#f6f1ea" stroke-width="6"/>
+        <line x1="500" y1="280" x2="500" y2="320" stroke="#f6f1ea" stroke-width="6"/>
+        <line x1="280" y1="540" x2="320" y2="540" stroke="#f6f1ea" stroke-width="6"/>
+        <line x1="100" y1="280" x2="100" y2="320" stroke="#f6f1ea" stroke-width="6"/>
+        <line x1="280" y1="100" x2="320" y2="100" stroke="#f6f1ea" stroke-width="6"/>
+        <line x1="460" y1="280" x2="460" y2="320" stroke="#f6f1ea" stroke-width="6"/>
+        <line x1="280" y1="500" x2="320" y2="500" stroke="#f6f1ea" stroke-width="6"/>
+        <line x1="140" y1="280" x2="140" y2="320" stroke="#f6f1ea" stroke-width="6"/>
+        <line x1="280" y1="140" x2="320" y2="140" stroke="#f6f1ea" stroke-width="6"/>
+        <line x1="420" y1="280" x2="420" y2="320" stroke="#f6f1ea" stroke-width="6"/>
+        <line x1="280" y1="460" x2="320" y2="460" stroke="#f6f1ea" stroke-width="6"/>
+        <line x1="180" y1="280" x2="180" y2="320" stroke="#f6f1ea" stroke-width="6"/>
+        <line x1="280" y1="180" x2="320" y2="180" stroke="#f6f1ea" stroke-width="6"/>
+        <line x1="380" y1="280" x2="380" y2="320" stroke="#f6f1ea" stroke-width="6"/>
+        <line x1="280" y1="420" x2="320" y2="420" stroke="#f6f1ea" stroke-width="6"/>
+        <line x1="220" y1="280" x2="220" y2="320" stroke="#f6f1ea" stroke-width="6"/>
+      </g>
+
+      <!-- Ariadne (the source of the thread) -->
+      <g class="ariadne">
+        <circle cx="300" cy="300" r="32" fill="url(#ariadneGlow)" class="ariadne-glow"/>
+        <circle cx="300" cy="300" r="6" fill="#c2410c"/>
+      </g>
+
+      <!-- THE THREAD — winds outward from the center through the maze gaps -->
+      <!-- path drawn from center (300,300) outward through gaps to outside -->
+      <path id="thread"
+            d="M 300 300
+               L 300 280
+               L 220 280 L 220 320 L 380 320 L 380 280 L 300 280
+               L 300 220
+               L 180 220 L 180 320 L 420 320 L 420 220 L 300 220
+               L 300 180
+               L 140 180 L 140 320 L 460 320 L 460 180 L 300 180
+               L 300 140
+               L 100 140 L 100 320 L 500 320 L 500 140 L 300 140
+               L 300 100
+               L 60 100  L 60 320  L 540 320 L 540 100 L 300 100
+               L 300 60
+               L 300 30"
+            fill="none"
+            stroke="url(#threadGrad)"
+            stroke-width="3"
+            stroke-linecap="round"
+            stroke-linejoin="round"/>
+
+      <!-- Theseus — a small glowing dot that rides the thread -->
+      <g class="theseus">
+        <circle r="14" fill="url(#theseusGlow)"/>
+        <circle r="5" fill="#fff5e1" stroke="#c2410c" stroke-width="1.5"/>
+        <animateMotion dur="6s" begin="1s" fill="freeze" rotate="auto"
+                       calcMode="linear">
+          <mpath href="#thread"/>
+        </animateMotion>
+      </g>
+
+      <!-- caption emerging at the exit -->
+      <text x="300" y="22" text-anchor="middle"
+            class="exit-label" font-family="Iowan Old Style, Georgia, serif"
+            font-size="14" fill="#6b4f2a" opacity="0">
+        the way out
+      </text>
+    </svg>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- THE MYTH                                                      -->
+<!-- ============================================================ -->
+<section id="myth" class="myth-section">
+  <div class="myth-grid">
+    <div class="myth-text">
+      <p class="kicker">the myth</p>
+      <h2>Ariadne gave Theseus a thread.</h2>
       <p class="lede">
-        You're not unfocused. You're <em>multi-passionate</em>.
-        Cesca is a slow, patient companion that helps you turn the
-        beautiful mess of everything you do into a personal brand
-        with a real spine.
+        He went into the labyrinth and slew the Minotaur — but the labyrinth's real cruelty
+        wasn't the monster. It was the <em>walls</em>. Ten thousand corridors, no map,
+        no way back to daylight.
       </p>
-      <p class="lede small">
-        We'll start with questions — about what you do, why you're
-        doing this, what you actually want. Some you'll answer
-        easily. Others you won't, and that's fine — we mark those
-        and come back to them. Then we build a content map together,
-        and I'll check in on you every week or two to see how it's going.
+      <p class="lede">
+        So Ariadne stayed at the entrance and held one end of a long thread.
+        He tied the other end to himself and walked in. When the thing was done,
+        he followed the thread back out.
       </p>
-      <button class="btn primary big" id="start-btn">Begin</button>
-      <p class="microcopy">Takes about 15 minutes. Saved on your device. No account.</p>
+      <p class="lede">
+        That's what we do here. <strong>You</strong> go into your own labyrinth — every
+        thing you make, every passion you've stacked on top of every other passion.
+        Ariadne stands at the entrance and holds the thread. You don't lose yourself,
+        and you find your way back to a clear, true sentence about who you are.
+      </p>
     </div>
-  </section>
+    <div class="myth-quote">
+      <blockquote>
+        <p>"And she gave him a clew of thread, that he might find his way back through the windings."</p>
+        <cite>— Plutarch, Theseus 19</cite>
+      </blockquote>
+    </div>
+  </div>
+</section>
 
-  <!-- ========== QUESTION FLOW ========== -->
-  <section class="view" data-view="flow">
-    <div class="flow-shell">
-      <div class="progress">
-        <div class="progress-bar"><div id="progress-fill"></div></div>
-        <p class="progress-label"><span id="progress-section"></span> · <span id="progress-count"></span></p>
+<!-- ============================================================ -->
+<!-- HOW IT WORKS                                                  -->
+<!-- ============================================================ -->
+<section id="how" class="how-section">
+  <header class="section-head">
+    <p class="kicker">how it works</p>
+    <h2>Four turns of the thread.</h2>
+  </header>
+  <div class="how-grid">
+    <article class="how-card">
+      <span class="how-num">01</span>
+      <h3>Map the mess</h3>
+      <p>You list everything you do, learn, and want to share.
+      We give you a wide taxonomy with hundreds of options — or write your own.
+      Don't tidy.</p>
+    </article>
+    <article class="how-card">
+      <span class="how-num">02</span>
+      <h3>Find the thread</h3>
+      <p>What ties it all together? If you already feel it, write it.
+      If you don't, we run an ikigai exercise — four prompts whose overlap is, often, the thread.</p>
+    </article>
+    <article class="how-card">
+      <span class="how-num">03</span>
+      <h3>Get suggestions</h3>
+      <p>From your own answers, we propose content pillars, repeating formats,
+      and platforms that fit. You pick what feels right and add what we missed.</p>
+    </article>
+    <article class="how-card">
+      <span class="how-num">04</span>
+      <h3>Stay with it</h3>
+      <p>Every week or two, Ariadne checks in. Five short questions:
+      what you posted, what was hard, what felt right. The thread stays alive.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- WAITLIST                                                      -->
+<!-- ============================================================ -->
+<section id="waitlist" class="waitlist-section">
+  <div class="waitlist-shell">
+    <p class="kicker">waitlist</p>
+    <h2>Get the thread, when it's ready.</h2>
+    <p class="lede">
+      We're shaping Ariadne with the first hundred multi-passionate people who sign up.
+      You'll get early access, a hand in what gets built, and the gentle weekly check-ins
+      when those go live.
+    </p>
+
+    <form id="waitlist-form" class="waitlist-form" novalidate>
+      <div class="form-row">
+        <label class="form-field">
+          <span>Your name</span>
+          <input type="text" name="name" required autocomplete="name" placeholder="Theseus" />
+        </label>
+        <label class="form-field">
+          <span>Email</span>
+          <input type="email" name="email" required autocomplete="email" placeholder="you@somewhere.com" />
+        </label>
       </div>
-
-      <div class="question-card" id="question-card">
-        <p class="phase-tag" id="phase-tag"></p>
-        <h2 id="question-title"></h2>
-        <p class="question-help" id="question-help"></p>
-
-        <div id="answer-area"></div>
-
-        <div class="dont-know-row">
-          <button class="link-btn" id="dont-know-btn">I don't know yet — come back to this</button>
-        </div>
-
-        <div class="flow-controls">
-          <button class="btn ghost" id="back-btn">Back</button>
-          <button class="btn primary" id="next-btn">Continue</button>
-        </div>
+      <label class="form-field">
+        <span>What do you do? (it's okay to list a lot)</span>
+        <input type="text" name="doing" placeholder="illustrator + DJ + sometimes a chef" />
+      </label>
+      <div class="form-actions">
+        <button type="submit" class="btn primary big">Hand me the thread</button>
+        <p class="microcopy">No spam. We'll write to you twice, max, before there's a real product to share.</p>
       </div>
+    </form>
+
+    <div id="waitlist-success" class="waitlist-success" hidden>
+      <p class="kicker">thank you</p>
+      <h3>You're on the list.</h3>
+      <p>We'll only write when there's something real to share — and you can try the prototype right now if you want a head start.</p>
+      <a class="btn primary" href="app.html">Try the prototype</a>
     </div>
-  </section>
-
-  <!-- ========== HOME / DASHBOARD ========== -->
-  <section class="view" data-view="home">
-    <div class="dash">
-      <header class="dash-head">
-        <p class="kicker" id="greeting">Welcome back</p>
-        <h1 id="home-title">Your brand, in motion.</h1>
-      </header>
-
-      <div id="checkin-banner" class="banner" hidden>
-        <div>
-          <strong>It's check-in time.</strong>
-          <p id="checkin-banner-text">Last time we talked was a while ago. Let's see how you're doing.</p>
-        </div>
-        <button class="btn primary" id="start-checkin-btn">Start check-in</button>
-      </div>
-
-      <div class="dash-grid">
-        <article class="card">
-          <h3>Your sentence</h3>
-          <p class="big-quote" id="dash-sentence">—</p>
-          <button class="link-btn" data-go="map">See the full map →</button>
-        </article>
-
-        <article class="card">
-          <h3>Content pillars</h3>
-          <ul class="pill-list" id="dash-pillars"><li class="empty">Not set yet</li></ul>
-        </article>
-
-        <article class="card">
-          <h3>Open loops</h3>
-          <p class="muted">Questions you said "I don't know" to. They're worth coming back to.</p>
-          <p class="counter" id="dash-unknowns-count">0</p>
-          <button class="link-btn" data-go="unknowns">Revisit them →</button>
-        </article>
-
-        <article class="card">
-          <h3>Next check-in</h3>
-          <p id="dash-next-checkin" class="muted">—</p>
-          <label class="toggle">
-            <input type="checkbox" id="notif-toggle" />
-            <span>Remind me with a browser notification</span>
-          </label>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- ========== BRAND MAP ========== -->
-  <section class="view" data-view="map">
-    <div class="map-shell">
-      <header class="dash-head">
-        <p class="kicker">your brand map</p>
-        <h1>The thread, made visible.</h1>
-        <p class="lede small">
-          This is everything you've told me, arranged so you can see the whole.
-          Edit anything that doesn't feel right — this should sound like you, not me.
-        </p>
-      </header>
-      <div id="map-content" class="map-content"></div>
-      <div class="map-actions">
-        <button class="btn ghost" id="export-btn">Export as text</button>
-        <button class="btn primary" data-go="flow-resume">Edit answers</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ========== CHECK-INS ========== -->
-  <section class="view" data-view="checkins">
-    <div class="map-shell">
-      <header class="dash-head">
-        <p class="kicker">check-ins</p>
-        <h1>How's it actually going?</h1>
-        <p class="lede small">
-          Personal brands aren't built in a sprint. Every week or two,
-          I'll ask you a few short questions so we can adjust together.
-        </p>
-      </header>
-      <div id="checkin-area"></div>
-      <h2 class="section-h">Past check-ins</h2>
-      <div id="checkin-history" class="history"></div>
-    </div>
-  </section>
-
-  <!-- ========== UNKNOWNS ========== -->
-  <section class="view" data-view="unknowns">
-    <div class="map-shell">
-      <header class="dash-head">
-        <p class="kicker">open loops</p>
-        <h1>The questions you parked.</h1>
-        <p class="lede small">
-          You said "I don't know yet" to these — and that's a real answer.
-          Come back when one of them starts feeling answerable.
-        </p>
-      </header>
-      <div id="unknowns-list"></div>
-    </div>
-  </section>
-
-</main>
+  </div>
+</section>
 
 <footer class="foot">
-  <p>Built slow. Saved locally. Made for the multi-passionate.</p>
+  <p>Ariadne · for those who do too many things · made slow</p>
 </footer>
 
-<script src="questions.js"></script>
-<script src="app.js"></script>
+<script src="landing.js"></script>
 </body>
 </html>
