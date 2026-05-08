@@ -1,1 +1,28 @@
-Projects
+StudentStash
+============
+
+A no-jargon investing primer + personalized planner for students who don't
+have much to invest. Aimed at high school and college users.
+
+What's in here
+--------------
+- index.html — landing page, education cards, planner form, and common-mistakes section
+- styles.css — dark, mobile-friendly styling
+- app.js    — allocation logic, compound-growth projection, and tip generation
+
+How to run
+----------
+No build step. Just open index.html in any browser:
+
+  xdg-open index.html       # Linux
+  open index.html           # macOS
+
+Or serve locally:
+
+  python3 -m http.server 8000
+  # then visit http://localhost:8000
+
+Disclaimer
+----------
+Educational only. Not financial advice. Return assumptions are rough
+historical averages and not guarantees.

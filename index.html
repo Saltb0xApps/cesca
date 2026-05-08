@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudentStash — Investing for students who don't have much to invest</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <nav class="nav">
+      <span class="logo">StudentStash</span>
+      <a href="#learn">Learn</a>
+      <a href="#planner">Planner</a>
+      <a href="#tips">Tips</a>
+    </nav>
+    <div class="hero-content">
+      <h1>Start investing with what you have.</h1>
+      <p class="tagline">A no-jargon guide for high school and college students who want to make their money work — even if it's only $10 a month.</p>
+      <a class="cta" href="#planner">Build my plan →</a>
+    </div>
+  </header>
+
+  <section id="learn" class="section">
+    <h2>Investing in 5 minutes</h2>
+    <p class="lead">Before you put a dollar anywhere, here's what each option actually is. Tap a card to expand.</p>
+    <div class="cards">
+      <details class="card">
+        <summary><span class="emoji">🏦</span> High-Yield Savings (HYSA)</summary>
+        <p><strong>What:</strong> A bank account that pays ~4–5% interest per year. Money is FDIC-insured up to $250k.</p>
+        <p><strong>Risk:</strong> Effectively zero.</p>
+        <p><strong>Good for:</strong> Your emergency fund and short-term goals (under 1–2 years).</p>
+        <p><strong>Catch:</strong> Long-term it barely beats inflation. Don't put your "grow it" money here.</p>
+      </details>
+      <details class="card">
+        <summary><span class="emoji">📈</span> Index Funds & ETFs</summary>
+        <p><strong>What:</strong> A single share that owns hundreds of companies (e.g. VOO, VTI = the S&P 500 / total US market).</p>
+        <p><strong>Risk:</strong> Medium. Drops 20–40% in bad years, averages ~10%/yr historically.</p>
+        <p><strong>Good for:</strong> Long-term wealth (5+ years). The boring choice that beats almost everything.</p>
+        <p><strong>Catch:</strong> Boring. You won't get rich in a year.</p>
+      </details>
+      <details class="card">
+        <summary><span class="emoji">🏢</span> Individual Stocks</summary>
+        <p><strong>What:</strong> Owning one company (Apple, Tesla, etc.).</p>
+        <p><strong>Risk:</strong> High. A single bad earnings report and you're down 30%.</p>
+        <p><strong>Good for:</strong> Learning, hobby money, or strong conviction picks (max ~10% of your portfolio).</p>
+        <p><strong>Catch:</strong> Most beginners underperform a plain index fund. Don't bet rent money.</p>
+      </details>
+      <details class="card">
+        <summary><span class="emoji">🪙</span> Crypto (BTC, ETH, etc.)</summary>
+        <p><strong>What:</strong> Decentralized digital assets. Bitcoin and Ethereum are the two most established.</p>
+        <p><strong>Risk:</strong> Very high. 50%+ drops have happened multiple times. No FDIC. No earnings.</p>
+        <p><strong>Good for:</strong> A small "speculative" slice (5–10% of portfolio max). Only money you can lose.</p>
+        <p><strong>Catch:</strong> Avoid meme coins, "guaranteed" yield platforms, and influencer picks. Stick to BTC/ETH on a real exchange (Coinbase, Kraken). Never invest because it's "going to the moon".</p>
+      </details>
+      <details class="card">
+        <summary><span class="emoji">🎓</span> Roth IRA</summary>
+        <p><strong>What:</strong> A retirement account you fund with after-tax money — withdrawals in retirement are 100% tax-free.</p>
+        <p><strong>Risk:</strong> Depends on what you put in it (usually index funds).</p>
+        <p><strong>Good for:</strong> Anyone with earned income. Starting at 19 instead of 29 can mean hundreds of thousands more at 65.</p>
+        <p><strong>Catch:</strong> You need earned income (a job). 2026 limit: $7,000/yr. Money is locked until 59½ for max benefit.</p>
+      </details>
+      <details class="card">
+        <summary><span class="emoji">💵</span> Bonds / Treasuries</summary>
+        <p><strong>What:</strong> You loan money to the government or a company; they pay you interest.</p>
+        <p><strong>Risk:</strong> Low (especially US Treasuries).</p>
+        <p><strong>Good for:</strong> Stability. Most students don't need many bonds yet — you have decades to ride out stock dips.</p>
+        <p><strong>Catch:</strong> Returns are modest (~4–5%).</p>
+      </details>
+    </div>
+
+    <div class="rules">
+      <h3>The 4 rules nobody told you</h3>
+      <ol>
+        <li><strong>Pay off high-interest debt first.</strong> Credit cards charge ~22%. No investment reliably beats that — paying off debt <em>is</em> a 22% return.</li>
+        <li><strong>Build a $500–$1,000 emergency fund</strong> in a HYSA before investing. Otherwise one car repair forces you to sell at a loss.</li>
+        <li><strong>Time in the market beats timing the market.</strong> Invest a fixed amount every month (dollar-cost averaging). Don't try to predict crashes.</li>
+        <li><strong>Fees and taxes matter.</strong> Use a free broker (Fidelity, Schwab, Vanguard). Avoid actively-managed funds with >0.5% expense ratios.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="planner" class="section alt">
+    <h2>Build your plan</h2>
+    <p class="lead">Answer 4 quick questions. We'll suggest an allocation, project growth, and give targeted tips.</p>
+
+    <form id="plannerForm" class="planner">
+      <label>
+        <span>How much can you invest each month?</span>
+        <div class="input-row">
+          <span class="prefix">$</span>
+          <input type="number" id="monthly" min="1" max="10000" step="1" placeholder="25" required />
+        </div>
+        <small>Be honest. $10/mo consistently &gt; $200/mo for one month then quitting.</small>
+      </label>
+
+      <label>
+        <span>How old are you?</span>
+        <input type="number" id="age" min="13" max="30" placeholder="18" required />
+      </label>
+
+      <label>
+        <span>If your investments dropped 30% next month, you would…</span>
+        <select id="risk" required>
+          <option value="">Pick one</option>
+          <option value="low">Panic and sell — I can't stomach big swings</option>
+          <option value="med">Be uncomfortable but hold</option>
+          <option value="high">Buy more — it's on sale!</option>
+        </select>
+      </label>
+
+      <label>
+        <span>What's your main goal?</span>
+        <select id="goal" required>
+          <option value="">Pick one</option>
+          <option value="short">Short-term (car, trip, deposit in 1–2 yrs)</option>
+          <option value="med">Medium-term (post-college, 3–7 yrs)</option>
+          <option value="long">Long-term wealth / retirement (10+ yrs)</option>
+          <option value="learn">I just want to learn how investing works</option>
+        </select>
+      </label>
+
+      <label class="checkbox">
+        <input type="checkbox" id="debt" />
+        <span>I have credit card debt or other loans charging &gt;7% interest</span>
+      </label>
+
+      <button type="submit" class="cta">Get my plan</button>
+    </form>
+
+    <div id="results" class="results hidden">
+      <h3>Your plan</h3>
+      <div id="summary" class="summary"></div>
+
+      <h4>Suggested monthly allocation</h4>
+      <div id="allocation" class="allocation"></div>
+
+      <h4>Where you could be</h4>
+      <div id="projection" class="projection"></div>
+
+      <h4>Personalized tips</h4>
+      <ul id="tipsList" class="tips-list"></ul>
+
+      <p class="disclaimer">Educational only — not financial advice. Past returns don't guarantee future results. Do your own research before investing.</p>
+    </div>
+  </section>
+
+  <section id="tips" class="section">
+    <h2>Common student mistakes</h2>
+    <div class="mistakes">
+      <div class="mistake">
+        <h4>❌ Chasing what's hot on TikTok</h4>
+        <p>By the time a stock or coin is trending, the easy money is gone. Influencers get paid to pump. Stick to your plan.</p>
+      </div>
+      <div class="mistake">
+        <h4>❌ Day trading with $200</h4>
+        <p>Even pros lose money trading. The math is brutal: a 50% loss needs a 100% gain to break even. Just buy index funds.</p>
+      </div>
+      <div class="mistake">
+        <h4>❌ Putting all of it in crypto</h4>
+        <p>Crypto can 10x — and also -90%. A small slice is fine. All-in is gambling, not investing.</p>
+      </div>
+      <div class="mistake">
+        <h4>❌ Not investing because "I don't have enough"</h4>
+        <p>Fractional shares mean you can buy $5 of an ETF. Compound interest rewards starting early way more than starting big.</p>
+      </div>
+      <div class="mistake">
+        <h4>❌ Falling for "guaranteed returns"</h4>
+        <p>If a platform promises 15% guaranteed, it's a scam or about to collapse (see: Celsius, FTX, BlockFi). Real investing has no guarantees.</p>
+      </div>
+      <div class="mistake">
+        <h4>❌ Cashing out after a crash</h4>
+        <p>The biggest gains historically come right after the biggest drops. Selling low locks in losses. Keep buying through downturns.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Built for students. Not financial advice. <a href="#learn">Back to top ↑</a></p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
