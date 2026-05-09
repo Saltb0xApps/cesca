@@ -61,6 +61,29 @@
   };
 
   let state = Store.load();
+
+  // Demo loader: ?demo=maya|theo|carla hydrates state from a synthetic
+  // multi-passionate avatar so visitors can see the full app without doing
+  // the discovery flow first. ?demo=clear wipes everything.
+  (function maybeLoadDemo() {
+    const params = new URLSearchParams(window.location.search);
+    const key = params.get("demo");
+    if (!key) return;
+    if (key === "clear") {
+      try { localStorage.removeItem(STORAGE_KEY); } catch {}
+      state = defaultState();
+      // also strip the param so a refresh doesn't re-clear
+      history.replaceState({}, "", window.location.pathname);
+      return;
+    }
+    const fresh = window.ariadneLoadDemo && window.ariadneLoadDemo(key);
+    if (fresh) {
+      state = fresh;
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+      history.replaceState({}, "", window.location.pathname);
+    }
+  })();
+
   state.lastSeenAt = Date.now();
   const save = () => Store.save(state);
 

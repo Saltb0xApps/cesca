@@ -4,7 +4,7 @@
    - Handles "show-checkin" push notifications for due check-ins.
 */
 
-const VERSION = "ariadne-v1";
+const VERSION = "ariadne-v2";
 const SHELL = [
   "/",
   "/index.html",
@@ -14,6 +14,7 @@ const SHELL = [
   "/landing.js",
   "/app.js",
   "/questions.js",
+  "/demo-data.js",
   "/config.js",
   "/manifest.webmanifest",
   "/assets/icons/icon.svg",

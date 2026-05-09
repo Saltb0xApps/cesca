@@ -27,10 +27,12 @@
 
     scenes.forEach((scene, idx) => {
       const stage = scene.querySelector(".scene-stage");
-      const text = scene.querySelector(".scene-text");
       const art  = scene.querySelector(".scene-art");
       if (!stage) return;
 
+      // Pin each scene-stage so each scene holds the viewport for its own
+      // scroll length. No opacity dance — the scene is visible from the start
+      // and only the per-scene SVG details get scrubbed by scroll position.
       if (isWide) {
         ScrollTrigger.create({
           trigger: scene,
@@ -40,30 +42,6 @@
           pinSpacing: true,
         });
       }
-
-      gsap.from(text, {
-        opacity: 0,
-        y: 30,
-        duration: 1,
-        scrollTrigger: {
-          trigger: scene,
-          start: "top center",
-          end: "top top",
-          scrub: true,
-        }
-      });
-
-      gsap.from(art, {
-        opacity: 0,
-        scale: 0.92,
-        duration: 1,
-        scrollTrigger: {
-          trigger: scene,
-          start: "top center",
-          end: "top top",
-          scrub: true,
-        }
-      });
 
       // Per-scene art animations
       const artType = art && art.dataset.art;
@@ -138,10 +116,13 @@
     });
   } else {
     // Fallback: plain IntersectionObserver fades — no scroll-scrubbing magic
-    // but every scene appears as it enters view.
+    // but every scene appears as it enters view. We mark scenes as
+    // .pre-reveal first (so they start at opacity 0), then strip that class
+    // on intersection for a soft fade-in.
+    scenes.forEach(s => s.classList.add("pre-reveal"));
     const obs = new IntersectionObserver((entries) => {
-      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("visible"); });
-    }, { threshold: 0.25 });
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.remove("pre-reveal"); });
+    }, { threshold: 0.2 });
     scenes.forEach(s => obs.observe(s));
   }
 })();
