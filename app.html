@@ -4,7 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="description" content="Ariadne — a personal brand companion for multi-passionate people. Find the thread that ties everything you do together." />
+<meta name="theme-color" content="#c2410c" />
 <title>Ariadne — your thread out of the labyrinth</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg" />
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -20,6 +23,7 @@
   <nav id="nav" class="nav" hidden>
     <button class="nav-btn" data-go="home">Home</button>
     <button class="nav-btn" data-go="map">Brand map</button>
+    <button class="nav-btn" data-go="trajectory">Trajectory</button>
     <button class="nav-btn" data-go="checkins">Check-ins</button>
     <button class="nav-btn" data-go="unknowns">Open loops</button>
     <button class="nav-btn ghost" id="reset-btn" title="Erase everything and start over">Reset</button>
@@ -141,6 +145,25 @@
     </div>
   </section>
 
+  <section class="view" data-view="trajectory">
+    <div class="map-shell">
+      <header class="dash-head">
+        <p class="kicker">trajectory</p>
+        <h1>Is the plan working?</h1>
+        <p class="lede small">
+          Each week you log your numbers per platform. Over time, the lines
+          tell the truth: which pillars and formats actually move the needle,
+          and which were just nice ideas.
+        </p>
+      </header>
+      <div id="trajectory-empty" class="muted" hidden>
+        No data yet. Start a check-in and log your platform numbers — even just one
+        platform, one week — and the chart will appear here.
+      </div>
+      <div id="trajectory-content"></div>
+    </div>
+  </section>
+
   <section class="view" data-view="checkins">
     <div class="map-shell">
       <header class="dash-head">
@@ -177,7 +200,10 @@
   <p>Ariadne · the thread out of the labyrinth · saved locally · no account</p>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="config.js"></script>
 <script src="questions.js"></script>
 <script src="app.js"></script>
+<script src="register-sw.js"></script>
 </body>
 </html>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- maskable: subject must fit within central 80% safe zone -->
+  <rect width="512" height="512" fill="#c2410c"/>
+  <g transform="translate(256 256)">
+    <circle r="140" fill="none" stroke="#f6f1ea" stroke-width="14" opacity="0.35"/>
+    <circle r="90"  fill="none" stroke="#f6f1ea" stroke-width="12" opacity="0.55"/>
+    <path d="M 0 -160 C -100 -80 110 110 0 180" fill="none" stroke="#f6f1ea" stroke-width="22" stroke-linecap="round"/>
+    <circle cx="0" cy="-160" r="22" fill="#f6f1ea"/>
+  </g>
+</svg>

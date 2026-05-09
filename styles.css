@@ -514,6 +514,91 @@ textarea:focus, input:focus { outline: 2px solid var(--accent); outline-offset: 
   margin: 18px 0 6px;
   font-weight: 500;
 }
+.checkin-label .muted { font-weight: 400; }
+
+/* ---------- per-platform log grid ---------- */
+.log-grid {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-size: 14px;
+}
+.log-grid thead th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+  font-weight: 500;
+}
+.log-grid tbody td {
+  padding: 6px 8px;
+  vertical-align: middle;
+  border-bottom: 1px dashed var(--line);
+}
+.log-grid input {
+  width: 100%; padding: 8px 10px; font-size: 14px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--bg);
+}
+.log-grid tbody tr:last-child td { border-bottom: none; }
+
+/* ---------- trajectory view ---------- */
+.trajectory-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px 24px 18px;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow);
+}
+.trajectory-card h3 {
+  font-family: var(--serif);
+  font-size: 22px;
+  margin: 0 0 14px;
+}
+.trajectory-charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.chart-wrap { display: flex; flex-direction: column; }
+.chart-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+.chart-wrap canvas {
+  max-height: 220px;
+  width: 100% !important;
+  height: 220px !important;
+}
+.trajectory-note { margin-top: 14px; }
+.trajectory-overlay {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.trajectory-overlay li {
+  font-size: 14px;
+  color: var(--ink-soft);
+  padding: 10px 14px;
+  background: var(--bg-soft);
+  border-radius: 8px;
+}
+.trajectory-overlay .when {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--accent); margin-right: 6px;
+}
+
+@media (max-width: 700px) {
+  .trajectory-charts { grid-template-columns: 1fr; }
+  .log-grid { font-size: 13px; }
+  .log-grid thead th:nth-child(4),
+  .log-grid tbody td:nth-child(4) { display: none; } /* hide notes column on phones */
+}
 
 /* ---------- a11y ---------- */
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }

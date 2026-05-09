@@ -11,22 +11,58 @@
     flowIndex: 0,
     answers: {},      // { id: { value, unknown, ikigai?, updatedAt } }
     checkins: [],
+    platformLogs: [], // [{ at, platform, followers, posts, notes }]
     nextCheckinAt: null,
     notifications: false,
     lastSeenAt: null,
+    userId: null,     // set when signed into Supabase
   });
 
-  const load = () => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return defaultState();
-      return Object.assign(defaultState(), JSON.parse(raw));
-    } catch { return defaultState(); }
+  /* ---------- Store: localStorage primary + optional Supabase backend ---------- *
+   * The app always works against localStorage — Supabase is purely additive sync. *
+   * If window.ARIADNE_CONFIG.supabaseUrl is set we attempt to mirror state to a   *
+   * `brand_maps` row. All sync is fire-and-forget; failures don't block the UI.   */
+  const Store = {
+    load() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return defaultState();
+        return Object.assign(defaultState(), JSON.parse(raw));
+      } catch { return defaultState(); }
+    },
+    save(s) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch {}
+      this._maybeSyncRemote(s);
+    },
+    _maybeSyncRemote(s) {
+      const cfg = window.ARIADNE_CONFIG;
+      if (!cfg || !cfg.supabaseUrl || !cfg.supabaseAnonKey || !s.userId) return;
+      // Push the entire blob — small, JSONB column. Debounced to avoid hammering.
+      clearTimeout(this._syncTimer);
+      this._syncTimer = setTimeout(() => {
+        fetch(`${cfg.supabaseUrl}/rest/v1/brand_maps?user_id=eq.${s.userId}`, {
+          method: "POST",
+          headers: {
+            "apikey": cfg.supabaseAnonKey,
+            "Authorization": `Bearer ${cfg.supabaseAnonKey}`,
+            "Content-Type": "application/json",
+            "Prefer": "resolution=merge-duplicates"
+          },
+          body: JSON.stringify({
+            user_id: s.userId,
+            answers: s.answers,
+            checkins: s.checkins,
+            platform_logs: s.platformLogs,
+            updated_at: new Date().toISOString()
+          })
+        }).catch(() => {});
+      }, 800);
+    }
   };
-  const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 
-  let state = load();
+  let state = Store.load();
   state.lastSeenAt = Date.now();
+  const save = () => Store.save(state);
 
   /* ---------- view router ---------- */
   const views = document.querySelectorAll(".view");
@@ -42,6 +78,7 @@
     if (target === "home")     { renderHome();     show("home");     return; }
     if (target === "map")      { renderMap();      show("map");      return; }
     if (target === "checkins") { renderCheckins(); show("checkins"); return; }
+    if (target === "trajectory") { renderTrajectory(); show("trajectory"); return; }
     if (target === "unknowns") { renderUnknowns(); show("unknowns"); return; }
     if (target === "flow")     { renderQuestion(); show("flow");     return; }
     if (target === "welcome")  { show("welcome"); return; }
@@ -709,6 +746,11 @@
     if (!a || a.unknown || !Array.isArray(a.value)) return [];
     return a.value.map(item => typeof item === "object" ? item.label : item);
   }
+  function lastLogFor(platform) {
+    const rows = state.platformLogs.filter(l => l.platform === platform);
+    return rows.length ? rows[rows.length - 1] : null;
+  }
+
   function unknownIds() {
     return Object.entries(state.answers)
       .filter(([_, a]) => a.unknown ||
@@ -859,6 +901,146 @@
     URL.revokeObjectURL(url);
   });
 
+  /* ---------- trajectory ---------- */
+  const trajectoryEmpty   = document.getElementById("trajectory-empty");
+  const trajectoryContent = document.getElementById("trajectory-content");
+  let _trajectoryCharts = [];
+
+  function renderTrajectory() {
+    // tear down existing charts (avoid Chart.js leaking canvases on re-render)
+    _trajectoryCharts.forEach(c => { try { c.destroy(); } catch {} });
+    _trajectoryCharts = [];
+    trajectoryContent.innerHTML = "";
+
+    const logs = state.platformLogs;
+    if (!logs.length) {
+      trajectoryEmpty.hidden = false;
+      return;
+    }
+    trajectoryEmpty.hidden = true;
+
+    if (typeof Chart === "undefined") {
+      const note = document.createElement("p");
+      note.className = "muted";
+      note.textContent = "Chart library didn't load — check your network.";
+      trajectoryContent.appendChild(note);
+      return;
+    }
+
+    // group logs by platform
+    const byPlatform = {};
+    logs.forEach(l => {
+      (byPlatform[l.platform] = byPlatform[l.platform] || []).push(l);
+    });
+    Object.values(byPlatform).forEach(arr => arr.sort((a, b) => a.at - b.at));
+
+    // pillars/formats overlay band — most recent answers, shown as text per check-in
+    const overlayLines = state.checkins.map(c => ({
+      at: c.at,
+      note: (c.answers.next || c.answers.adjust || "").slice(0, 60)
+    })).filter(o => o.note);
+
+    // a section per platform with a followers chart and posts chart side-by-side
+    Object.entries(byPlatform).forEach(([platform, arr]) => {
+      const card = document.createElement("article");
+      card.className = "trajectory-card";
+      card.innerHTML = `<h3>${escapeHtml(platform)}</h3>`;
+
+      const grid = document.createElement("div");
+      grid.className = "trajectory-charts";
+
+      const fCanvas = document.createElement("canvas");
+      const pCanvas = document.createElement("canvas");
+      grid.appendChild(wrapChart(fCanvas, "Followers"));
+      grid.appendChild(wrapChart(pCanvas, "Posts shipped"));
+      card.appendChild(grid);
+
+      const followersData = arr.filter(l => l.followers != null).map(l => ({ x: l.at, y: l.followers }));
+      const postsData = arr.filter(l => l.posts != null).map(l => ({ x: l.at, y: l.posts }));
+
+      _trajectoryCharts.push(new Chart(fCanvas.getContext("2d"), buildLineConfig("Followers", followersData)));
+      _trajectoryCharts.push(new Chart(pCanvas.getContext("2d"), buildLineConfig("Posts", postsData)));
+
+      // last-known notes row
+      if (arr[arr.length - 1].notes) {
+        const noteRow = document.createElement("p");
+        noteRow.className = "trajectory-note muted small";
+        noteRow.textContent = `Latest note: ${arr[arr.length - 1].notes}`;
+        card.appendChild(noteRow);
+      }
+      trajectoryContent.appendChild(card);
+    });
+
+    // overlay log: last few "things you said you'd try"
+    if (overlayLines.length) {
+      const overlay = document.createElement("article");
+      overlay.className = "trajectory-card";
+      overlay.innerHTML = `<h3>What you said you'd try</h3>`;
+      const ul = document.createElement("ul");
+      ul.className = "trajectory-overlay";
+      overlayLines.slice(-6).reverse().forEach(o => {
+        const li = document.createElement("li");
+        li.innerHTML = `<span class="when">${shortDate(o.at)}</span> · ${escapeHtml(o.note)}`;
+        ul.appendChild(li);
+      });
+      overlay.appendChild(ul);
+      trajectoryContent.appendChild(overlay);
+    }
+  }
+
+  function wrapChart(canvas, label) {
+    const w = document.createElement("div");
+    w.className = "chart-wrap";
+    const lbl = document.createElement("p");
+    lbl.className = "chart-label"; lbl.textContent = label;
+    w.appendChild(lbl); w.appendChild(canvas);
+    return w;
+  }
+
+  function buildLineConfig(label, data) {
+    return {
+      type: "line",
+      data: {
+        datasets: [{
+          label,
+          data,
+          borderColor: "#c2410c",
+          backgroundColor: "rgba(194,65,12,0.12)",
+          fill: true,
+          tension: 0.25,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            type: "time" in (Chart.registry?.scales || {}) ? "time" : "linear",
+            ticks: {
+              callback: (v) => shortDate(v),
+              color: "#837b6d",
+            },
+            grid: { color: "rgba(0,0,0,0.04)" }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: "#837b6d" },
+            grid: { color: "rgba(0,0,0,0.04)" }
+          }
+        }
+      }
+    };
+  }
+
+  function shortDate(ts) {
+    const d = new Date(ts);
+    return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  }
+
   /* ---------- check-ins ---------- */
   const checkinArea    = document.getElementById("checkin-area");
   const checkinHistory = document.getElementById("checkin-history");
@@ -886,6 +1068,53 @@
       inputs[cq.id] = node;
     });
 
+    /* ---- per-platform numbers grid ---- */
+    const platforms = answerStringList("channels");
+    const logInputs = {};
+    if (platforms.length) {
+      const lbl = document.createElement("label");
+      lbl.className = "checkin-label";
+      lbl.innerHTML = "Your numbers this week <span class='muted small'>(optional, but the trajectory chart needs them)</span>";
+      card.appendChild(lbl);
+
+      const table = document.createElement("table");
+      table.className = "log-grid";
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>Followers</th>
+            <th>Posts shipped</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody></tbody>`;
+      const tbody = table.querySelector("tbody");
+      platforms.forEach(p => {
+        const tr = document.createElement("tr");
+        const last = lastLogFor(p);
+        tr.innerHTML = `
+          <td><strong>${escapeHtml(p)}</strong></td>
+          <td><input type="number" min="0" data-field="followers" placeholder="${last && last.followers != null ? last.followers : '—'}" /></td>
+          <td><input type="number" min="0" data-field="posts" placeholder="0" /></td>
+          <td><input type="text" data-field="notes" placeholder="format / pillar tested" /></td>
+        `;
+        tbody.appendChild(tr);
+        logInputs[p] = {
+          followers: tr.querySelector('[data-field="followers"]'),
+          posts:     tr.querySelector('[data-field="posts"]'),
+          notes:     tr.querySelector('[data-field="notes"]'),
+        };
+      });
+      card.appendChild(table);
+    } else {
+      const note = document.createElement("p");
+      note.className = "muted small";
+      note.style.marginTop = "16px";
+      note.innerHTML = "Pick your platforms in the discovery flow and the per-platform log will appear here next time.";
+      card.appendChild(note);
+    }
+
     const controls = document.createElement("div"); controls.className = "flow-controls";
     const skip = document.createElement("button");
     skip.className = "btn ghost"; skip.textContent = "Not today";
@@ -901,7 +1130,24 @@
         answers[id] = v;
       });
       if (!any && !confirm("Save an empty check-in?")) return;
-      state.checkins.push({ at: Date.now(), answers });
+      const now = Date.now();
+      state.checkins.push({ at: now, answers });
+
+      // store any platform log rows the user filled in
+      Object.entries(logInputs).forEach(([platform, fields]) => {
+        const followers = fields.followers.value.trim();
+        const posts     = fields.posts.value.trim();
+        const notes     = fields.notes.value.trim();
+        if (!followers && !posts && !notes) return; // skip empty rows
+        state.platformLogs.push({
+          at: now,
+          platform,
+          followers: followers ? Number(followers) : null,
+          posts:     posts     ? Number(posts)     : null,
+          notes:     notes || null
+        });
+      });
+
       state.nextCheckinAt = Date.now() + CHECKIN_INTERVAL_DAYS * DAY_MS;
       save(); go("home");
     });

@@ -1,0 +1,27 @@
+{
+  "name": "Ariadne — your thread out of the labyrinth",
+  "short_name": "Ariadne",
+  "description": "A personal brand companion for multi-passionate people. Find the thread that ties everything you do together.",
+  "start_url": "/app.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f1ea",
+  "theme_color": "#c2410c",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "assets/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["productivity", "lifestyle", "education"]
+}

@@ -4,7 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="description" content="Ariadne — for the multi-passionate who can't find the thread. The labyrinth has an exit, and we'll help you find it." />
+<meta name="theme-color" content="#c2410c" />
 <title>Ariadne — the thread for multi-passionate people</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg" />
 <link rel="stylesheet" href="styles.css" />
 <link rel="stylesheet" href="landing.css" />
 </head>
@@ -20,128 +23,174 @@
     <span class="name">Ariadne</span>
   </a>
   <nav class="nav">
-    <a class="nav-btn" href="#how">How it works</a>
     <a class="nav-btn" href="#myth">The myth</a>
+    <a class="nav-btn" href="#how">How it works</a>
     <a class="nav-btn" href="#waitlist">Waitlist</a>
     <a class="nav-btn ghost" href="app.html">Try the prototype →</a>
   </nav>
 </header>
 
 <!-- ============================================================ -->
-<!-- HERO with animated labyrinth                                  -->
+<!-- NARRATIVE — six scenes, scrubbed by scroll                    -->
 <!-- ============================================================ -->
-<section class="hero-stage">
-  <div class="hero-copy">
-    <p class="kicker">a companion for the multi-passionate</p>
-    <h1>
-      You're not lost.<br/>
-      You're in a <em>labyrinth</em>.
-    </h1>
-    <p class="lede">
-      You do too many things to fit one neat narrative.
-      You can't tell people what you "are" without flattening yourself.
-      That's not a flaw — it's the labyrinth.<br/><br/>
-      Ariadne hands you the thread that gets you out of it,
-      and turns the mess into a personal brand with a real spine.
-    </p>
-    <div class="hero-cta">
-      <a class="btn primary big" href="#waitlist">Join the waitlist</a>
-      <a class="btn ghost big" href="app.html">Or try the prototype</a>
+<section class="narrative" id="narrative">
+
+  <!-- SCENE 1 — You -->
+  <article class="scene" data-scene="1">
+    <div class="scene-stage">
+      <div class="scene-art" data-art="silhouette">
+        <svg viewBox="0 0 400 400" aria-hidden="true">
+          <g class="silhouette">
+            <!-- minimal standing figure -->
+            <circle cx="200" cy="148" r="22" fill="currentColor"/>
+            <path d="M 200 170 L 200 270 M 200 200 L 165 240 M 200 200 L 235 240 M 200 270 L 175 340 M 200 270 L 225 340"
+                  stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none"/>
+          </g>
+        </svg>
+      </div>
+      <div class="scene-text">
+        <p class="scene-kicker">scene 01</p>
+        <h2>You are <em>Theseus</em>.</h2>
+        <p class="scene-lede">Just a person. Standing at the entrance of something they don't yet understand.</p>
+      </div>
     </div>
-    <p class="microcopy">Free. No app to install. We're shaping it slowly with the first hundred people.</p>
-  </div>
+  </article>
 
-  <div class="hero-art" aria-hidden="true">
-    <!-- ============ animated labyrinth ============ -->
-    <svg id="labyrinth" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A labyrinth with a thread leading out of it">
-      <defs>
-        <radialGradient id="ariadneGlow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%"  stop-color="#ffd9a8" stop-opacity="1"/>
-          <stop offset="60%" stop-color="#f59f4d" stop-opacity="0.5"/>
-          <stop offset="100%" stop-color="#c2410c" stop-opacity="0"/>
-        </radialGradient>
-        <radialGradient id="theseusGlow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%"  stop-color="#fff5e1" stop-opacity="1"/>
-          <stop offset="100%" stop-color="#fff5e1" stop-opacity="0"/>
-        </radialGradient>
-        <linearGradient id="threadGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%"   stop-color="#c2410c"/>
-          <stop offset="100%" stop-color="#f59f4d"/>
-        </linearGradient>
-      </defs>
+  <!-- SCENE 2 — The lostness -->
+  <article class="scene" data-scene="2">
+    <div class="scene-stage">
+      <div class="scene-art" data-art="walls">
+        <svg viewBox="0 0 400 400" aria-hidden="true">
+          <g class="walls-fading">
+            <line x1="80"  y1="80"  x2="80"  y2="320" stroke="currentColor" stroke-width="2"/>
+            <line x1="320" y1="80"  x2="320" y2="320" stroke="currentColor" stroke-width="2"/>
+            <line x1="80"  y1="80"  x2="320" y2="80"  stroke="currentColor" stroke-width="2"/>
+            <line x1="80"  y1="320" x2="320" y2="320" stroke="currentColor" stroke-width="2"/>
+            <line x1="120" y1="120" x2="120" y2="280" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="280" y1="120" x2="280" y2="280" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="120" y1="120" x2="280" y2="120" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="120" y1="280" x2="280" y2="280" stroke="currentColor" stroke-width="1.5"/>
+          </g>
+          <g class="silhouette">
+            <circle cx="200" cy="148" r="22" fill="currentColor"/>
+            <path d="M 200 170 L 200 270 M 200 200 L 165 240 M 200 200 L 235 240 M 200 270 L 175 340 M 200 270 L 225 340"
+                  stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none"/>
+          </g>
+        </svg>
+      </div>
+      <div class="scene-text">
+        <p class="scene-kicker">scene 02</p>
+        <h2>You feel <em>lost</em>.</h2>
+        <p class="scene-lede">You know you're about to walk into something you have no idea how to navigate. The walls are already starting to form.</p>
+      </div>
+    </div>
+  </article>
 
-      <!-- decorative labyrinth walls (drawn as concentric squarish paths) -->
-      <g class="labyrinth-walls" stroke="#d9cfbe" stroke-width="2" fill="none" stroke-linecap="square">
-        <rect x="60"  y="60"  width="480" height="480" rx="6"/>
-        <rect x="100" y="100" width="400" height="400" rx="4"/>
-        <rect x="140" y="140" width="320" height="320" rx="4"/>
-        <rect x="180" y="180" width="240" height="240" rx="4"/>
-        <rect x="220" y="220" width="160" height="160" rx="4"/>
-        <!-- gaps in the walls -->
-        <line x1="280" y1="60"  x2="320" y2="60"  stroke="#f6f1ea" stroke-width="6"/>
-        <line x1="500" y1="280" x2="500" y2="320" stroke="#f6f1ea" stroke-width="6"/>
-        <line x1="280" y1="540" x2="320" y2="540" stroke="#f6f1ea" stroke-width="6"/>
-        <line x1="100" y1="280" x2="100" y2="320" stroke="#f6f1ea" stroke-width="6"/>
-        <line x1="280" y1="100" x2="320" y2="100" stroke="#f6f1ea" stroke-width="6"/>
-        <line x1="460" y1="280" x2="460" y2="320" stroke="#f6f1ea" stroke-width="6"/>
-        <line x1="280" y1="500" x2="320" y2="500" stroke="#f6f1ea" stroke-width="6"/>
-        <line x1="140" y1="280" x2="140" y2="320" stroke="#f6f1ea" stroke-width="6"/>
-        <line x1="280" y1="140" x2="320" y2="140" stroke="#f6f1ea" stroke-width="6"/>
-        <line x1="420" y1="280" x2="420" y2="320" stroke="#f6f1ea" stroke-width="6"/>
-        <line x1="280" y1="460" x2="320" y2="460" stroke="#f6f1ea" stroke-width="6"/>
-        <line x1="180" y1="280" x2="180" y2="320" stroke="#f6f1ea" stroke-width="6"/>
-        <line x1="280" y1="180" x2="320" y2="180" stroke="#f6f1ea" stroke-width="6"/>
-        <line x1="380" y1="280" x2="380" y2="320" stroke="#f6f1ea" stroke-width="6"/>
-        <line x1="280" y1="420" x2="320" y2="420" stroke="#f6f1ea" stroke-width="6"/>
-        <line x1="220" y1="280" x2="220" y2="320" stroke="#f6f1ea" stroke-width="6"/>
-      </g>
+  <!-- SCENE 3 — The labyrinth IS you -->
+  <article class="scene" data-scene="3">
+    <div class="scene-stage">
+      <div class="scene-art" data-art="labyrinth">
+        <svg viewBox="0 0 400 400" aria-hidden="true">
+          <g class="labyrinth-full">
+            <rect x="40"  y="40"  width="320" height="320" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="80"  y="80"  width="240" height="240" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="120" y="120" width="160" height="160" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="160" y="160" width="80"  height="80"  rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          </g>
+          <g class="passion-words" font-family="Iowan Old Style, Georgia, serif" font-style="italic" font-size="13" fill="currentColor">
+            <text x="200" y="32"  text-anchor="middle">illustration</text>
+            <text x="386" y="200" text-anchor="end">writing</text>
+            <text x="200" y="380" text-anchor="middle">cooking</text>
+            <text x="14"  y="200" text-anchor="start">code</text>
+            <text x="200" y="72"  text-anchor="middle" opacity="0.7">music</text>
+            <text x="346" y="200" text-anchor="end" opacity="0.7">dance</text>
+            <text x="200" y="340" text-anchor="middle" opacity="0.7">photography</text>
+            <text x="54"  y="200" text-anchor="start" opacity="0.7">design</text>
+          </g>
+        </svg>
+      </div>
+      <div class="scene-text">
+        <p class="scene-kicker">scene 03</p>
+        <h2>These corridors aren't a place.</h2>
+        <p class="scene-lede">They're every passion stacked on top of every other passion. <em>They're you.</em> And the more you've collected, the more impossible it becomes to tell anyone, in one clear sentence, who you are.</p>
+      </div>
+    </div>
+  </article>
 
-      <!-- Ariadne (the source of the thread) -->
-      <g class="ariadne">
-        <circle cx="300" cy="300" r="32" fill="url(#ariadneGlow)" class="ariadne-glow"/>
-        <circle cx="300" cy="300" r="6" fill="#c2410c"/>
-      </g>
+  <!-- SCENE 4 — The thread -->
+  <article class="scene" data-scene="4">
+    <div class="scene-stage">
+      <div class="scene-art" data-art="thread-need">
+        <svg viewBox="0 0 400 400" aria-hidden="true">
+          <path class="thread-line" d="M 60 200 Q 200 100 340 200" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="scene-text">
+        <p class="scene-kicker">scene 04</p>
+        <h2>To get through, you need <em>one thing</em>.</h2>
+        <p class="scene-lede big">A <em>thread</em>.</p>
+      </div>
+    </div>
+  </article>
 
-      <!-- THE THREAD — winds outward from the center through the maze gaps -->
-      <!-- path drawn from center (300,300) outward through gaps to outside -->
-      <path id="thread"
-            d="M 300 300
-               L 300 280
-               L 220 280 L 220 320 L 380 320 L 380 280 L 300 280
-               L 300 220
-               L 180 220 L 180 320 L 420 320 L 420 220 L 300 220
-               L 300 180
-               L 140 180 L 140 320 L 460 320 L 460 180 L 300 180
-               L 300 140
-               L 100 140 L 100 320 L 500 320 L 500 140 L 300 140
-               L 300 100
-               L 60 100  L 60 320  L 540 320 L 540 100 L 300 100
-               L 300 60
-               L 300 30"
-            fill="none"
-            stroke="url(#threadGrad)"
-            stroke-width="3"
-            stroke-linecap="round"
-            stroke-linejoin="round"/>
+  <!-- SCENE 5 — Ariadne -->
+  <article class="scene" data-scene="5">
+    <div class="scene-stage">
+      <div class="scene-art" data-art="ariadne">
+        <svg viewBox="0 0 400 400" aria-hidden="true">
+          <g class="ariadne-figure">
+            <circle cx="120" cy="148" r="22" fill="currentColor"/>
+            <path d="M 120 170 L 120 270 M 120 200 L 95 240 M 120 200 L 160 220 M 120 270 L 100 340 M 120 270 L 140 340"
+                  stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none"/>
+          </g>
+          <g class="skein" data-skein>
+            <circle cx="190" cy="220" r="18" fill="none" stroke="#c2410c" stroke-width="3"/>
+            <circle cx="190" cy="220" r="12" fill="none" stroke="#c2410c" stroke-width="2.5"/>
+            <circle cx="190" cy="220" r="6"  fill="#c2410c"/>
+          </g>
+          <path class="skein-tail" d="M 190 220 L 240 220" fill="none" stroke="#c2410c" stroke-width="2.5" stroke-linecap="round"/>
+          <g class="theseus-figure">
+            <circle cx="280" cy="148" r="22" fill="currentColor"/>
+            <path d="M 280 170 L 280 270 M 280 200 L 240 220 M 280 200 L 305 240 M 280 270 L 260 340 M 280 270 L 300 340"
+                  stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none"/>
+          </g>
+        </svg>
+      </div>
+      <div class="scene-text">
+        <p class="scene-kicker">scene 05</p>
+        <h2><em>Ariadne</em> is here for you.</h2>
+        <p class="scene-lede">She holds the entrance. You hold the other end. And the skein <em>(matassa)</em> unspools as you walk.</p>
+      </div>
+    </div>
+  </article>
 
-      <!-- Theseus — a small glowing dot that rides the thread -->
-      <g class="theseus">
-        <circle r="14" fill="url(#theseusGlow)"/>
-        <circle r="5" fill="#fff5e1" stroke="#c2410c" stroke-width="1.5"/>
-        <animateMotion dur="6s" begin="1s" fill="freeze" rotate="auto"
-                       calcMode="linear">
-          <mpath href="#thread"/>
-        </animateMotion>
-      </g>
+  <!-- SCENE 6 — CTA -->
+  <article class="scene scene-cta" data-scene="6">
+    <div class="scene-stage">
+      <div class="scene-art" data-art="handoff">
+        <svg viewBox="0 0 400 400" aria-hidden="true">
+          <g class="handoff-figure">
+            <circle cx="200" cy="148" r="22" fill="currentColor"/>
+            <path d="M 200 170 L 200 270 M 200 200 L 165 240 M 200 200 L 235 240 M 200 270 L 175 340 M 200 270 L 225 340"
+                  stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none"/>
+          </g>
+          <path class="thread-unspooled" d="M 60 60 Q 120 200 180 200 T 300 220 Q 280 260 235 240"
+                fill="none" stroke="#c2410c" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="scene-text">
+        <p class="scene-kicker">your turn</p>
+        <h2>Let's find <em>your</em> thread.</h2>
+        <p class="scene-lede">Ariadne is the patient companion that turns the beautiful mess of everything you do into a personal brand with a real spine.</p>
+        <div class="hero-cta">
+          <a class="btn primary big" href="#waitlist">Join the waitlist</a>
+          <a class="btn ghost big" href="app.html">Try the prototype</a>
+        </div>
+        <p class="microcopy">Free. No app to install. We're shaping it slowly with the first hundred people.</p>
+      </div>
+    </div>
+  </article>
 
-      <!-- caption emerging at the exit -->
-      <text x="300" y="22" text-anchor="middle"
-            class="exit-label" font-family="Iowan Old Style, Georgia, serif"
-            font-size="14" fill="#6b4f2a" opacity="0">
-        the way out
-      </text>
-    </svg>
-  </div>
 </section>
 
 <!-- ============================================================ -->
@@ -209,8 +258,8 @@
     <article class="how-card">
       <span class="how-num">04</span>
       <h3>Stay with it</h3>
-      <p>Every week or two, Ariadne checks in. Five short questions:
-      what you posted, what was hard, what felt right. The thread stays alive.</p>
+      <p>Every week or two, Ariadne checks in. Five short questions plus a quick log
+      of your platform numbers — so you can see whether the plan is working.</p>
     </article>
   </div>
 </section>
@@ -262,6 +311,10 @@
   <p>Ariadne · for those who do too many things · made slow</p>
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="config.js"></script>
 <script src="landing.js"></script>
+<script src="register-sw.js"></script>
 </body>
 </html>

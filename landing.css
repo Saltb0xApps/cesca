@@ -1,56 +1,103 @@
 /* Landing page — Ariadne. Layered on top of styles.css. */
 
-body.landing {
-  background: var(--bg);
-  overflow-x: hidden;
-}
-
+body.landing { background: var(--bg); overflow-x: hidden; }
 .landing-topbar { border-bottom: 1px solid var(--line); }
 .landing-topbar .nav-btn { text-decoration: none; }
 
-/* ---------- HERO ---------- */
-.hero-stage {
+/* ============ NARRATIVE SCENES ============ */
+.narrative {
+  position: relative;
+  background: var(--bg);
+}
+
+.scene {
+  min-height: 130vh;
+  display: block;
+  position: relative;
+}
+
+.scene-stage {
+  height: 100vh;
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-  gap: 48px;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
+  gap: 56px;
   max-width: 1180px;
   margin: 0 auto;
-  padding: 72px 32px 60px;
+  padding: 0 32px;
 }
 
-.hero-copy h1 {
-  font-size: clamp(40px, 6vw, 72px);
-  line-height: 1.02;
-  letter-spacing: -0.02em;
-  margin-bottom: 22px;
-}
-.hero-copy h1 em { color: var(--thread); font-style: italic; }
-.hero-copy .lede { font-size: 18px; max-width: 52ch; }
-.hero-cta {
-  display: flex; gap: 12px; flex-wrap: wrap;
-  margin: 28px 0 8px;
-}
-.hero-cta a { text-decoration: none; }
-
-.hero-art {
-  position: relative;
-  aspect-ratio: 1 / 1;
+.scene-text { max-width: 52ch; }
+.scene-art {
   width: 100%;
-  max-width: 560px;
-  margin: 0 auto;
+  aspect-ratio: 1 / 1;
+  max-width: 460px;
+  justify-self: center;
+  color: var(--ink-soft);
 }
-#labyrinth {
-  width: 100%; height: 100%;
-  display: block;
-  filter: drop-shadow(0 30px 60px rgba(26,24,21,0.08));
-}
-.labyrinth-walls { opacity: 0.85; }
-.ariadne-glow { transform-origin: 300px 300px; opacity: 0; }
+.scene-art svg { width: 100%; height: 100%; display: block; }
 
-#thread {
-  /* dasharray is set by JS to the path length */
-  filter: drop-shadow(0 0 6px rgba(194,65,12,0.35));
+.scene-kicker {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  margin: 0 0 14px;
+  font-family: var(--sans);
+}
+.scene-text h2 {
+  font-family: var(--serif);
+  font-size: clamp(36px, 5.6vw, 64px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0 0 20px;
+}
+.scene-text h2 em { font-style: italic; color: var(--thread); }
+.scene-lede {
+  font-size: 19px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin: 0;
+}
+.scene-lede em { font-style: italic; color: var(--thread); }
+.scene-lede.big {
+  font-family: var(--serif);
+  font-size: clamp(28px, 4vw, 44px);
+  color: var(--ink);
+  margin-top: 12px;
+}
+
+/* CTA scene */
+.scene-cta .scene-stage { padding-bottom: 80px; }
+.scene-cta .hero-cta {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  margin: 24px 0 8px;
+}
+.scene-cta .hero-cta a { text-decoration: none; }
+
+/* Fallback (no GSAP): IntersectionObserver fades scenes in */
+.scene:not(.visible) .scene-text,
+.scene:not(.visible) .scene-art {
+  opacity: 0;
+  transform: translateY(24px);
+}
+.scene .scene-text,
+.scene .scene-art {
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+/* When GSAP is in use, it controls these — but having them as fallback is harmless */
+
+/* Per-scene art styles */
+.silhouette { color: var(--ink); }
+.walls-fading { color: var(--muted); }
+.labyrinth-full { color: var(--ink); }
+.passion-words { color: var(--thread); }
+.thread-line { color: var(--accent); }
+.skein circle:first-child { animation: pulse 2.6s ease-in-out infinite; transform-origin: 190px 220px; }
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.08); }
 }
 
 /* ---------- MYTH SECTION ---------- */
@@ -61,24 +108,17 @@ body.landing {
   padding: 80px 32px;
 }
 .myth-grid {
-  max-width: 1080px;
-  margin: 0 auto;
+  max-width: 1080px; margin: 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-  gap: 56px;
-  align-items: center;
+  gap: 56px; align-items: center;
 }
-.myth-text h2 {
-  font-size: clamp(28px, 4vw, 44px);
-  line-height: 1.1;
-  margin-bottom: 20px;
-}
+.myth-text h2 { font-size: clamp(28px, 4vw, 44px); line-height: 1.1; margin-bottom: 20px; }
 .myth-text em { color: var(--thread); font-style: italic; }
 .myth-text .lede { margin-bottom: 18px; max-width: 56ch; }
 
 .myth-quote blockquote {
-  margin: 0;
-  padding: 28px 32px;
+  margin: 0; padding: 28px 32px;
   border-left: 3px solid var(--accent);
   background: var(--card);
   border-radius: 6px;
@@ -90,13 +130,9 @@ body.landing {
   box-shadow: var(--shadow);
 }
 .myth-quote cite {
-  display: block;
-  margin-top: 14px;
-  font-style: normal;
-  font-family: var(--sans);
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
+  display: block; margin-top: 14px;
+  font-style: normal; font-family: var(--sans);
+  font-size: 13px; text-transform: uppercase; letter-spacing: 0.16em;
   color: var(--muted);
 }
 
@@ -106,9 +142,7 @@ body.landing {
 .section-head h2 { font-size: clamp(28px, 4vw, 44px); margin: 0; }
 
 .how-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px;
 }
 .how-card {
   background: var(--card);
@@ -121,12 +155,8 @@ body.landing {
 }
 .how-card:hover { transform: translateY(-2px); border-color: var(--accent); }
 .how-num {
-  font-family: var(--serif);
-  font-size: 13px;
-  letter-spacing: 0.2em;
-  color: var(--accent);
-  margin-bottom: 14px;
-  display: block;
+  font-family: var(--serif); font-size: 13px; letter-spacing: 0.2em;
+  color: var(--accent); margin-bottom: 14px; display: block;
 }
 .how-card h3 { font-size: 20px; margin-bottom: 8px; }
 .how-card p { color: var(--ink-soft); margin: 0; }
@@ -139,11 +169,7 @@ body.landing {
     var(--bg);
   border-top: 1px solid var(--line);
 }
-.waitlist-shell {
-  max-width: 640px;
-  margin: 0 auto;
-  text-align: center;
-}
+.waitlist-shell { max-width: 640px; margin: 0 auto; text-align: center; }
 .waitlist-shell h2 { font-size: clamp(28px, 4vw, 44px); margin: 0 0 16px; }
 .waitlist-shell .lede { margin: 0 auto 28px; max-width: 52ch; }
 
@@ -155,30 +181,14 @@ body.landing {
   text-align: left;
   box-shadow: var(--shadow);
 }
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-.form-field {
-  display: flex; flex-direction: column;
-  margin-top: 14px;
-}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-field { display: flex; flex-direction: column; margin-top: 14px; }
 .form-field span {
-  font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 6px;
-  color: var(--ink);
-  letter-spacing: 0.01em;
+  font-size: 13px; font-weight: 500;
+  margin-bottom: 6px; color: var(--ink); letter-spacing: 0.01em;
 }
 .form-field input { padding: 12px 14px; }
-.form-actions {
-  margin-top: 22px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
+.form-actions { margin-top: 22px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
 
 .waitlist-success {
   background: var(--card);
@@ -192,18 +202,42 @@ body.landing {
 .waitlist-success h3 { font-size: 28px; margin: 8px 0 12px; }
 .waitlist-success a { text-decoration: none; margin-top: 14px; display: inline-block; }
 
+/* ---------- INSTALL BANNER (PWA prompt) ---------- */
+.install-banner {
+  position: fixed;
+  left: 16px; right: 16px; bottom: 16px;
+  max-width: 480px; margin: 0 auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: 0 16px 40px -12px rgba(26,24,21,0.25);
+  display: flex; align-items: center; gap: 12px;
+  z-index: 50;
+}
+.install-banner p { margin: 0; flex: 1; font-size: 14px; }
+.install-banner .btn { padding: 8px 14px; font-size: 14px; }
+.install-banner .close {
+  background: none; border: none; cursor: pointer; color: var(--muted);
+  font-size: 18px; padding: 0 4px;
+}
+
 /* ---------- responsive ---------- */
 @media (max-width: 880px) {
-  .hero-stage { grid-template-columns: 1fr; padding: 48px 24px; gap: 32px; }
-  .hero-art { max-width: 420px; }
-  .myth-grid { grid-template-columns: 1fr; gap: 32px; padding: 0; }
+  .scene { min-height: auto; padding: 60px 0; }
+  .scene-stage {
+    height: auto; min-height: 80vh;
+    grid-template-columns: 1fr;
+    gap: 32px; padding: 0 24px;
+  }
+  .scene-art { max-width: 320px; order: -1; }
+  .myth-grid { grid-template-columns: 1fr; gap: 32px; }
   .myth-section, .how-section, .waitlist-section { padding-left: 24px; padding-right: 24px; }
   .form-row { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* don't fight the user — show the thread fully drawn immediately */
-  #thread { stroke-dashoffset: 0 !important; }
-  .ariadne-glow { opacity: 1 !important; }
-  .exit-label { opacity: 1 !important; }
+  .scene .scene-text,
+  .scene .scene-art { opacity: 1 !important; transform: none !important; }
+  .skein circle:first-child { animation: none !important; }
 }
