@@ -23,48 +23,39 @@
 
   if (hasGSAP) {
     gsap.registerPlugin(ScrollTrigger);
-    const isWide = window.matchMedia("(min-width: 880px)").matches;
 
-    scenes.forEach((scene, idx) => {
-      const stage = scene.querySelector(".scene-stage");
-      const art  = scene.querySelector(".scene-art");
-      if (!stage) return;
+    // Each scene gets a single one-shot reveal as it enters view. No pinning,
+    // no scrub — scrolling stays continuous, the page is ~30% shorter, and
+    // each scene's details animate in fast (≤ 800ms) once.
+    const revealOpts = { start: "top 75%", once: true };
 
-      // Pin each scene-stage so each scene holds the viewport for its own
-      // scroll length. No opacity dance — the scene is visible from the start
-      // and only the per-scene SVG details get scrubbed by scroll position.
-      if (isWide) {
-        ScrollTrigger.create({
-          trigger: scene,
-          start: "top top",
-          end: "bottom top",
-          pin: stage,
-          pinSpacing: true,
-        });
-      }
-
-      // Per-scene art animations
+    scenes.forEach((scene) => {
+      const art = scene.querySelector(".scene-art");
       const artType = art && art.dataset.art;
 
       if (artType === "walls") {
-        const lines = scene.querySelectorAll(".walls-fading line");
-        gsap.from(lines, {
+        gsap.from(scene.querySelectorAll(".walls-fading line"), {
           opacity: 0,
+          duration: 0.5,
           stagger: 0.06,
-          scrollTrigger: { trigger: scene, start: "top 80%", end: "top 30%", scrub: true }
+          scrollTrigger: { trigger: scene, ...revealOpts },
         });
       }
 
       if (artType === "labyrinth") {
-        const rects = scene.querySelectorAll(".labyrinth-full rect");
-        const words = scene.querySelectorAll(".passion-words text");
-        gsap.from(rects, {
-          opacity: 0, stagger: 0.1,
-          scrollTrigger: { trigger: scene, start: "top 80%", end: "top 30%", scrub: true }
+        gsap.from(scene.querySelectorAll(".labyrinth-full rect"), {
+          opacity: 0,
+          duration: 0.4,
+          stagger: 0.08,
+          scrollTrigger: { trigger: scene, ...revealOpts },
         });
-        gsap.from(words, {
-          opacity: 0, y: 6, stagger: 0.05,
-          scrollTrigger: { trigger: scene, start: "top 60%", end: "top 20%", scrub: true }
+        gsap.from(scene.querySelectorAll(".passion-words text"), {
+          opacity: 0,
+          y: 6,
+          duration: 0.4,
+          stagger: 0.05,
+          delay: 0.35,
+          scrollTrigger: { trigger: scene, ...revealOpts },
         });
       }
 
@@ -76,18 +67,22 @@
           path.style.strokeDashoffset = len;
           gsap.to(path, {
             strokeDashoffset: 0,
-            scrollTrigger: { trigger: scene, start: "top 80%", end: "top 20%", scrub: true }
+            duration: 0.7,
+            ease: "power2.out",
+            scrollTrigger: { trigger: scene, ...revealOpts },
           });
         }
       }
 
       if (artType === "ariadne") {
         const skein = scene.querySelector(".skein");
-        const tail  = scene.querySelector(".skein-tail");
+        const tail = scene.querySelector(".skein-tail");
         if (skein) {
           gsap.fromTo(skein, { x: 0 }, {
-            x: 40, // moves toward Theseus
-            scrollTrigger: { trigger: scene, start: "top 70%", end: "top 20%", scrub: true }
+            x: 40,
+            duration: 0.6,
+            ease: "power2.out",
+            scrollTrigger: { trigger: scene, ...revealOpts },
           });
         }
         if (tail) {
@@ -96,7 +91,9 @@
           tail.style.strokeDashoffset = len;
           gsap.to(tail, {
             strokeDashoffset: 0,
-            scrollTrigger: { trigger: scene, start: "top 60%", end: "top 20%", scrub: true }
+            duration: 0.6,
+            ease: "power2.out",
+            scrollTrigger: { trigger: scene, ...revealOpts },
           });
         }
       }
@@ -109,7 +106,9 @@
           path.style.strokeDashoffset = len;
           gsap.to(path, {
             strokeDashoffset: 0,
-            scrollTrigger: { trigger: scene, start: "top 80%", end: "top 30%", scrub: true }
+            duration: 0.8,
+            ease: "power2.out",
+            scrollTrigger: { trigger: scene, ...revealOpts },
           });
         }
       }
