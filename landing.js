@@ -25,8 +25,8 @@
     gsap.registerPlugin(ScrollTrigger);
 
     // Each scene gets a single one-shot reveal as it enters view. No pinning,
-    // no scrub — scrolling stays continuous, the page is ~30% shorter, and
-    // each scene's details animate in fast (≤ 800ms) once.
+    // no scrub — scrolling stays continuous and each scene's details animate
+    // in fast (≤ 500ms) once.
     const revealOpts = { start: "top 75%", once: true };
 
     scenes.forEach((scene) => {
@@ -36,8 +36,8 @@
       if (artType === "walls") {
         gsap.from(scene.querySelectorAll(".walls-fading line"), {
           opacity: 0,
-          duration: 0.5,
-          stagger: 0.06,
+          duration: 0.35,
+          stagger: 0.04,
           scrollTrigger: { trigger: scene, ...revealOpts },
         });
       }
@@ -45,16 +45,16 @@
       if (artType === "labyrinth") {
         gsap.from(scene.querySelectorAll(".labyrinth-full rect"), {
           opacity: 0,
-          duration: 0.4,
-          stagger: 0.08,
+          duration: 0.3,
+          stagger: 0.05,
           scrollTrigger: { trigger: scene, ...revealOpts },
         });
         gsap.from(scene.querySelectorAll(".passion-words text"), {
           opacity: 0,
           y: 6,
-          duration: 0.4,
-          stagger: 0.05,
-          delay: 0.35,
+          duration: 0.3,
+          stagger: 0.035,
+          delay: 0.25,
           scrollTrigger: { trigger: scene, ...revealOpts },
         });
       }
@@ -67,7 +67,7 @@
           path.style.strokeDashoffset = len;
           gsap.to(path, {
             strokeDashoffset: 0,
-            duration: 0.7,
+            duration: 0.45,
             ease: "power2.out",
             scrollTrigger: { trigger: scene, ...revealOpts },
           });
@@ -80,7 +80,7 @@
         if (skein) {
           gsap.fromTo(skein, { x: 0 }, {
             x: 40,
-            duration: 0.6,
+            duration: 0.4,
             ease: "power2.out",
             scrollTrigger: { trigger: scene, ...revealOpts },
           });
@@ -91,7 +91,7 @@
           tail.style.strokeDashoffset = len;
           gsap.to(tail, {
             strokeDashoffset: 0,
-            duration: 0.6,
+            duration: 0.4,
             ease: "power2.out",
             scrollTrigger: { trigger: scene, ...revealOpts },
           });
@@ -106,7 +106,7 @@
           path.style.strokeDashoffset = len;
           gsap.to(path, {
             strokeDashoffset: 0,
-            duration: 0.8,
+            duration: 0.5,
             ease: "power2.out",
             scrollTrigger: { trigger: scene, ...revealOpts },
           });

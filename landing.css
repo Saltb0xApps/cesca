@@ -11,14 +11,14 @@ body.landing { background: var(--bg); overflow-x: hidden; }
 }
 
 .scene {
-  min-height: 90vh;
+  min-height: 80vh;
   display: block;
   position: relative;
-  padding: 40px 0;
+  padding: 32px 0;
 }
 
 .scene-stage {
-  min-height: 80vh;
+  min-height: 70vh;
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: center;
