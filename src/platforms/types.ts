@@ -1,9 +1,18 @@
 import type { DownloadedMedia } from "../media/download.js";
 
 export interface PublishInput {
+  // Main body/caption already resolved for this platform (override or default).
   content: string;
   media: DownloadedMedia[];
-  overrides: Record<string, unknown>;
+
+  // Optional platform-specific fields. Each adapter only reads what it needs.
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  tags?: string[];
+  visibility?: string;
+  firstComment?: string;
+  privacy?: string;
 }
 
 export interface PublishResult {
