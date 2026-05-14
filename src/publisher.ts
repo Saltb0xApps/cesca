@@ -1,4 +1,4 @@
-import { downloadMedia, type DownloadedMedia } from "./media/download.js";
+import { downloadMedia, type DownloadedMedia } from "./media/download";
 import {
   fetchReadyRows,
   markFailed,
@@ -6,16 +6,16 @@ import {
   markResult,
   type NotionFile,
   type ReadyRow,
-} from "./notion/queries.js";
-import type { Platform } from "./notion/schema.js";
-import { adapters } from "./platforms/index.js";
-import type { PublishInput } from "./platforms/types.js";
+} from "./notion/queries";
+import type { Platform } from "./notion/schema";
+import { adapters } from "./platforms/index";
+import type { PublishInput } from "./platforms/types";
 import {
   formatPartial,
   formatPublishFailure,
   formatPublishSuccess,
   sendTelegramMessage,
-} from "./notify/telegram.js";
+} from "./notify/telegram";
 
 class MediaCache {
   private cache = new Map<string, Promise<DownloadedMedia>>();

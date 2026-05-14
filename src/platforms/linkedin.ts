@@ -1,9 +1,9 @@
-import { config } from "../config.js";
+import { config } from "../config";
 import type {
   PlatformAdapter,
   PublishInput,
   PublishResult,
-} from "./types.js";
+} from "./types";
 
 const LINKEDIN_API_VERSION = "202405";
 const REST_BASE = "https://api.linkedin.com/rest";
@@ -53,7 +53,7 @@ async function uploadImageBinary(uploadUrl: string, token: string, buf: Buffer) 
   const res = await fetch(uploadUrl, {
     method: "PUT",
     headers: { Authorization: `Bearer ${token}` },
-    body: buf,
+    body: new Uint8Array(buf),
   });
   if (!res.ok) {
     throw new Error(

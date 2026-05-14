@@ -1,4 +1,4 @@
-import { config } from "../src/config.js";
+import { config } from "../src/config";
 
 async function main() {
   const token = config.telegram.botToken;

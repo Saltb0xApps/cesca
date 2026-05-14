@@ -1,9 +1,9 @@
-import { config } from "../config.js";
+import { config } from "../config";
 import type {
   PlatformAdapter,
   PublishInput,
   PublishResult,
-} from "./types.js";
+} from "./types";
 
 export const substack: PlatformAdapter = {
   name: "substack",

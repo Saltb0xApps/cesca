@@ -2,11 +2,13 @@
   "name": "cesca",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
     "setup:notion": "tsx scripts/setup-notion-db.ts",
     "migrate:notion": "tsx scripts/migrate-notion-db.ts",
     "setup:telegram": "tsx scripts/setup-telegram.ts",
@@ -16,11 +18,15 @@
   },
   "dependencies": {
     "@notionhq/client": "^2.2.15",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",
-    "@vercel/node": "^3.2.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "tsx": "^4.19.0",
     "typescript": "^5.4.5"
   }

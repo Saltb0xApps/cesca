@@ -1,4 +1,4 @@
-import type { DownloadedMedia } from "../media/download.js";
+import type { DownloadedMedia } from "../media/download";
 
 export interface PublishInput {
   // Main body/caption already resolved for this platform (override or default).

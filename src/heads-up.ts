@@ -1,8 +1,8 @@
 import {
   fetchUpcomingRows,
   markHeadsUpSent,
-} from "./notion/queries.js";
-import { formatHeadsUp, sendTelegramMessage } from "./notify/telegram.js";
+} from "./notion/queries";
+import { formatHeadsUp, sendTelegramMessage } from "./notify/telegram";
 
 const HEADS_UP_WINDOW_MINUTES = 15;
 

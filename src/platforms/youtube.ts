@@ -2,7 +2,7 @@ import type {
   PlatformAdapter,
   PublishInput,
   PublishResult,
-} from "./types.js";
+} from "./types";
 
 // YouTube Data API v3 resumable upload:
 //   1. POST /upload/youtube/v3/videos?uploadType=resumable with snippet metadata

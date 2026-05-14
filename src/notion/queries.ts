@@ -1,5 +1,5 @@
-import { notion } from "./client.js";
-import { PROP, STATUS, type Platform } from "./schema.js";
+import { notion } from "./client";
+import { PROP, STATUS, type Platform } from "./schema";
 
 export interface NotionFile {
   url: string;
@@ -92,6 +92,43 @@ function mapRow(page: any): ReadyRow {
     substackSubtitle: richText(p[PROP.substackSubtitle]),
     substackBody: richText(p[PROP.substackBody]),
   };
+}
+
+export interface DashboardRow {
+  pageId: string;
+  name: string;
+  status: string;
+  platforms: Platform[];
+  scheduledFor: string | null;
+  publishedUrls: string;
+  lastError: string;
+  publishedAt: string | null;
+  lastEditedTime: string;
+}
+
+export async function fetchRecentRows(
+  databaseId: string,
+  pageSize = 50,
+): Promise<DashboardRow[]> {
+  const res = await notion.databases.query({
+    database_id: databaseId,
+    sorts: [{ timestamp: "last_edited_time", direction: "descending" }],
+    page_size: pageSize,
+  });
+  return res.results.map((page: any) => {
+    const p = page.properties;
+    return {
+      pageId: page.id,
+      name: plainText(p[PROP.name]?.title || []),
+      status: selectName(p[PROP.status]) || "",
+      platforms: multiSelect(p[PROP.platforms]) as Platform[],
+      scheduledFor: p[PROP.scheduledFor]?.date?.start || null,
+      publishedUrls: richText(p[PROP.publishedUrls]),
+      lastError: richText(p[PROP.lastError]),
+      publishedAt: p[PROP.publishedAt]?.date?.start || null,
+      lastEditedTime: page.last_edited_time,
+    };
+  });
 }
 
 export async function fetchReadyRows(databaseId: string): Promise<ReadyRow[]> {

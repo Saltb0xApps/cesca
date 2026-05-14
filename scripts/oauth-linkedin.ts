@@ -1,6 +1,6 @@
 import http from "node:http";
 import crypto from "node:crypto";
-import { config } from "../src/config.js";
+import { config } from "../src/config";
 
 const PORT = 5173;
 const REDIRECT_URI = `http://localhost:${PORT}/callback`;

@@ -1,37 +1,57 @@
 import "dotenv/config";
 
-function required(name: string): string {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing required env var: ${name}`);
-  return v;
-}
-
-function optional(name: string): string | undefined {
+function env(name: string): string | undefined {
   return process.env[name] || undefined;
 }
 
 export const config = {
   notion: {
-    token: required("NOTION_TOKEN"),
-    parentPageId: optional("NOTION_PARENT_PAGE_ID"),
-    databaseId: optional("NOTION_DATABASE_ID"),
+    get token() {
+      return env("NOTION_TOKEN");
+    },
+    get parentPageId() {
+      return env("NOTION_PARENT_PAGE_ID");
+    },
+    get databaseId() {
+      return env("NOTION_DATABASE_ID");
+    },
   },
   cron: {
-    secret: optional("CRON_SECRET"),
+    get secret() {
+      return env("CRON_SECRET");
+    },
   },
   linkedin: {
-    clientId: optional("LINKEDIN_CLIENT_ID"),
-    clientSecret: optional("LINKEDIN_CLIENT_SECRET"),
-    accessToken: optional("LINKEDIN_ACCESS_TOKEN"),
-    refreshToken: optional("LINKEDIN_REFRESH_TOKEN"),
-    tokenExpiresAt: optional("LINKEDIN_TOKEN_EXPIRES_AT"),
-    authorUrn: optional("LINKEDIN_AUTHOR_URN"),
+    get clientId() {
+      return env("LINKEDIN_CLIENT_ID");
+    },
+    get clientSecret() {
+      return env("LINKEDIN_CLIENT_SECRET");
+    },
+    get accessToken() {
+      return env("LINKEDIN_ACCESS_TOKEN");
+    },
+    get refreshToken() {
+      return env("LINKEDIN_REFRESH_TOKEN");
+    },
+    get tokenExpiresAt() {
+      return env("LINKEDIN_TOKEN_EXPIRES_AT");
+    },
+    get authorUrn() {
+      return env("LINKEDIN_AUTHOR_URN");
+    },
   },
   substack: {
-    publication: optional("SUBSTACK_PUBLICATION"),
+    get publication() {
+      return env("SUBSTACK_PUBLICATION");
+    },
   },
   telegram: {
-    botToken: optional("TELEGRAM_BOT_TOKEN"),
-    chatId: optional("TELEGRAM_CHAT_ID"),
+    get botToken() {
+      return env("TELEGRAM_BOT_TOKEN");
+    },
+    get chatId() {
+      return env("TELEGRAM_CHAT_ID");
+    },
   },
 };

@@ -1,6 +1,6 @@
-import { notion } from "../src/notion/client.js";
-import { config } from "../src/config.js";
-import { PROP, PROPERTY_DEFS, propertySchema } from "../src/notion/schema.js";
+import { notion } from "../src/notion/client";
+import { config } from "../src/config";
+import { PROP, PROPERTY_DEFS, propertySchema } from "../src/notion/schema";
 
 const RENAMES: Record<string, string> = {
   Content: PROP.defaultCaption,

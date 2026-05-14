@@ -1,10 +1,10 @@
-import { notion } from "../src/notion/client.js";
-import { config } from "../src/config.js";
+import { notion } from "../src/notion/client";
+import { config } from "../src/config";
 import {
   DATABASE_TITLE,
   PROPERTY_DEFS,
   propertySchema,
-} from "../src/notion/schema.js";
+} from "../src/notion/schema";
 
 async function main() {
   const parent = config.notion.parentPageId;

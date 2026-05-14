@@ -1,6 +1,6 @@
-import { config } from "../src/config.js";
-import { runHeadsUp } from "../src/heads-up.js";
-import { runOnce } from "../src/publisher.js";
+import { config } from "../src/config";
+import { runHeadsUp } from "../src/heads-up";
+import { runOnce } from "../src/publisher";
 
 async function main() {
   if (!config.notion.databaseId) {

@@ -2,7 +2,7 @@ import type {
   PlatformAdapter,
   PublishInput,
   PublishResult,
-} from "./types.js";
+} from "./types";
 
 // Two-step flow once implemented:
 //   1. POST /{ig-user-id}/media with image_url|video_url + caption -> creation_id

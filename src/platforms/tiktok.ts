@@ -2,7 +2,7 @@ import type {
   PlatformAdapter,
   PublishInput,
   PublishResult,
-} from "./types.js";
+} from "./types";
 
 // Content Posting API flow:
 //   1. POST /v2/post/publish/video/init/ with post_info + source_info
