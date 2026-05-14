@@ -9,6 +9,7 @@
   "scripts": {
     "setup:notion": "tsx scripts/setup-notion-db.ts",
     "migrate:notion": "tsx scripts/migrate-notion-db.ts",
+    "setup:telegram": "tsx scripts/setup-telegram.ts",
     "oauth:linkedin": "tsx scripts/oauth-linkedin.ts",
     "cron:local": "tsx scripts/run-cron-once.ts",
     "typecheck": "tsc --noEmit"

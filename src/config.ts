@@ -30,4 +30,8 @@ export const config = {
   substack: {
     publication: optional("SUBSTACK_PUBLICATION"),
   },
+  telegram: {
+    botToken: optional("TELEGRAM_BOT_TOKEN"),
+    chatId: optional("TELEGRAM_CHAT_ID"),
+  },
 };

@@ -10,6 +10,12 @@ import {
 import type { Platform } from "./notion/schema.js";
 import { adapters } from "./platforms/index.js";
 import type { PublishInput } from "./platforms/types.js";
+import {
+  formatPartial,
+  formatPublishFailure,
+  formatPublishSuccess,
+  sendTelegramMessage,
+} from "./notify/telegram.js";
 
 class MediaCache {
   private cache = new Map<string, Promise<DownloadedMedia>>();
@@ -134,6 +140,22 @@ async function publishRow(row: ReadyRow) {
   }
 
   await markResult(row.pageId, urls, errors);
+  await notifyResult(row.name, urls, errors);
+}
+
+async function notifyResult(
+  name: string,
+  urls: Record<string, string>,
+  errors: Record<string, string>,
+) {
+  const hasUrls = Object.keys(urls).length > 0;
+  const hasErrors = Object.keys(errors).length > 0;
+  let message: string;
+  if (hasUrls && hasErrors) message = formatPartial(name, urls, errors);
+  else if (hasErrors) message = formatPublishFailure(name, errors);
+  else if (hasUrls) message = formatPublishSuccess(name, urls);
+  else return;
+  await sendTelegramMessage(message);
 }
 
 export async function runOnce(databaseId: string) {

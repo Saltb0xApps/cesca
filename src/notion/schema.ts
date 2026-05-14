@@ -9,6 +9,7 @@ export const PROP = {
   publishedUrls: "Published URLs",
   lastError: "Last Error",
   publishedAt: "Published At",
+  headsUpSent: "Heads-up Sent",
 
   // LinkedIn
   linkedinBody: "LinkedIn Body",
@@ -71,7 +72,8 @@ type PropertyKind =
   | { kind: "select"; options: readonly string[] }
   | { kind: "multi_select"; options: readonly string[] }
   | { kind: "date" }
-  | { kind: "files" };
+  | { kind: "files" }
+  | { kind: "checkbox" };
 
 export const PROPERTY_DEFS: Record<string, PropertyKind> = {
   [PROP.name]: { kind: "title" },
@@ -83,6 +85,7 @@ export const PROPERTY_DEFS: Record<string, PropertyKind> = {
   [PROP.publishedUrls]: { kind: "rich_text" },
   [PROP.lastError]: { kind: "rich_text" },
   [PROP.publishedAt]: { kind: "date" },
+  [PROP.headsUpSent]: { kind: "checkbox" },
 
   [PROP.linkedinBody]: { kind: "rich_text" },
   [PROP.linkedinMedia]: { kind: "files" },
@@ -124,5 +127,7 @@ export function propertySchema(name: string): any {
       return {
         multi_select: { options: def.options.map((name) => ({ name })) },
       };
+    case "checkbox":
+      return { checkbox: {} };
   }
 }

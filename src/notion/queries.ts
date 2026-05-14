@@ -153,6 +153,60 @@ export async function markResult(
           : [],
       },
       [PROP.publishedAt]: { date: { start: new Date().toISOString() } },
+      [PROP.headsUpSent]: { checkbox: false },
+    },
+  });
+}
+
+export interface UpcomingRow {
+  pageId: string;
+  name: string;
+  scheduledFor: string;
+  minutesAway: number;
+}
+
+export async function fetchUpcomingRows(
+  databaseId: string,
+  windowMinutes: number,
+): Promise<UpcomingRow[]> {
+  const now = Date.now();
+  const horizon = new Date(now + windowMinutes * 60_000).toISOString();
+  const nowIso = new Date(now).toISOString();
+
+  const res = await notion.databases.query({
+    database_id: databaseId,
+    filter: {
+      and: [
+        { property: PROP.status, select: { equals: STATUS.ready } },
+        { property: PROP.scheduledFor, date: { on_or_before: horizon } },
+        { property: PROP.scheduledFor, date: { after: nowIso } },
+        { property: PROP.headsUpSent, checkbox: { equals: false } },
+      ],
+    },
+    page_size: 25,
+  });
+
+  return res.results.map((page: any) => {
+    const p = page.properties;
+    const scheduledFor = p[PROP.scheduledFor]?.date?.start as string;
+    const minutesAway = Math.max(
+      0,
+      Math.round((new Date(scheduledFor).getTime() - now) / 60_000),
+    );
+    return {
+      pageId: page.id,
+      name: plainText(p[PROP.name]?.title || []),
+      scheduledFor,
+      minutesAway,
+    };
+  });
+}
+
+export async function markHeadsUpSent(pageId: string) {
+  await notion.pages.update({
+    page_id: pageId,
+    properties: {
+      [PROP.headsUpSent]: { checkbox: true },
     },
   });
 }
