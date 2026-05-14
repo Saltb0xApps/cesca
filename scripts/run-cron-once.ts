@@ -1,14 +1,21 @@
-import { config } from "../src/config";
+import { getAccounts } from "../src/accounts";
 import { runHeadsUp } from "../src/heads-up";
 import { runOnce } from "../src/publisher";
 
 async function main() {
-  if (!config.notion.databaseId) {
-    throw new Error("NOTION_DATABASE_ID not set — run `npm run setup:notion` first.");
+  const accounts = getAccounts();
+  if (accounts.length === 0) {
+    throw new Error(
+      "No accounts configured. Set ACCOUNTS or NOTION_DATABASE_ID + LINKEDIN_* in .env.",
+    );
   }
-  const published = await runOnce(config.notion.databaseId);
-  const headsUp = await runHeadsUp(config.notion.databaseId);
-  console.log(JSON.stringify({ published, headsUp }, null, 2));
+  const results = [];
+  for (const account of accounts) {
+    const published = await runOnce(account);
+    const headsUp = await runHeadsUp(account);
+    results.push({ account: account.name, published, headsUp });
+  }
+  console.log(JSON.stringify(results, null, 2));
 }
 
 main().catch((e) => {

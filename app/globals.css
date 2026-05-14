@@ -85,6 +85,27 @@ a {
   font-size: 12px;
 }
 
+.select {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+}
+.select:focus {
+  border-color: var(--accent);
+}
+
+.account-tag {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
 .error-pill {
   background: rgba(239, 68, 68, 0.15);
   color: var(--danger);

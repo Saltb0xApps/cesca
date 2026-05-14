@@ -1,3 +1,4 @@
+import type { Account } from "./accounts";
 import { downloadMedia, type DownloadedMedia } from "./media/download";
 import {
   fetchReadyRows,
@@ -44,6 +45,7 @@ function pickMedia(
 async function buildInputFor(
   platform: Platform,
   row: ReadyRow,
+  account: Account,
   cache: MediaCache,
 ): Promise<PublishInput> {
   switch (platform) {
@@ -52,6 +54,7 @@ async function buildInputFor(
       return {
         content: row.linkedinBody || row.defaultCaption,
         media: await cache.downloadAll(media),
+        linkedin: account.linkedin,
       };
     }
     case "instagram": {
@@ -91,13 +94,21 @@ async function buildInputFor(
   }
 }
 
-function validateFor(platform: Platform, input: PublishInput): string | null {
+function validateFor(
+  platform: Platform,
+  input: PublishInput,
+  account: Account,
+): string | null {
   switch (platform) {
     case "linkedin":
-      if (!input.content.trim()) return "LinkedIn Body / Default Caption is empty";
+      if (!account.linkedin)
+        return `No LinkedIn credentials configured for account "${account.name}"`;
+      if (!input.content.trim())
+        return "LinkedIn Body / Default Caption is empty";
       return null;
     case "instagram":
-      if (!input.media.length) return "Instagram requires at least one media file";
+      if (!input.media.length)
+        return "Instagram requires at least one media file";
       return null;
     case "tiktok":
       if (!input.media.length) return "TikTok requires a video file";
@@ -112,7 +123,7 @@ function validateFor(platform: Platform, input: PublishInput): string | null {
   }
 }
 
-async function publishRow(row: ReadyRow) {
+async function publishRow(row: ReadyRow, account: Account) {
   await markPublishing(row.pageId);
 
   const cache = new MediaCache();
@@ -126,8 +137,8 @@ async function publishRow(row: ReadyRow) {
       continue;
     }
     try {
-      const input = await buildInputFor(platform, row, cache);
-      const validationError = validateFor(platform, input);
+      const input = await buildInputFor(platform, row, account, cache);
+      const validationError = validateFor(platform, input, account);
       if (validationError) {
         errors[platform] = validationError;
         continue;
@@ -140,10 +151,11 @@ async function publishRow(row: ReadyRow) {
   }
 
   await markResult(row.pageId, urls, errors);
-  await notifyResult(row.name, urls, errors);
+  await notifyResult(account.name, row.name, urls, errors);
 }
 
 async function notifyResult(
+  accountName: string,
   name: string,
   urls: Record<string, string>,
   errors: Record<string, string>,
@@ -151,21 +163,22 @@ async function notifyResult(
   const hasUrls = Object.keys(urls).length > 0;
   const hasErrors = Object.keys(errors).length > 0;
   let message: string;
-  if (hasUrls && hasErrors) message = formatPartial(name, urls, errors);
-  else if (hasErrors) message = formatPublishFailure(name, errors);
-  else if (hasUrls) message = formatPublishSuccess(name, urls);
+  if (hasUrls && hasErrors)
+    message = formatPartial(accountName, name, urls, errors);
+  else if (hasErrors) message = formatPublishFailure(accountName, name, errors);
+  else if (hasUrls) message = formatPublishSuccess(accountName, name, urls);
   else return;
   await sendTelegramMessage(message);
 }
 
-export async function runOnce(databaseId: string) {
-  const rows = await fetchReadyRows(databaseId);
+export async function runOnce(account: Account) {
+  const rows = await fetchReadyRows(account.notionDatabaseId);
   for (const row of rows) {
     try {
-      await publishRow(row);
+      await publishRow(row, account);
     } catch (e) {
       await markFailed(row.pageId, (e as Error).message);
     }
   }
-  return { processed: rows.length };
+  return { account: account.name, processed: rows.length };
 }

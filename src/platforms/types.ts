@@ -1,3 +1,4 @@
+import type { LinkedInCredentials } from "../accounts";
 import type { DownloadedMedia } from "../media/download";
 
 export interface PublishInput {
@@ -13,6 +14,9 @@ export interface PublishInput {
   visibility?: string;
   firstComment?: string;
   privacy?: string;
+
+  // Account-bound credentials supplied by the publisher.
+  linkedin?: LinkedInCredentials;
 }
 
 export interface PublishResult {

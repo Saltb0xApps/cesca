@@ -1,4 +1,3 @@
-import { config } from "../config";
 import type {
   PlatformAdapter,
   PublishInput,
@@ -7,19 +6,6 @@ import type {
 
 const LINKEDIN_API_VERSION = "202405";
 const REST_BASE = "https://api.linkedin.com/rest";
-
-function requireLinkedInConfig() {
-  const { accessToken, authorUrn } = config.linkedin;
-  if (!accessToken)
-    throw new Error(
-      "LINKEDIN_ACCESS_TOKEN not set — run `npm run oauth:linkedin`.",
-    );
-  if (!authorUrn)
-    throw new Error(
-      "LINKEDIN_AUTHOR_URN not set — run `npm run oauth:linkedin`.",
-    );
-  return { accessToken, authorUrn };
-}
 
 function headers(token: string) {
   return {
@@ -89,7 +75,12 @@ function buildContent(imageUrns: string[]) {
 export const linkedin: PlatformAdapter = {
   name: "linkedin",
   async publish(input: PublishInput): Promise<PublishResult> {
-    const { accessToken, authorUrn } = requireLinkedInConfig();
+    if (!input.linkedin) {
+      throw new Error(
+        "No LinkedIn credentials for this account — add it to ACCOUNTS or run `npm run oauth:linkedin <account-name>`.",
+      );
+    }
+    const { accessToken, authorUrn } = input.linkedin;
 
     const images = input.media.filter((m) =>
       m.contentType.startsWith("image/"),

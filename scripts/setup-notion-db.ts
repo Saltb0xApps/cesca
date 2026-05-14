@@ -14,6 +14,11 @@ async function main() {
     );
   }
 
+  const accountName = process.argv[2];
+  const title = accountName
+    ? `${DATABASE_TITLE} — ${accountName}`
+    : DATABASE_TITLE;
+
   const properties: Record<string, any> = {};
   for (const name of Object.keys(PROPERTY_DEFS)) {
     properties[name] = propertySchema(name);
@@ -21,14 +26,21 @@ async function main() {
 
   const created = await notion.databases.create({
     parent: { type: "page_id", page_id: parent },
-    title: [{ type: "text", text: { content: DATABASE_TITLE } }],
+    title: [{ type: "text", text: { content: title } }],
     properties,
   });
 
   console.log("Created database:", created.id);
   console.log("");
-  console.log("Add to .env:");
-  console.log(`NOTION_DATABASE_ID=${created.id}`);
+  if (accountName) {
+    console.log(
+      `In your ACCOUNTS env var, set notionDatabaseId for "${accountName}" to:`,
+    );
+    console.log(`  ${created.id}`);
+  } else {
+    console.log("Add to .env:");
+    console.log(`NOTION_DATABASE_ID=${created.id}`);
+  }
 }
 
 main().catch((e) => {

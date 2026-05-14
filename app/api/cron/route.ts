@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { getAccounts } from "../../../src/accounts";
 import { config } from "../../../src/config";
 import { runHeadsUp } from "../../../src/heads-up";
 import { runOnce } from "../../../src/publisher";
@@ -14,22 +15,28 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const databaseId = config.notion.databaseId;
-  if (!databaseId) {
+  const accounts = getAccounts();
+  if (accounts.length === 0) {
     return NextResponse.json(
-      { error: "NOTION_DATABASE_ID not set" },
+      { error: "No accounts configured. Set ACCOUNTS or NOTION_DATABASE_ID." },
       { status: 500 },
     );
   }
 
-  try {
-    const published = await runOnce(databaseId);
-    const headsUp = await runHeadsUp(databaseId);
-    return NextResponse.json({ ok: true, published, headsUp });
-  } catch (e) {
-    return NextResponse.json(
-      { ok: false, error: (e as Error).message },
-      { status: 500 },
-    );
+  const results = [];
+  for (const account of accounts) {
+    try {
+      const published = await runOnce(account);
+      const headsUp = await runHeadsUp(account);
+      results.push({ account: account.name, ok: true, published, headsUp });
+    } catch (e) {
+      results.push({
+        account: account.name,
+        ok: false,
+        error: (e as Error).message,
+      });
+    }
   }
+
+  return NextResponse.json({ ok: true, results });
 }

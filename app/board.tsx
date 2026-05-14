@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface Row {
   pageId: string;
+  account: string;
   name: string;
   status: string;
   platforms: string[];
@@ -12,6 +13,11 @@ interface Row {
   lastError: string;
   publishedAt: string | null;
   lastEditedTime: string;
+}
+
+interface PostsResponse {
+  accounts: string[];
+  rows: Row[];
 }
 
 const COLUMNS: Array<{ key: string; title: string; statuses: string[] }> = [
@@ -59,10 +65,11 @@ function formatScheduled(iso: string | null): string {
 }
 
 export default function Board() {
-  const [rows, setRows] = useState<Row[]>([]);
+  const [data, setData] = useState<PostsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [accountFilter, setAccountFilter] = useState<string>("all");
 
   const refresh = useCallback(async () => {
     try {
@@ -72,8 +79,7 @@ export default function Board() {
         setError(body.error || `HTTP ${res.status}`);
         return;
       }
-      const json = (await res.json()) as { rows: Row[] };
-      setRows(json.rows);
+      setData(await res.json());
       setError(null);
       setLastUpdated(new Date());
     } catch (e) {
@@ -89,26 +95,49 @@ export default function Board() {
     return () => clearInterval(id);
   }, [refresh]);
 
+  const visibleRows = useMemo(() => {
+    if (!data) return [];
+    if (accountFilter === "all") return data.rows;
+    return data.rows.filter((r) => r.account === accountFilter);
+  }, [data, accountFilter]);
+
   const grouped = useMemo(() => {
     const out: Record<string, Row[]> = {};
     for (const col of COLUMNS) out[col.key] = [];
-    for (const row of rows) {
+    for (const row of visibleRows) {
       const col = COLUMNS.find((c) => c.statuses.includes(row.status));
       if (col) out[col.key].push(row);
     }
     return out;
-  }, [rows]);
+  }, [visibleRows]);
 
   async function logout() {
     await fetch("/api/logout", { method: "POST" });
     window.location.href = "/login";
   }
 
+  const accounts = data?.accounts || [];
+  const showAccountFilter = accounts.length > 1;
+
   return (
     <div className="app">
       <header className="topbar">
         <div className="brand">Cesca</div>
         <div className="topbar-right">
+          {showAccountFilter && (
+            <select
+              className="select"
+              value={accountFilter}
+              onChange={(e) => setAccountFilter(e.target.value)}
+            >
+              <option value="all">All accounts</option>
+              {accounts.map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
+            </select>
+          )}
           {error && <span className="error-pill">{error}</span>}
           {lastUpdated && (
             <span className="muted small">
@@ -124,12 +153,17 @@ export default function Board() {
         </div>
       </header>
 
-      {loading && rows.length === 0 ? (
+      {loading && !data ? (
         <div className="loading">Loading…</div>
       ) : (
         <div className="board">
           {COLUMNS.map((col) => (
-            <Column key={col.key} title={col.title} rows={grouped[col.key]} />
+            <Column
+              key={col.key}
+              title={col.title}
+              rows={grouped[col.key]}
+              showAccount={showAccountFilter && accountFilter === "all"}
+            />
           ))}
         </div>
       )}
@@ -137,7 +171,15 @@ export default function Board() {
   );
 }
 
-function Column({ title, rows }: { title: string; rows: Row[] }) {
+function Column({
+  title,
+  rows,
+  showAccount,
+}: {
+  title: string;
+  rows: Row[];
+  showAccount: boolean;
+}) {
   return (
     <section className="column">
       <h2>
@@ -147,17 +189,20 @@ function Column({ title, rows }: { title: string; rows: Row[] }) {
         {rows.length === 0 ? (
           <div className="empty">—</div>
         ) : (
-          rows.map((r) => <Card key={r.pageId} row={r} />)
+          rows.map((r) => (
+            <Card key={r.pageId} row={r} showAccount={showAccount} />
+          ))
         )}
       </div>
     </section>
   );
 }
 
-function Card({ row }: { row: Row }) {
+function Card({ row, showAccount }: { row: Row; showAccount: boolean }) {
   const urls = parseUrls(row.publishedUrls);
   return (
     <article className="card">
+      {showAccount && <div className="account-tag">{row.account}</div>}
       <div className="card-title">{row.name || "(untitled)"}</div>
       <div className="chips">
         {row.platforms.map((p) => (

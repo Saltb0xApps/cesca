@@ -22,46 +22,57 @@ export async function sendTelegramMessage(text: string): Promise<void> {
   }
 }
 
-function escape(s: string): string {
+function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+function header(emoji: string, label: string, account: string, name: string) {
+  return `${emoji} <b>${label}</b> · <i>${esc(account)}</i>\n${esc(name)}`;
+}
+
 export function formatPublishSuccess(
+  account: string,
   name: string,
   urls: Record<string, string>,
 ): string {
   const list = Object.entries(urls)
-    .map(([p, u]) => `• <b>${p}</b>: <a href="${escape(u)}">${escape(u)}</a>`)
+    .map(([p, u]) => `• <b>${p}</b>: <a href="${esc(u)}">${esc(u)}</a>`)
     .join("\n");
-  return `✅ <b>Published</b>: ${escape(name)}\n${list}`;
+  return `${header("✅", "Published", account, name)}\n${list}`;
 }
 
 export function formatPublishFailure(
+  account: string,
   name: string,
   errors: Record<string, string>,
 ): string {
   const list = Object.entries(errors)
-    .map(([p, e]) => `• <b>${p}</b>: ${escape(e)}`)
+    .map(([p, e]) => `• <b>${p}</b>: ${esc(e)}`)
     .join("\n");
-  return `❌ <b>Publish failed</b>: ${escape(name)}\n${list}`;
+  return `${header("❌", "Publish failed", account, name)}\n${list}`;
 }
 
 export function formatPartial(
+  account: string,
   name: string,
   urls: Record<string, string>,
   errors: Record<string, string>,
 ): string {
   const ok = Object.entries(urls)
-    .map(([p, u]) => `• ✅ <b>${p}</b>: <a href="${escape(u)}">${escape(u)}</a>`)
+    .map(([p, u]) => `• ✅ <b>${p}</b>: <a href="${esc(u)}">${esc(u)}</a>`)
     .join("\n");
   const bad = Object.entries(errors)
-    .map(([p, e]) => `• ❌ <b>${p}</b>: ${escape(e)}`)
+    .map(([p, e]) => `• ❌ <b>${p}</b>: ${esc(e)}`)
     .join("\n");
-  return `⚠️ <b>Partial publish</b>: ${escape(name)}\n${[ok, bad]
+  return `${header("⚠️", "Partial publish", account, name)}\n${[ok, bad]
     .filter(Boolean)
     .join("\n")}`;
 }
 
-export function formatHeadsUp(name: string, minutesAway: number): string {
-  return `⏰ <b>Heads up</b>: "${escape(name)}" publishes in ~${minutesAway} min.`;
+export function formatHeadsUp(
+  account: string,
+  name: string,
+  minutesAway: number,
+): string {
+  return `⏰ <b>Heads up</b> · <i>${esc(account)}</i>\n"${esc(name)}" publishes in ~${minutesAway} min.`;
 }
