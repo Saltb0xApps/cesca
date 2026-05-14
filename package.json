@@ -1,0 +1,25 @@
+{
+  "name": "cesca",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "setup:notion": "tsx scripts/setup-notion-db.ts",
+    "oauth:linkedin": "tsx scripts/oauth-linkedin.ts",
+    "cron:local": "tsx scripts/run-cron-once.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@notionhq/client": "^2.2.15",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "@vercel/node": "^3.2.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.4.5"
+  }
+}
