@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getAccounts } from "../../../src/accounts";
+import { loadAccountsWithFreshTokens } from "../../../src/accounts";
 import { config } from "../../../src/config";
 import { runHeadsUp } from "../../../src/heads-up";
 import { runOnce } from "../../../src/publisher";
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const accounts = getAccounts();
+  const accounts = await loadAccountsWithFreshTokens();
   if (accounts.length === 0) {
     return NextResponse.json(
       { error: "No accounts configured. Set ACCOUNTS or NOTION_DATABASE_ID." },

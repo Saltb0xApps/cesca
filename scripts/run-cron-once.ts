@@ -1,9 +1,9 @@
-import { getAccounts } from "../src/accounts";
+import { loadAccountsWithFreshTokens } from "../src/accounts";
 import { runHeadsUp } from "../src/heads-up";
 import { runOnce } from "../src/publisher";
 
 async function main() {
-  const accounts = getAccounts();
+  const accounts = await loadAccountsWithFreshTokens();
   if (accounts.length === 0) {
     throw new Error(
       "No accounts configured. Set ACCOUNTS or NOTION_DATABASE_ID + LINKEDIN_* in .env.",
