@@ -1,1 +1,21 @@
-Projects
+Cesca — a tiny dachshund that lives in your macOS menu bar and nudges you to
+journal, check in on what you're doing, and take breaks.
+
+Build:
+    ./build-app.sh
+    open Cesca.app
+
+Add your own dachshund:
+    Drop a transparent PNG at Sources/Cesca/Resources/dachshund.png
+    (~40×40 looks best). Rebuild. Until then it falls back to 🐕.
+
+Use:
+    Click the dachshund in the menu bar for the last nudge plus controls:
+      • Nudge me now
+      • Snooze 15/30/60/180 min
+      • Interval presets (Pushy / Balanced / Chill / Background)
+      • Quit
+
+Nudges go through macOS Notification Center, so accept the permission prompt
+on first launch. To auto-start at login: System Settings → General → Login
+Items → add Cesca.app.
