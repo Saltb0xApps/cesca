@@ -14,7 +14,8 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(fa
 /* scroll reveal */
 const revealTargets = document.querySelectorAll(
   '.about__text, .about__figure, .statement, .gatherings__head, .gatheringCard, ' +
-  '.cta__content, .community__intro, .communityCard, .voice, .letterRow, .footer__subscribe'
+  '.cta__content, .community__intro, .communityCard, .map__head, .map__foot, ' +
+  '.voice, .letterRow, .footer__subscribe'
 );
 revealTargets.forEach((el, i) => {
   el.setAttribute('data-reveal', '');
