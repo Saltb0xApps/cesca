@@ -1,0 +1,196 @@
+:root {
+  --bg: #1f1d2b;
+  --card: #2a2740;
+  --accent: #ff6b6b;
+  --accent-break: #4ecdc4;
+  --text: #f4f4f8;
+  --muted: #9a96b8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 32px 16px;
+}
+
+.app {
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+
+h1 {
+  font-weight: 700;
+  margin: 0 0 24px;
+}
+
+.task-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 16px;
+  margin-bottom: 24px;
+}
+
+.task-input::placeholder {
+  color: var(--muted);
+}
+
+.timer {
+  font-size: 72px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 2px;
+}
+
+.mode {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+body.break .timer {
+  color: var(--accent-break);
+}
+
+body:not(.break) .timer {
+  color: var(--accent);
+}
+
+.controls {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 16px;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.btn:hover {
+  filter: brightness(1.2);
+}
+
+.btn-primary {
+  background: var(--accent);
+  font-weight: 600;
+  min-width: 110px;
+}
+
+body.break .btn-primary {
+  background: var(--accent-break);
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.lengths {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 32px;
+}
+
+.lengths input {
+  width: 56px;
+  padding: 4px 6px;
+  border: none;
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--text);
+  text-align: center;
+  font-size: 14px;
+}
+
+.stats {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 32px;
+}
+
+.big {
+  display: block;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.history {
+  text-align: left;
+}
+
+.history-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history h2 {
+  font-size: 16px;
+  margin: 0;
+}
+
+#historyList {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+}
+
+#historyList li {
+  background: var(--card);
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+
+#historyList .h-task {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#historyList .h-time {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+#historyList .empty {
+  color: var(--muted);
+  background: none;
+  padding: 8px 0;
+}
