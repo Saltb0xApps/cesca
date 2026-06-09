@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Modern Renaissance — A community for modern polymaths</title>
+<meta name="description" content="The Modern Renaissance — a community for multi-passionate people. Salons, dinners, retreats and letters for modern polymaths.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ SVG ENGRAVING LIBRARY ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+
+    <!-- laurel sprig — engraved branch with paired leaves -->
+    <g id="laurel">
+      <path d="M0,0 C30,-18 70,-30 120,-34" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M14,-7 C8,-22 14,-34 26,-40 C28,-26 24,-14 14,-7 Z" fill="none" stroke="currentColor" stroke-width="1.3"/>
+      <path d="M19,-4 C26,-16 38,-21 50,-19 C44,-8 33,-2 19,-4 Z" fill="none" stroke="currentColor" stroke-width="1.3"/>
+      <path d="M40,-16 C36,-31 43,-43 56,-48 C57,-34 51,-22 40,-16 Z" fill="none" stroke="currentColor" stroke-width="1.3"/>
+      <path d="M46,-13 C55,-23 67,-26 79,-23 C71,-13 59,-9 46,-13 Z" fill="none" stroke="currentColor" stroke-width="1.3"/>
+      <path d="M68,-24 C66,-39 74,-50 88,-53 C87,-39 80,-28 68,-24 Z" fill="none" stroke="currentColor" stroke-width="1.3"/>
+      <path d="M74,-21 C84,-29 96,-30 107,-26 C98,-17 86,-15 74,-21 Z" fill="none" stroke="currentColor" stroke-width="1.3"/>
+      <path d="M96,-29 C96,-43 105,-53 118,-55 C116,-42 108,-32 96,-29 Z" fill="none" stroke="currentColor" stroke-width="1.3"/>
+      <path d="M22,-32 L24,-26 M50,-40 L51,-33 M82,-45 L83,-38 M110,-47 L110,-41" stroke="currentColor" stroke-width="0.8"/>
+    </g>
+
+    <!-- swallow in flight -->
+    <g id="bird">
+      <path d="M0,0 C-14,-12 -34,-16 -52,-10 C-36,-6 -24,0 -16,8 C-26,10 -34,16 -38,24 C-26,20 -14,18 -4,20 C2,28 4,38 2,48 C8,38 12,28 12,18 C26,14 44,16 58,26 C50,12 36,2 20,0 C14,-8 6,-12 0,-12 Z"
+        fill="none" stroke="currentColor" stroke-width="1.4"/>
+      <path d="M-10,-4 C-20,-8 -32,-10 -44,-8 M-8,12 C-16,13 -24,16 -30,20 M14,4 C26,4 38,8 48,16"
+        fill="none" stroke="currentColor" stroke-width="0.8"/>
+    </g>
+
+    <!-- radiant sun -->
+    <g id="sun">
+      <circle cx="0" cy="0" r="16" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <circle cx="0" cy="0" r="11" fill="none" stroke="currentColor" stroke-width="0.8"/>
+      <g stroke="currentColor" stroke-width="1.3">
+        <path d="M0,-20 L0,-34 M0,20 L0,34 M-20,0 L-34,0 M20,0 L34,0"/>
+        <path d="M14,-14 L24,-24 M14,14 L24,24 M-14,14 L-24,24 M-14,-14 L-24,-24"/>
+      </g>
+      <g stroke="currentColor" stroke-width="0.8">
+        <path d="M8,-18 L12,-27 M18,-8 L27,-12 M18,8 L27,12 M8,18 L12,27 M-8,18 L-12,27 M-18,8 L-27,12 M-18,-8 L-27,-12 M-8,-18 L-12,-27"/>
+      </g>
+    </g>
+
+    <!-- flourish scroll -->
+    <g id="flourish">
+      <path d="M0,0 C24,-14 52,-14 72,2 C88,15 108,15 124,2 C136,-8 152,-10 164,-2"
+        fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M6,6 C28,-6 50,-6 68,8 C86,21 108,21 126,8" fill="none" stroke="currentColor" stroke-width="0.8"/>
+      <circle cx="0" cy="0" r="2.4" fill="currentColor"/>
+      <circle cx="164" cy="-2" r="2.4" fill="currentColor"/>
+    </g>
+
+    <!-- armillary sphere on a stand -->
+    <g id="armillary">
+      <!-- stand -->
+      <ellipse cx="200" cy="438" rx="78" ry="13" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <ellipse cx="200" cy="431" rx="78" ry="13" fill="none" stroke="currentColor" stroke-width="1.2"/>
+      <g stroke="currentColor" stroke-width="0.8">
+        <path d="M132,434 L134,440 M148,437 L150,443 M166,439 L167,445 M184,440 L184,446 M202,441 L202,447 M220,440 L220,446 M238,439 L237,445 M256,437 L254,443 M270,434 L268,440"/>
+      </g>
+      <path d="M200,332 C188,360 178,392 168,424 M200,332 C212,360 222,392 232,424"
+        fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M200,344 C192,366 184,394 178,420 M200,344 C208,366 216,394 222,420"
+        fill="none" stroke="currentColor" stroke-width="0.8"/>
+      <!-- axis -->
+      <path d="M118,80 L282,260" stroke="currentColor" stroke-width="1.6"/>
+      <circle cx="112" cy="74" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/>
+      <circle cx="288" cy="266" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/>
+      <!-- sphere rings -->
+      <circle cx="200" cy="170" r="148" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <circle cx="200" cy="170" r="140" fill="none" stroke="currentColor" stroke-width="0.9"/>
+      <ellipse cx="200" cy="170" rx="148" ry="44" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <ellipse cx="200" cy="170" rx="148" ry="36" fill="none" stroke="currentColor" stroke-width="0.9"/>
+      <ellipse cx="200" cy="170" rx="44" ry="148" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <ellipse cx="200" cy="170" rx="36" ry="148" fill="none" stroke="currentColor" stroke-width="0.9"/>
+      <ellipse cx="200" cy="170" rx="148" ry="92" transform="rotate(-28 200 170)" fill="none" stroke="currentColor" stroke-width="1.3"/>
+      <!-- band hatching -->
+      <g stroke="currentColor" stroke-width="0.7">
+        <path d="M62,158 L60,170 M84,148 L81,162 M108,141 L105,156 M134,136 L131,151 M162,132 L160,148 M200,131 L200,147 M238,132 L240,148 M266,136 L269,151 M292,141 L295,156 M316,148 L319,162 M338,158 L340,170"/>
+        <path d="M188,26 L176,28 M178,50 L164,53 M171,76 L156,79 M166,104 L151,107 M162,134 L147,136 M162,206 L147,204 M166,236 L151,233 M171,264 L156,261 M178,290 L164,287 M188,314 L176,312"/>
+      </g>
+      <!-- small earth at centre -->
+      <circle cx="200" cy="170" r="17" fill="none" stroke="currentColor" stroke-width="1.4"/>
+      <path d="M183,170 L217,170 M200,153 L200,187 M188,159 C196,166 204,166 212,159 M188,181 C196,174 204,174 212,181"
+        stroke="currentColor" stroke-width="0.8" fill="none"/>
+    </g>
+
+    <!-- da Vinci ornithopter — ribbed bat-wings, engraved -->
+    <g id="ornithopter">
+      <!-- left wing -->
+      <path d="M0,0 C-60,-44 -150,-64 -252,-50 C-238,-36 -230,-24 -228,-10 C-198,-26 -160,-32 -120,-26 C-136,-14 -144,-2 -146,12 C-110,-4 -66,-4 -28,8 C-18,4 -8,2 0,0 Z"
+        fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <g stroke="currentColor" stroke-width="0.9" fill="none">
+        <path d="M-6,-2 C-66,-40 -140,-56 -244,-48"/>
+        <path d="M-8,0 C-80,-16 -158,-22 -228,-12"/>
+        <path d="M-10,2 C-56,-4 -104,-2 -146,10"/>
+        <path d="M-40,-10 L-44,2 M-78,-18 L-84,-2 M-118,-26 L-126,-8 M-160,-32 L-170,-16 M-202,-40 L-212,-22"/>
+      </g>
+      <!-- right wing (mirror) -->
+      <path d="M40,0 C100,-44 190,-64 292,-50 C278,-36 270,-24 268,-10 C238,-26 200,-32 160,-26 C176,-14 184,-2 186,12 C150,-4 106,-4 68,8 C58,4 48,2 40,0 Z"
+        fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <g stroke="currentColor" stroke-width="0.9" fill="none">
+        <path d="M46,-2 C106,-40 180,-56 284,-48"/>
+        <path d="M48,0 C120,-16 198,-22 268,-12"/>
+        <path d="M50,2 C96,-4 144,-2 186,10"/>
+        <path d="M80,-10 L84,2 M118,-18 L124,-2 M158,-26 L166,-8 M200,-32 L210,-16 M242,-40 L252,-22"/>
+      </g>
+      <!-- fuselage frame -->
+      <path d="M0,0 L40,0 M4,0 C8,18 14,30 20,36 C26,30 32,18 36,0" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M8,8 L32,8 M11,16 L29,16 M14,24 L26,24" stroke="currentColor" stroke-width="0.9"/>
+      <path d="M20,36 L20,58 M12,58 L28,58 M14,64 L26,64" stroke="currentColor" stroke-width="1.2" fill="none"/>
+    </g>
+
+    <!-- quill -->
+    <g id="quill">
+      <path d="M0,0 C20,-34 52,-62 96,-78 C72,-46 52,-18 40,12 C32,10 24,8 18,8 C12,6 6,4 0,0 Z"
+        fill="none" stroke="currentColor" stroke-width="1.4"/>
+      <path d="M6,-2 C28,-32 56,-56 88,-72" fill="none" stroke="currentColor" stroke-width="0.8"/>
+      <path d="M14,-8 L24,-2 M24,-20 L36,-12 M36,-32 L48,-24 M48,-44 L60,-36 M62,-56 L72,-48" stroke="currentColor" stroke-width="0.8"/>
+      <path d="M0,0 L-14,22 L-10,24 Z" fill="none" stroke="currentColor" stroke-width="1.2"/>
+    </g>
+
+  </defs>
+</svg>
+
+<!-- ============ TICKER ============ -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker__track">
+    <span>Next gathering — Salon № 12: The Mathematics of Music · Lisbon · 21 June · 40 seats</span><span class="ticker__dot">✦</span>
+    <span>Next gathering — Salon № 12: The Mathematics of Music · Lisbon · 21 June · 40 seats</span><span class="ticker__dot">✦</span>
+    <span>Next gathering — Salon № 12: The Mathematics of Music · Lisbon · 21 June · 40 seats</span><span class="ticker__dot">✦</span>
+    <span>Next gathering — Salon № 12: The Mathematics of Music · Lisbon · 21 June · 40 seats</span><span class="ticker__dot">✦</span>
+  </div>
+</div>
+
+<!-- ============ NAV ============ -->
+<nav class="navigation">
+  <button class="navigation__burger" id="menuOpen" aria-label="open menu">
+    <span></span><span></span>
+  </button>
+  <a class="navigation__brand" href="#top">The Modern Renaissance</a>
+  <ul class="navigation__links">
+    <li><a href="#manifesto">Manifesto</a></li>
+    <li><a href="#gatherings">Gatherings</a></li>
+    <li><a href="#community">Community</a></li>
+    <li><a href="#voices">Voices</a></li>
+    <li><a href="#letters">Letters</a></li>
+  </ul>
+  <a class="navigation__cta" href="#join">Join</a>
+</nav>
+
+<!-- overlay menu -->
+<div class="menu" id="menu" aria-hidden="true">
+  <button class="menu__close" id="menuClose">Close</button>
+  <ul class="menu__links">
+    <li><a href="#manifesto">Manifesto</a></li>
+    <li><a href="#gatherings">Gatherings</a></li>
+    <li><a href="#community">Community</a></li>
+    <li><a href="#voices">Voices</a></li>
+    <li><a href="#letters">Letters</a></li>
+    <li><a href="#join">Join</a></li>
+  </ul>
+</div>
+
+<!-- ============ HERO ============ -->
+<header class="hero" id="top">
+  <svg class="hero__toile" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <!-- top edge -->
+    <use href="#laurel" transform="translate(40,90) scale(1.5)"/>
+    <use href="#laurel" transform="translate(420,60) scale(1.1) rotate(14)"/>
+    <use href="#laurel" transform="translate(1560,100) scale(-1.5,1.5)"/>
+    <use href="#laurel" transform="translate(1190,64) scale(-1.1,1.1) rotate(-12)"/>
+    <use href="#sun" transform="translate(800,86) scale(1.35)"/>
+    <use href="#bird" transform="translate(330,150) scale(0.95)"/>
+    <use href="#bird" transform="translate(1260,160) scale(-0.95,0.95)"/>
+    <use href="#bird" transform="translate(580,108) scale(0.6) rotate(-8)"/>
+    <use href="#bird" transform="translate(1030,112) scale(-0.6,0.6) rotate(8)"/>
+    <use href="#flourish" transform="translate(620,180)"/>
+    <use href="#flourish" transform="translate(980,180) scale(-1,1)"/>
+    <!-- sides -->
+    <use href="#laurel" transform="translate(70,360) scale(1.2) rotate(-72)"/>
+    <use href="#laurel" transform="translate(1530,360) scale(-1.2,1.2) rotate(72)"/>
+    <use href="#quill" transform="translate(120,560) scale(1.3)"/>
+    <use href="#quill" transform="translate(1480,560) scale(-1.3,1.3)"/>
+    <!-- bottom edge -->
+    <use href="#laurel" transform="translate(60,830) scale(1.6) rotate(-18)"/>
+    <use href="#laurel" transform="translate(1540,830) scale(-1.6,1.6) rotate(18)"/>
+    <use href="#armillary" transform="translate(280,610) scale(0.46)"/>
+    <use href="#armillary" transform="translate(1135,610) scale(0.46)"/>
+    <use href="#ornithopter" transform="translate(790,790) scale(0.85)"/>
+    <use href="#flourish" transform="translate(540,860)"/>
+    <use href="#flourish" transform="translate(900,860) scale(-1,1)"/>
+    <use href="#bird" transform="translate(480,760) scale(0.7) rotate(10)"/>
+    <use href="#bird" transform="translate(1120,766) scale(-0.7,0.7) rotate(-10)"/>
+  </svg>
+
+  <div class="hero__content">
+    <p class="hero__kicker">A community for modern polymaths</p>
+    <h1 class="hero__title">You were never meant<br>to be just one thing</h1>
+  </div>
+
+  <a class="hero__scroll" href="#manifesto">scroll down</a>
+</header>
+
+<!-- ============ ABOUT / MANIFESTO ============ -->
+<section class="about" id="manifesto">
+  <div class="about__text">
+    <h2 class="about__title">The original Renaissance belonged to the polymath — the painter who was also an engineer, the astronomer who was also a poet. Then the world asked us to specialise.</h2>
+    <p>The Modern Renaissance is the space — and the time — for people who refused. We are a community of multi-passionate makers, scientists, artists and builders who keep more than one fire burning, and who do their best work where disciplines meet.</p>
+    <p>We gather. We make things together. We share what we know. This is a home for your whole curiosity.</p>
+    <a class="textLink" href="#letters">Read the full manifesto <span class="textLink__arrow">→</span></a>
+  </div>
+  <div class="about__figure" data-parallax="0.06">
+    <svg viewBox="0 0 400 460" aria-label="Engraving of an armillary sphere">
+      <use href="#armillary"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ============ IMAGE BREAK ONE ============ -->
+<section class="imageBreak imageBreak--one" aria-hidden="true">
+  <svg class="imageBreak__art" viewBox="0 0 1600 300" preserveAspectRatio="xMidYMid meet">
+    <g class="imageBreak__drift">
+      <use href="#ornithopter" transform="translate(780,140) scale(1.6)"/>
+    </g>
+    <use href="#bird" transform="translate(170,80) scale(0.8)"/>
+    <use href="#bird" transform="translate(260,170) scale(0.55) rotate(6)"/>
+    <use href="#bird" transform="translate(1430,90) scale(-0.8,0.8)"/>
+    <use href="#bird" transform="translate(1340,180) scale(-0.55,0.55) rotate(-6)"/>
+  </svg>
+</section>
+
+<!-- ============ BIG STATEMENT ============ -->
+<section class="statement">
+  <h2>We are a community spanning 40+ cities and countless disciplines, united by a single refusal: to&nbsp;be&nbsp;just&nbsp;one&nbsp;thing.</h2>
+  <p class="statement__meta">Members &amp; growing · 2026</p>
+</section>
+
+<!-- ============ GATHERINGS (grid) ============ -->
+<section class="gatherings" id="gatherings">
+  <div class="gatherings__head">
+    <h2>Our gatherings</h2>
+    <p>Salons, dinners and retreats where the community meets in person. Our live calendar runs on Luma.</p>
+  </div>
+
+  <div class="gatherings__grid">
+
+    <article class="gatheringCard">
+      <h3>Salon № 12 — The Mathematics of Music</h3>
+      <p>An evening where a composer and a number theorist trade places. Live performance, then open discussion.</p>
+      <dl class="gatheringCard__meta">
+        <div><dt>Where</dt><dd>Lisbon</dd></div>
+        <div><dt>When</dt><dd>21 June · 19:00 · 40 seats</dd></div>
+      </dl>
+      <a class="gatheringCard__link" href="#join">RSVP <span class="textLink__arrow">→</span></a>
+    </article>
+
+    <article class="gatheringCard">
+      <h3>Founders &amp; Frescoes — a long dinner</h3>
+      <p>A slow dinner for members building things, paired with a private viewing at a working restoration studio.</p>
+      <dl class="gatheringCard__meta">
+        <div><dt>Where</dt><dd>New York</dd></div>
+        <div><dt>When</dt><dd>9 July · 18:30 · 24 seats</dd></div>
+      </dl>
+      <a class="gatheringCard__link" href="#join">RSVP <span class="textLink__arrow">→</span></a>
+    </article>
+
+    <article class="gatheringCard">
+      <h3>The Summer Atelier — a three-day retreat</h3>
+      <p>Three days in the Tuscan hills making, talking and walking. Bring one project and one open question.</p>
+      <dl class="gatheringCard__meta">
+        <div><dt>Where</dt><dd>Val d'Orcia, Tuscany</dd></div>
+        <div><dt>When</dt><dd>15–17 August · 30 places</dd></div>
+      </dl>
+      <a class="gatheringCard__link" href="#join">RSVP <span class="textLink__arrow">→</span></a>
+    </article>
+
+    <article class="gatheringCard">
+      <h3>Open Studio Night</h3>
+      <p>Members throw open their studios and labs for one night. Wander, ask questions, start something.</p>
+      <dl class="gatheringCard__meta">
+        <div><dt>Where</dt><dd>Berlin</dd></div>
+        <div><dt>When</dt><dd>3 September · 18:00 · free for members</dd></div>
+      </dl>
+      <a class="gatheringCard__link" href="#join">RSVP <span class="textLink__arrow">→</span></a>
+    </article>
+
+    <article class="gatheringCard">
+      <h3>The Long Table — harvest edition</h3>
+      <p>One table, twenty strangers, three courses and a single question passed around with the bread.</p>
+      <dl class="gatheringCard__meta">
+        <div><dt>Where</dt><dd>London</dd></div>
+        <div><dt>When</dt><dd>26 September · 19:30 · 20 seats</dd></div>
+      </dl>
+      <a class="gatheringCard__link" href="#join">RSVP <span class="textLink__arrow">→</span></a>
+    </article>
+
+    <article class="gatheringCard">
+      <h3>Winter Salon — On Beginnings</h3>
+      <p>Five members present the thing they have just started — unfinished, unpolished, undefended.</p>
+      <dl class="gatheringCard__meta">
+        <div><dt>Where</dt><dd>Paris</dd></div>
+        <div><dt>When</dt><dd>5 December · 19:00 · 40 seats</dd></div>
+      </dl>
+      <a class="gatheringCard__link" href="#join">RSVP <span class="textLink__arrow">→</span></a>
+    </article>
+
+  </div>
+
+  <a class="gatherings__seeAll textLink" href="#join">See the full calendar on Luma <span class="textLink__arrow">→</span></a>
+</section>
+
+<!-- ============ CTA BAND ============ -->
+<section class="cta" id="join">
+  <svg class="cta__art cta__art--left" viewBox="0 0 200 240" aria-hidden="true">
+    <use href="#laurel" transform="translate(20,200) scale(1.4) rotate(-50)"/>
+    <use href="#quill" transform="translate(110,200) scale(1.1)"/>
+  </svg>
+  <div class="cta__content">
+    <h2>We aim to be the most curious community in the&nbsp;world.</h2>
+    <a class="cta__link" href="mailto:hello@themodernrenaissance.com">Join us</a>
+  </div>
+  <svg class="cta__art cta__art--right" viewBox="0 0 200 240" aria-hidden="true">
+    <use href="#laurel" transform="translate(180,200) scale(-1.4,1.4) rotate(50)"/>
+    <use href="#quill" transform="translate(90,200) scale(-1.1,1.1)"/>
+  </svg>
+</section>
+
+<!-- ============ COMMUNITY ============ -->
+<section class="community" id="community">
+  <div class="community__intro">
+    <h2>A community gathered worldwide</h2>
+    <p>From the first uncertain step to the boldest leap — and everyone in between. Whether you are still finding your way between passions or already building a life out of many, there is a seat at this table.</p>
+  </div>
+  <div class="community__cards">
+    <article class="communityCard">
+      <div class="communityCard__portrait">
+        <svg viewBox="0 0 90 90"><use href="#sun" transform="translate(45,45) scale(1.2)"/></svg>
+        <span>Still finding your way</span>
+      </div>
+      <h3>Just beginning</h3>
+      <p>You feel the pull of more than one thing — but you've been told to choose. You're looking for guidance, and for proof that it can be done.</p>
+    </article>
+    <article class="communityCard">
+      <div class="communityCard__portrait">
+        <svg viewBox="0 0 90 90"><use href="#quill" transform="translate(20,61) scale(0.6)"/></svg>
+        <span>Building something new</span>
+      </div>
+      <h3>Already living it</h3>
+      <p>You've stepped off the straight line and made a life out of many passions. Now you're looking for collaborators willing to build something beautiful together.</p>
+    </article>
+    <article class="communityCard communityCard--map">
+      <h3>40+ cities and counting</h3>
+      <p>Members keep a fire burning from Lisbon to Berlin, New York to Tokyo.</p>
+      <a class="textLink" href="#join">Add yourself to the map <span class="textLink__arrow">→</span></a>
+    </article>
+  </div>
+</section>
+
+<!-- ============ VOICES (social proof) ============ -->
+<section class="voices" id="voices">
+  <div class="voices__head">
+    <h2>In their words</h2>
+    <p>We could talk about ourselves, but it's better to hear it from the people at the table.</p>
+  </div>
+  <div class="voices__list">
+    <article class="voice">
+      <h3 class="voice__who">A composer who codes</h3>
+      <blockquote>"I spent ten years apologising for being two things at once. One salon here and the apology was gone — the room was full of people doing their best work between disciplines."</blockquote>
+      <p class="voice__note">Member since the first salon.</p>
+    </article>
+    <article class="voice">
+      <h3 class="voice__who">A surgeon who sculpts</h3>
+      <blockquote>"Every other community asked me to introduce myself with one title. This one asked me what I was curious about. That difference is the whole thing."</blockquote>
+      <p class="voice__note">Hosted Open Studio Night, Berlin.</p>
+    </article>
+    <article class="voice">
+      <h3 class="voice__who">A founder who paints</h3>
+      <blockquote>"The Summer Atelier gave me my co-founder, the title of my next show, and a reading list I'm still working through. Three days well spent."</blockquote>
+      <p class="voice__note">Attended the first Atelier, Val d'Orcia.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============ IMAGE BREAK TWO ============ -->
+<section class="imageBreak imageBreak--two" aria-hidden="true">
+  <svg class="imageBreak__art" viewBox="0 0 1600 240" preserveAspectRatio="xMidYMid meet">
+    <use href="#sun" transform="translate(800,110) scale(1.7)"/>
+    <use href="#flourish" transform="translate(420,120)"/>
+    <use href="#flourish" transform="translate(1180,120) scale(-1,1)"/>
+    <use href="#laurel" transform="translate(180,160) scale(1.3)"/>
+    <use href="#laurel" transform="translate(1420,160) scale(-1.3,1.3)"/>
+  </svg>
+</section>
+
+<!-- ============ LETTERS (press) ============ -->
+<section class="letters" id="letters">
+  <h2 class="letters__title">The Letters</h2>
+  <ul class="letters__list">
+    <li class="letterRow">
+      <a href="#join">
+        <h3>On being too many things at once</h3>
+        <p class="letterRow__meta"><span>The Letters</span><span>6 min read</span></p>
+      </a>
+    </li>
+    <li class="letterRow">
+      <a href="#join">
+        <h3>Why the polymath disappeared — and why they're back</h3>
+        <p class="letterRow__meta"><span>The Letters</span><span>9 min read</span></p>
+      </a>
+    </li>
+    <li class="letterRow">
+      <a href="#join">
+        <h3>Field notes from Salon № 11</h3>
+        <p class="letterRow__meta"><span>The Letters</span><span>4 min read</span></p>
+      </a>
+    </li>
+    <li class="letterRow">
+      <a href="#join">
+        <h3>A reading list for the multi-passionate</h3>
+        <p class="letterRow__meta"><span>The Letters</span><span>3 min read</span></p>
+      </a>
+    </li>
+    <li class="letterRow">
+      <a href="#join">
+        <h3>The case for the long dinner</h3>
+        <p class="letterRow__meta"><span>The Letters</span><span>5 min read</span></p>
+      </a>
+    </li>
+  </ul>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="footer__subscribe">
+    <h2>An occasional dispatch from the community.</h2>
+    <p>Essays, salon notes and reading lists, straight to your inbox via Substack.</p>
+    <form class="footer__form" id="subscribeForm" novalidate>
+      <input type="email" placeholder="Your email" required aria-label="Email address">
+      <button type="submit">Subscribe</button>
+      <p class="footer__formMsg" aria-live="polite"></p>
+    </form>
+  </div>
+
+  <svg class="footer__break" viewBox="0 0 600 130" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    <use href="#bird" transform="translate(155,58) scale(0.8)"/>
+    <use href="#sun" transform="translate(300,62) scale(1.25)"/>
+    <use href="#bird" transform="translate(445,58) scale(-0.8,0.8)"/>
+  </svg>
+
+  <div class="footer__main">
+    <div class="footer__brand">
+      <p class="footer__name">The Modern Renaissance</p>
+      <p class="footer__tag">The space (and time) for modern polymaths</p>
+    </div>
+    <ul class="footer__nav">
+      <li><a href="#manifesto">Manifesto</a></li>
+      <li><a href="#gatherings">Gatherings</a></li>
+      <li><a href="#community">Community</a></li>
+      <li><a href="#voices">Voices</a></li>
+      <li><a href="#letters">Letters</a></li>
+      <li><a href="#join">Join</a></li>
+    </ul>
+    <div class="footer__socials">
+      <p>Socials:</p>
+      <ul>
+        <li><a href="https://instagram.com" target="_blank" rel="noopener">instagram</a></li>
+        <li><a href="https://substack.com" target="_blank" rel="noopener">substack</a></li>
+        <li><a href="https://linkedin.com" target="_blank" rel="noopener">linkedin</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="footer__copy">© The Modern Renaissance <span id="year">2026</span> — all rights reserved</p>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
