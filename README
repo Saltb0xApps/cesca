@@ -1,1 +1,6 @@
 Projects
+
+- PomodoroGarden/ — Pixel Garden: a pixel-art Pomodoro focus game for iPhone
+  (SwiftUI). Plant a pomodoro, stay in the app while it grows, and build a
+  garden from the focus sessions you finish. Leave the app and it dies.
+  See PomodoroGarden/README.md.
