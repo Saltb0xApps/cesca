@@ -28,19 +28,49 @@
   }
   .qr { text-align: center; }
   .qr img { width: 240px; height: 240px; }
-  form { display: flex; gap: 8px; }
-  input[type=text] {
-    flex: 1; padding: 12px 14px; border: 1px solid #ccc;
-    border-radius: 8px; font-size: 15px;
+  label { display: block; font-size: 13px; font-weight: 600; color: #444; margin: 14px 0 6px; }
+  label:first-child { margin-top: 0; }
+  input[type=text], input[type=datetime-local], textarea {
+    width: 100%; padding: 12px 14px; border: 1px solid #ccc;
+    border-radius: 8px; font-size: 15px; font-family: inherit;
   }
-  button {
+  textarea { resize: vertical; min-height: 70px; }
+  button.primary {
     background: var(--green); border: none; color: #04330f; font-weight: 600;
     padding: 12px 18px; border-radius: 8px; cursor: pointer; font-size: 15px;
+    margin-top: 16px; width: 100%;
   }
-  button:hover { filter: brightness(.95); }
+  button.primary:hover { filter: brightness(.95); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .chip {
+    background: #e9f7ef; border: 1px solid #bfe8cd; color: #14632f;
+    border-radius: 999px; padding: 6px 14px; font-size: 13px; cursor: pointer;
+  }
+  .chip:hover { background: #d8f5e0; }
+  .contact-wrap { position: relative; }
+  .suggestions {
+    position: absolute; top: 100%; left: 0; right: 0; z-index: 10;
+    background: #fff; border: 1px solid #ccc; border-radius: 8px;
+    margin-top: 4px; max-height: 220px; overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,.12); display: none;
+  }
+  .suggestions div { padding: 10px 14px; cursor: pointer; font-size: 14px; }
+  .suggestions div:hover, .suggestions div.active { background: #e9f7ef; }
+  .suggestions .num { color: #889; font-size: 12px; margin-left: 8px; }
+  .selected-contact {
+    display: none; align-items: center; gap: 8px; margin-top: 8px;
+    background: #e9f7ef; border-radius: 8px; padding: 8px 12px; font-size: 14px;
+  }
+  .selected-contact button { background: none; border: none; cursor: pointer; color: #c0392b; }
   .hint { color: #667; font-size: 13px; margin-top: 10px; }
   .error { color: #c0392b; font-size: 14px; margin-top: 10px; }
   .ok { color: #1d7a40; font-size: 14px; margin-top: 10px; }
+  details { margin-top: 16px; }
+  details summary { font-size: 13px; color: #667; cursor: pointer; }
+  details form { display: flex; gap: 8px; margin-top: 10px; }
+  details input { flex: 1; }
+  details button { background: var(--green); border: none; color: #04330f; font-weight: 600;
+    padding: 0 18px; border-radius: 8px; cursor: pointer; }
   ul.msgs { list-style: none; padding: 0; margin: 0; }
   ul.msgs li {
     display: flex; align-items: center; gap: 12px;
@@ -73,15 +103,42 @@
 
   <div class="card">
     <form id="form">
-      <input type="text" id="command" autocomplete="off"
-        placeholder='send "hey, let&#39;s catch up!" to John next Friday at 6pm' />
-      <button type="submit">Schedule</button>
+      <label for="contact">To</label>
+      <div class="contact-wrap">
+        <input type="text" id="contact" autocomplete="off" placeholder="Start typing a contact name…" />
+        <div class="suggestions" id="suggestions"></div>
+      </div>
+      <div class="selected-contact" id="selectedContact">
+        <span id="selectedName"></span>
+        <button type="button" id="clearContact" title="Change contact">✕</button>
+      </div>
+
+      <label for="text">Message</label>
+      <textarea id="text" placeholder="hey! still on for tomorrow?"></textarea>
+
+      <label for="when">When</label>
+      <input type="datetime-local" id="when" />
+      <div class="chips">
+        <button type="button" class="chip" data-quick="tomorrow-9">Tomorrow 9am</button>
+        <button type="button" class="chip" data-quick="tomorrow-18">Tomorrow 6pm</button>
+        <button type="button" class="chip" data-quick="today-19">Tonight 7pm</button>
+        <button type="button" class="chip" data-quick="hour">In 1 hour</button>
+        <button type="button" class="chip" data-quick="saturday-11">Saturday 11am</button>
+      </div>
+
+      <button type="submit" class="primary">Schedule message</button>
+      <div id="feedback"></div>
     </form>
-    <div class="hint">
-      Put the message in quotes, then who it's for and when:
-      <em>send "running late, sorry!" to Maria tomorrow 9am</em>
-    </div>
-    <div id="feedback"></div>
+
+    <details>
+      <summary>Or type it in one line</summary>
+      <form id="nlForm">
+        <input type="text" id="command" autocomplete="off"
+          placeholder='send "hey, let&#39;s catch up!" to John next Friday at 6pm' />
+        <button type="submit">Go</button>
+      </form>
+      <div id="nlFeedback"></div>
+    </details>
   </div>
 
   <div class="card">
@@ -91,7 +148,9 @@
 </main>
 <script>
 const $ = (id) => document.getElementById(id);
+let selected = null; // { id, name, number }
 
+// ---- connection status / QR ----
 async function refreshStatus() {
   const r = await fetch('/api/status').then((r) => r.json()).catch(() => null);
   if (!r) return;
@@ -102,6 +161,144 @@ async function refreshStatus() {
   if (r.qr) $('qrImg').src = r.qr;
 }
 
+// ---- contact autocomplete ----
+let searchTimer = null;
+$('contact').addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  const q = $('contact').value.trim();
+  if (q.length < 2) { $('suggestions').style.display = 'none'; return; }
+  searchTimer = setTimeout(async () => {
+    const r = await fetch('/api/contacts?q=' + encodeURIComponent(q));
+    if (!r.ok) return;
+    const contacts = await r.json();
+    const box = $('suggestions');
+    box.innerHTML = '';
+    for (const c of contacts) {
+      const div = document.createElement('div');
+      div.textContent = c.name;
+      const num = document.createElement('span');
+      num.className = 'num';
+      num.textContent = c.number ? '+' + c.number : '';
+      div.append(num);
+      div.onclick = () => selectContact(c);
+      box.append(div);
+    }
+    box.style.display = contacts.length ? '' : 'none';
+  }, 250);
+});
+
+function selectContact(c) {
+  selected = c;
+  $('suggestions').style.display = 'none';
+  $('contact').style.display = 'none';
+  $('contact').value = '';
+  $('selectedName').textContent = c.name + (c.number ? ' (+' + c.number + ')' : '');
+  $('selectedContact').style.display = 'flex';
+}
+
+$('clearContact').onclick = () => {
+  selected = null;
+  $('selectedContact').style.display = 'none';
+  $('contact').style.display = '';
+  $('contact').focus();
+};
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.contact-wrap')) $('suggestions').style.display = 'none';
+});
+
+// ---- date/time picker helpers ----
+function toLocalInputValue(d) {
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function setWhen(d) { $('when').value = toLocalInputValue(d); }
+
+function quickDate(kind) {
+  const d = new Date();
+  d.setSeconds(0, 0);
+  if (kind === 'hour') { d.setHours(d.getHours() + 1); return d; }
+  const [day, hour] = kind.split('-');
+  d.setHours(Number(hour), 0, 0, 0);
+  if (day === 'tomorrow') d.setDate(d.getDate() + 1);
+  else if (day === 'saturday') {
+    const add = (6 - d.getDay() + 7) % 7 || 7;
+    d.setDate(d.getDate() + add);
+  } else if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 1); // "tonight" already passed
+  return d;
+}
+
+document.querySelectorAll('.chip').forEach((chip) => {
+  chip.addEventListener('click', () => setWhen(quickDate(chip.dataset.quick)));
+});
+
+// Default the picker to tomorrow 9am.
+setWhen(quickDate('tomorrow-9'));
+const now = new Date();
+$('when').min = toLocalInputValue(now);
+
+// ---- schedule via the form ----
+$('form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fb = $('feedback');
+  fb.className = 'error';
+  if (!selected) { fb.textContent = 'Pick a contact first.'; return; }
+  const text = $('text').value.trim();
+  if (!text) { fb.textContent = 'Write a message.'; return; }
+  const when = new Date($('when').value);
+  if (isNaN(when) || when.getTime() <= Date.now()) { fb.textContent = 'Pick a future date/time.'; return; }
+
+  fb.className = '';
+  fb.textContent = 'Scheduling…';
+  const r = await fetch('/api/schedule/direct', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chatId: selected.id,
+      contactName: selected.name,
+      text,
+      sendAt: when.toISOString(),
+    }),
+  });
+  const data = await r.json();
+  if (r.ok) {
+    fb.className = 'ok';
+    fb.textContent = `Scheduled for ${data.contactName} at ${fmt(data.sendAt)}`;
+    $('text').value = '';
+    refreshMessages();
+  } else {
+    fb.className = 'error';
+    fb.textContent = data.error || 'Something went wrong';
+  }
+});
+
+// ---- natural language fallback ----
+$('nlForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const command = $('command').value.trim();
+  if (!command) return;
+  const fb = $('nlFeedback');
+  fb.className = '';
+  fb.textContent = 'Scheduling…';
+  const r = await fetch('/api/schedule', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ command }),
+  });
+  const data = await r.json();
+  if (r.ok) {
+    fb.className = 'ok';
+    fb.textContent = `Scheduled for ${data.contactName} at ${fmt(data.sendAt)}`;
+    $('command').value = '';
+    refreshMessages();
+  } else {
+    fb.className = 'error';
+    fb.textContent = data.error || 'Something went wrong';
+  }
+});
+
+// ---- scheduled message list ----
 function fmt(iso) {
   return new Date(iso).toLocaleString(undefined, {
     weekday: 'short', month: 'short', day: 'numeric',
@@ -145,30 +342,6 @@ async function refreshMessages() {
     ul.append(li);
   }
 }
-
-$('form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const command = $('command').value.trim();
-  if (!command) return;
-  const fb = $('feedback');
-  fb.className = '';
-  fb.textContent = 'Scheduling…';
-  const r = await fetch('/api/schedule', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ command }),
-  });
-  const data = await r.json();
-  if (r.ok) {
-    fb.className = 'ok';
-    fb.textContent = `Scheduled for ${data.contactName} at ${fmt(data.sendAt)}`;
-    $('command').value = '';
-    refreshMessages();
-  } else {
-    fb.className = 'error';
-    fb.textContent = data.error || 'Something went wrong';
-  }
-});
 
 refreshStatus();
 refreshMessages();
