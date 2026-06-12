@@ -12,8 +12,8 @@ const TICK_MS = 15 * 1000;
  * every 15 seconds for messages that are due and sends them.
  */
 export class Scheduler {
-  constructor(wa) {
-    this.wa = wa;
+  constructor(providers) {
+    this.providers = providers;
     this.messages = this.#load();
     this.timer = null;
   }
@@ -35,9 +35,10 @@ export class Scheduler {
     this.timer = setInterval(() => this.#tick(), TICK_MS);
   }
 
-  schedule({ chatId, contactName, text, sendAt }) {
+  schedule({ provider, chatId, contactName, text, sendAt }) {
     const msg = {
       id: crypto.randomUUID(),
+      provider: provider || 'whatsapp',
       chatId,
       contactName,
       text,
@@ -64,21 +65,24 @@ export class Scheduler {
   }
 
   async #tick() {
-    if (!this.wa.isReady()) return;
     const now = Date.now();
     const due = this.messages.filter(
       (m) => m.status === 'pending' && new Date(m.sendAt).getTime() <= now
     );
     for (const msg of due) {
+      const provider = this.providers[msg.provider || 'whatsapp'];
+      // If the platform isn't connected, leave the message pending — it goes
+      // out as soon as the connection comes back.
+      if (!provider || !provider.isReady()) continue;
       try {
-        await this.wa.sendMessage(msg.chatId, msg.text);
+        await provider.sendMessage(msg.chatId, msg.text);
         msg.status = 'sent';
         msg.sentAt = new Date().toISOString();
-        console.log(`Sent to ${msg.contactName}: "${msg.text}"`);
+        console.log(`[${msg.provider}] Sent to ${msg.contactName}: "${msg.text}"`);
       } catch (err) {
         msg.status = 'failed';
         msg.error = String(err.message || err);
-        console.error(`Failed to send to ${msg.contactName}:`, err);
+        console.error(`[${msg.provider}] Failed to send to ${msg.contactName}:`, err);
       }
       this.#save();
     }

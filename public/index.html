@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>WhatsApp Scheduler</title>
+<title>Message Scheduler</title>
 <style>
-  :root { --green: #25d366; --dark: #075e54; }
+  :root { --green: #25d366; --dark: #1f2a30; }
   * { box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -13,12 +13,12 @@
   }
   header {
     background: var(--dark); color: #fff; padding: 16px 24px;
-    display: flex; align-items: center; gap: 12px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   }
-  header h1 { font-size: 18px; margin: 0; font-weight: 600; }
+  header h1 { font-size: 18px; margin: 0 8px 0 0; font-weight: 600; }
   .badge {
     font-size: 12px; padding: 3px 10px; border-radius: 999px;
-    background: #444; color: #fff;
+    background: #4a5a63; color: #fff;
   }
   .badge.ready { background: var(--green); color: #04330f; }
   main { max-width: 720px; margin: 24px auto; padding: 0 16px; }
@@ -26,11 +26,9 @@
     background: #fff; border-radius: 12px; padding: 20px;
     box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 20px;
   }
-  .qr { text-align: center; }
-  .qr img { width: 240px; height: 240px; }
+  .card h3 { margin-top: 0; }
   label { display: block; font-size: 13px; font-weight: 600; color: #444; margin: 14px 0 6px; }
-  label:first-child { margin-top: 0; }
-  input[type=text], input[type=datetime-local], textarea {
+  input[type=text], input[type=password], input[type=datetime-local], textarea {
     width: 100%; padding: 12px 14px; border: 1px solid #ccc;
     border-radius: 8px; font-size: 15px; font-family: inherit;
   }
@@ -40,13 +38,27 @@
     padding: 12px 18px; border-radius: 8px; cursor: pointer; font-size: 15px;
     margin-top: 16px; width: 100%;
   }
-  button.primary:hover { filter: brightness(.95); }
+  button.secondary {
+    background: #e8ecef; border: none; color: #223; font-weight: 600;
+    padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 14px;
+    margin-top: 10px;
+  }
+  button:hover { filter: brightness(.96); }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
   .chip {
     background: #e9f7ef; border: 1px solid #bfe8cd; color: #14632f;
     border-radius: 999px; padding: 6px 14px; font-size: 13px; cursor: pointer;
   }
   .chip:hover { background: #d8f5e0; }
+  .platforms { display: flex; gap: 8px; }
+  .platform {
+    flex: 1; text-align: center; padding: 10px; border-radius: 8px;
+    border: 1px solid #ccc; background: #fff; cursor: pointer; font-size: 14px;
+    font-weight: 600; color: #445;
+  }
+  .platform.active { border-color: var(--green); background: #e9f7ef; color: #14632f; }
+  .platform .dot { font-size: 11px; display: block; font-weight: 400; margin-top: 2px; color: #889; }
+  .platform.connected .dot { color: #1d7a40; }
   .contact-wrap { position: relative; }
   .suggestions {
     position: absolute; top: 100%; left: 0; right: 0; z-index: 10;
@@ -55,21 +67,26 @@
     box-shadow: 0 4px 12px rgba(0,0,0,.12); display: none;
   }
   .suggestions div { padding: 10px 14px; cursor: pointer; font-size: 14px; }
-  .suggestions div:hover, .suggestions div.active { background: #e9f7ef; }
+  .suggestions div:hover { background: #e9f7ef; }
   .suggestions .num { color: #889; font-size: 12px; margin-left: 8px; }
   .selected-contact {
     display: none; align-items: center; gap: 8px; margin-top: 8px;
     background: #e9f7ef; border-radius: 8px; padding: 8px 12px; font-size: 14px;
   }
   .selected-contact button { background: none; border: none; cursor: pointer; color: #c0392b; }
-  .hint { color: #667; font-size: 13px; margin-top: 10px; }
+  .hint { color: #667; font-size: 13px; margin-top: 8px; }
   .error { color: #c0392b; font-size: 14px; margin-top: 10px; }
   .ok { color: #1d7a40; font-size: 14px; margin-top: 10px; }
-  details { margin-top: 16px; }
-  details summary { font-size: 13px; color: #667; cursor: pointer; }
-  details form { display: flex; gap: 8px; margin-top: 10px; }
-  details input { flex: 1; }
-  details button { background: var(--green); border: none; color: #04330f; font-weight: 600;
+  .conn-section { border-top: 1px solid #eee; padding: 14px 0; }
+  .conn-section:first-of-type { border-top: none; }
+  .conn-head { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
+  .qr { text-align: center; }
+  .qr img { width: 220px; height: 220px; }
+  details.nl { margin-top: 16px; }
+  details.nl summary { font-size: 13px; color: #667; cursor: pointer; }
+  details.nl form { display: flex; gap: 8px; margin-top: 10px; }
+  details.nl input { flex: 1; }
+  details.nl button { background: var(--green); border: none; color: #04330f; font-weight: 600;
     padding: 0 18px; border-radius: 8px; cursor: pointer; }
   ul.msgs { list-style: none; padding: 0; margin: 0; }
   ul.msgs li {
@@ -84,6 +101,10 @@
   .status.pending { background: #fff4d6; color: #8a6d00; }
   .status.sent { background: #d8f5e0; color: #1d7a40; }
   .status.failed { background: #fde3e0; color: #c0392b; }
+  .ptag {
+    font-size: 11px; padding: 2px 8px; border-radius: 999px;
+    background: #e8ecef; color: #445; text-transform: capitalize;
+  }
   .cancel {
     background: none; border: none; color: #c0392b; cursor: pointer;
     font-size: 13px; padding: 4px;
@@ -92,17 +113,21 @@
 </head>
 <body>
 <header>
-  <h1>WhatsApp Scheduler</h1>
-  <span id="conn" class="badge">connecting…</span>
+  <h1>Message Scheduler</h1>
+  <span id="badge-whatsapp" class="badge">WhatsApp…</span>
+  <span id="badge-linkedin" class="badge">LinkedIn…</span>
+  <span id="badge-instagram" class="badge">Instagram…</span>
 </header>
 <main>
-  <div class="card qr" id="qrCard" style="display:none">
-    <p>Link your WhatsApp: open WhatsApp → Settings → Linked Devices → scan this code.</p>
-    <img id="qrImg" alt="QR code" />
-  </div>
-
   <div class="card">
     <form id="form">
+      <label>Platform</label>
+      <div class="platforms" id="platforms">
+        <button type="button" class="platform active" data-provider="whatsapp">WhatsApp<span class="dot">●</span></button>
+        <button type="button" class="platform" data-provider="linkedin">LinkedIn<span class="dot">●</span></button>
+        <button type="button" class="platform" data-provider="instagram">Instagram<span class="dot">●</span></button>
+      </div>
+
       <label for="contact">To</label>
       <div class="contact-wrap">
         <input type="text" id="contact" autocomplete="off" placeholder="Start typing a contact name…" />
@@ -130,11 +155,11 @@
       <div id="feedback"></div>
     </form>
 
-    <details>
+    <details class="nl">
       <summary>Or type it in one line</summary>
       <form id="nlForm">
         <input type="text" id="command" autocomplete="off"
-          placeholder='send "hey, let&#39;s catch up!" to John next Friday at 6pm' />
+          placeholder='send "congrats!" to John on linkedin next Friday at 6pm' />
         <button type="submit">Go</button>
       </form>
       <div id="nlFeedback"></div>
@@ -142,24 +167,92 @@
   </div>
 
   <div class="card">
-    <h3 style="margin-top:0">Scheduled messages</h3>
+    <h3>Scheduled messages</h3>
     <ul class="msgs" id="msgs"><li class="msg-meta">Nothing scheduled yet.</li></ul>
+  </div>
+
+  <div class="card" id="connections">
+    <h3>Connections</h3>
+
+    <div class="conn-section">
+      <div class="conn-head">WhatsApp <span id="conn-whatsapp" class="badge">…</span></div>
+      <div class="qr" id="qrBox" style="display:none">
+        <p class="hint">Open WhatsApp → Settings → Linked Devices → scan this code.</p>
+        <img id="qrImg" alt="QR code" />
+      </div>
+    </div>
+
+    <div class="conn-section">
+      <div class="conn-head">LinkedIn <span id="conn-linkedin" class="badge">…</span></div>
+      <div id="liForm">
+        <p class="hint">
+          Paste your <code>li_at</code> cookie: open linkedin.com logged in →
+          DevTools (F12) → Application → Cookies → copy the value of <code>li_at</code>.
+        </p>
+        <input type="password" id="liAt" placeholder="li_at cookie value" autocomplete="off" />
+        <button type="button" class="secondary" id="liConnect">Connect LinkedIn</button>
+        <div id="liFeedback"></div>
+      </div>
+    </div>
+
+    <div class="conn-section">
+      <div class="conn-head">Instagram <span id="conn-instagram" class="badge">…</span></div>
+      <div id="igForm">
+        <p class="hint">Logs in directly with your Instagram account (session is saved locally).</p>
+        <input type="text" id="igUser" placeholder="username" autocomplete="off" />
+        <input type="password" id="igPass" placeholder="password" autocomplete="off" style="margin-top:8px" />
+        <button type="button" class="secondary" id="igConnect">Connect Instagram</button>
+        <div id="igFeedback"></div>
+      </div>
+    </div>
   </div>
 </main>
 <script>
 const $ = (id) => document.getElementById(id);
-let selected = null; // { id, name, number }
+let currentProvider = 'whatsapp';
+let selected = null; // { id, name, handle }
+let providerStatus = {};
 
-// ---- connection status / QR ----
+const CONTACT_PLACEHOLDERS = {
+  whatsapp: 'Start typing a contact name…',
+  linkedin: 'Paste a profile URL (linkedin.com/in/…)',
+  instagram: 'Type their @username',
+};
+
+// ---- connection status ----
 async function refreshStatus() {
   const r = await fetch('/api/status').then((r) => r.json()).catch(() => null);
   if (!r) return;
-  const badge = $('conn');
-  badge.textContent = r.status;
-  badge.className = 'badge' + (r.status === 'ready' ? ' ready' : '');
-  $('qrCard').style.display = r.qr ? '' : 'none';
-  if (r.qr) $('qrImg').src = r.qr;
+  providerStatus = r.providers;
+  for (const [name, p] of Object.entries(r.providers)) {
+    const label = name === 'whatsapp' ? 'WhatsApp' : name === 'linkedin' ? 'LinkedIn' : 'Instagram';
+    for (const el of [$('badge-' + name), $('conn-' + name)]) {
+      if (!el) continue;
+      el.textContent = (el.id.startsWith('badge') ? label + ': ' : '') +
+        (p.status === 'ready' ? (p.account || 'connected') : p.status);
+      el.className = 'badge' + (p.status === 'ready' ? ' ready' : '');
+    }
+    const btn = document.querySelector(`.platform[data-provider="${name}"]`);
+    if (btn) btn.classList.toggle('connected', p.status === 'ready');
+  }
+  $('qrBox').style.display = r.providers.whatsapp.qr ? '' : 'none';
+  if (r.providers.whatsapp.qr) $('qrImg').src = r.providers.whatsapp.qr;
+  $('liForm').style.display = r.providers.linkedin.status === 'ready' ? 'none' : '';
+  $('igForm').style.display = r.providers.instagram.status === 'ready' ? 'none' : '';
 }
+
+// ---- platform switcher ----
+document.querySelectorAll('.platform').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    currentProvider = btn.dataset.provider;
+    document.querySelectorAll('.platform').forEach((b) => b.classList.toggle('active', b === btn));
+    $('contact').placeholder = CONTACT_PLACEHOLDERS[currentProvider];
+    clearSelectedContact();
+    if (providerStatus[currentProvider] && providerStatus[currentProvider].status !== 'ready') {
+      $('connections').scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+});
 
 // ---- contact autocomplete ----
 let searchTimer = null;
@@ -168,7 +261,7 @@ $('contact').addEventListener('input', () => {
   const q = $('contact').value.trim();
   if (q.length < 2) { $('suggestions').style.display = 'none'; return; }
   searchTimer = setTimeout(async () => {
-    const r = await fetch('/api/contacts?q=' + encodeURIComponent(q));
+    const r = await fetch('/api/contacts?provider=' + currentProvider + '&q=' + encodeURIComponent(q));
     if (!r.ok) return;
     const contacts = await r.json();
     const box = $('suggestions');
@@ -178,13 +271,13 @@ $('contact').addEventListener('input', () => {
       div.textContent = c.name;
       const num = document.createElement('span');
       num.className = 'num';
-      num.textContent = c.number ? '+' + c.number : '';
+      num.textContent = c.handle || '';
       div.append(num);
       div.onclick = () => selectContact(c);
       box.append(div);
     }
     box.style.display = contacts.length ? '' : 'none';
-  }, 250);
+  }, 300);
 });
 
 function selectContact(c) {
@@ -192,16 +285,17 @@ function selectContact(c) {
   $('suggestions').style.display = 'none';
   $('contact').style.display = 'none';
   $('contact').value = '';
-  $('selectedName').textContent = c.name + (c.number ? ' (+' + c.number + ')' : '');
+  $('selectedName').textContent = c.name + (c.handle ? ' (' + c.handle + ')' : '');
   $('selectedContact').style.display = 'flex';
 }
 
-$('clearContact').onclick = () => {
+function clearSelectedContact() {
   selected = null;
   $('selectedContact').style.display = 'none';
   $('contact').style.display = '';
-  $('contact').focus();
-};
+}
+
+$('clearContact').onclick = () => { clearSelectedContact(); $('contact').focus(); };
 
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.contact-wrap')) $('suggestions').style.display = 'none';
@@ -233,10 +327,8 @@ document.querySelectorAll('.chip').forEach((chip) => {
   chip.addEventListener('click', () => setWhen(quickDate(chip.dataset.quick)));
 });
 
-// Default the picker to tomorrow 9am.
 setWhen(quickDate('tomorrow-9'));
-const now = new Date();
-$('when').min = toLocalInputValue(now);
+$('when').min = toLocalInputValue(new Date());
 
 // ---- schedule via the form ----
 $('form').addEventListener('submit', async (e) => {
@@ -255,6 +347,7 @@ $('form').addEventListener('submit', async (e) => {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
+      provider: currentProvider,
       chatId: selected.id,
       contactName: selected.name,
       text,
@@ -264,7 +357,7 @@ $('form').addEventListener('submit', async (e) => {
   const data = await r.json();
   if (r.ok) {
     fb.className = 'ok';
-    fb.textContent = `Scheduled for ${data.contactName} at ${fmt(data.sendAt)}`;
+    fb.textContent = `Scheduled for ${data.contactName} at ${fmt(data.sendAt)} on ${data.provider}`;
     $('text').value = '';
     refreshMessages();
   } else {
@@ -289,7 +382,7 @@ $('nlForm').addEventListener('submit', async (e) => {
   const data = await r.json();
   if (r.ok) {
     fb.className = 'ok';
-    fb.textContent = `Scheduled for ${data.contactName} at ${fmt(data.sendAt)}`;
+    fb.textContent = `Scheduled for ${data.contactName} at ${fmt(data.sendAt)} on ${data.provider}`;
     $('command').value = '';
     refreshMessages();
   } else {
@@ -297,6 +390,37 @@ $('nlForm').addEventListener('submit', async (e) => {
     fb.textContent = data.error || 'Something went wrong';
   }
 });
+
+// ---- connect buttons ----
+$('liConnect').onclick = async () => {
+  const fb = $('liFeedback');
+  fb.className = '';
+  fb.textContent = 'Connecting…';
+  const r = await fetch('/api/connect/linkedin', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ liAt: $('liAt').value }),
+  });
+  const data = await r.json();
+  fb.className = r.ok ? 'ok' : 'error';
+  fb.textContent = r.ok ? 'Connected as ' + data.account : data.error;
+  if (r.ok) { $('liAt').value = ''; refreshStatus(); }
+};
+
+$('igConnect').onclick = async () => {
+  const fb = $('igFeedback');
+  fb.className = '';
+  fb.textContent = 'Connecting…';
+  const r = await fetch('/api/connect/instagram', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: $('igUser').value, password: $('igPass').value }),
+  });
+  const data = await r.json();
+  fb.className = r.ok ? 'ok' : 'error';
+  fb.textContent = r.ok ? 'Connected as @' + data.account : data.error;
+  if (r.ok) { $('igPass').value = ''; refreshStatus(); }
+};
 
 // ---- scheduled message list ----
 function fmt(iso) {
@@ -325,10 +449,13 @@ async function refreshMessages() {
     meta.className = 'msg-meta';
     meta.textContent = fmt(m.sendAt) + (m.error ? ` — ${m.error}` : '');
     body.append(text, meta);
+    const ptag = document.createElement('span');
+    ptag.className = 'ptag';
+    ptag.textContent = m.provider || 'whatsapp';
     const status = document.createElement('span');
     status.className = 'status ' + m.status;
     status.textContent = m.status;
-    li.append(body, status);
+    li.append(body, ptag, status);
     if (m.status === 'pending') {
       const cancel = document.createElement('button');
       cancel.className = 'cancel';

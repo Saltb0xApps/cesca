@@ -80,7 +80,7 @@ export function startWhatsApp() {
             score,
             id: c.id._serialized,
             name: c.name || c.pushname || number,
-            number,
+            handle: number ? '+' + number : '',
           });
         }
       }
