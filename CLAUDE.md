@@ -299,10 +299,10 @@ create table synced_participants (
 ---
 
 ## Phase 5 — Recap Card + Polish + Ship (days 12–14)
-- [ ] Weekly recap share card: react-native-view-shot → image (pomos, rank, tier, streak, exam tag; 9:16 for IG stories) + native share sheet
-- [ ] Profile screen final pass; tier badges art (placeholder OK, consistent style)
-- [ ] Empty states everywhere (no league yet, no pomos yet)
-- [ ] Onboarding polish: explain the pomo rule ("leave the app, lose the round") BEFORE first round — set the contract clearly
+- [~] Weekly recap share card: card UI + native text share DONE (`app/recap.tsx`); react-native-view-shot → image (9:16 for IG stories) still TODO (needs a dev build, not Expo Go)
+- [x] Profile screen final pass: real name/avatar/exam tag, tier badge, stats grid, heatmap, recap entry
+- [x] Empty states (no league cold-start copy, no-pomos heatmap/home zeros)
+- [x] Onboarding polish: explain the pomo rule ("leave the app, lose the round") BEFORE first round (`app/rules.tsx`, first-run gated)
 - [ ] EAS build → TestFlight + Android internal track
 - [ ] Seed launch: post in chosen student community with recap-card screenshots
 

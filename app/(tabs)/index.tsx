@@ -3,12 +3,16 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { computeStats, useLedgerStore } from '@/stores/ledgerStore';
+import { useProfileStore } from '@/stores/profileStore';
 import { colors } from '@/theme';
 
 export default function Home() {
   const router = useRouter();
   const pomos = useLedgerStore((s) => s.pomos);
   const stats = useMemo(() => computeStats(pomos), [pomos]);
+  const seenRules = useProfileStore((s) => s.seenRules);
+
+  const startRound = () => router.push(seenRules ? '/round' : '/rules');
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -28,7 +32,7 @@ export default function Home() {
       </View>
 
       <View style={styles.center}>
-        <Pressable style={styles.start} onPress={() => router.push('/round')}>
+        <Pressable style={styles.start} onPress={startRound}>
           <Text style={styles.startTomato}>🍅</Text>
           <Text style={styles.startText}>START A ROUND</Text>
           <Text style={styles.startSub}>25 min · stay in the app</Text>

@@ -1,20 +1,24 @@
 import { useMemo } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { computeStats, useLedgerStore } from '@/stores/ledgerStore';
+import { useProfileStore } from '@/stores/profileStore';
 import { Heatmap } from '@/components/Heatmap';
 import { TIER_NAMES, tierIndexFor } from '@/lib/demoLeague';
 import { colors } from '@/theme';
 
 export default function Profile() {
-  const { session, demoMode, signOut } = useAuth();
+  const router = useRouter();
+  const { session, signOut } = useAuth();
   const pomos = useLedgerStore((s) => s.pomos);
   const clear = useLedgerStore((s) => s.clear);
+  const { displayName, avatar, examTag } = useProfileStore();
   const stats = useMemo(() => computeStats(pomos), [pomos]);
   const tier = TIER_NAMES[tierIndexFor(stats.total)];
 
-  const who = session?.user.email ?? (demoMode ? 'Demo player' : 'Signed in');
+  const who = displayName || session?.user.email || 'Demo player';
 
   const confirmClear = () => {
     Alert.alert('Reset pomo history?', 'This clears your local stats on this device.', [
@@ -29,9 +33,10 @@ export default function Profile() {
         <Text style={styles.title}>Profile</Text>
 
         <View style={styles.card}>
-          <Text style={styles.avatar}>🍅</Text>
+          <Text style={styles.avatar}>{avatar}</Text>
           <Text style={styles.name}>{who}</Text>
           <Text style={styles.tag}>
+            {examTag ? `${examTag} · ` : ''}
             {tier} · {stats.total} pomos · {stats.streak}-day streak
           </Text>
         </View>
@@ -42,6 +47,10 @@ export default function Profile() {
           <Cell value={stats.bestDay} label="best day" />
           <Cell value={stats.longestChain} label="longest chain" />
         </View>
+
+        <Pressable style={styles.recap} onPress={() => router.push('/recap')}>
+          <Text style={styles.recapText}>📸  Share weekly recap</Text>
+        </Pressable>
 
         <Heatmap pomos={pomos} />
 
@@ -100,6 +109,15 @@ const styles = StyleSheet.create({
   },
   cellValue: { fontSize: 26, fontWeight: '800', color: colors.ink },
   cellLabel: { fontSize: 12, color: colors.subtle },
+  recap: {
+    marginHorizontal: 20,
+    marginBottom: 12,
+    backgroundColor: colors.tomato,
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  recapText: { color: '#fff', fontSize: 16, fontWeight: '800' },
   link: { alignSelf: 'center', padding: 12 },
   linkText: { color: colors.subtle, fontWeight: '700' },
   signOutText: { color: colors.tomatoDark, fontWeight: '700' },

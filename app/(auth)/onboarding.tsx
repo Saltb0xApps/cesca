@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfileStore } from '@/stores/profileStore';
 import { colors } from '@/theme';
 
 const AVATARS = ['🍅', '🔥', '📚', '🧠', '⚡️', '🦉', '🌙', '☕️', '🎯', '🏆'];
@@ -20,6 +21,7 @@ const EXAM_SUGGESTIONS = ['USMLE', 'Bar Exam', 'A-Levels', 'Finals', 'Thesis'];
 export default function Onboarding() {
   const router = useRouter();
   const { demoMode } = useAuth();
+  const saveProfile = useProfileStore((s) => s.save);
   const [name, setName] = useState('');
   const [avatar, setAvatar] = useState(AVATARS[0]!);
   const [examTag, setExamTag] = useState('');
@@ -31,7 +33,14 @@ export default function Onboarding() {
       return;
     }
 
-    // Demo mode: no Supabase — skip the profile write and go straight in.
+    // Always persist locally so the profile flows through the app.
+    await saveProfile({
+      displayName: name.trim(),
+      avatar,
+      examTag: examTag.trim(),
+    });
+
+    // Demo mode: no Supabase — go straight in.
     if (demoMode) {
       router.replace('/(tabs)');
       return;

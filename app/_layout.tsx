@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { queryClient } from '@/lib/queryClient';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
 import { useLedgerStore } from '@/stores/ledgerStore';
+import { useProfileStore } from '@/stores/profileStore';
 
 function RootNavigator() {
   const { authed, loading } = useAuth();
@@ -30,6 +31,8 @@ function RootNavigator() {
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="round" options={{ presentation: 'fullScreenModal' }} />
+      <Stack.Screen name="rules" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="recap" options={{ presentation: 'modal' }} />
     </Stack>
   );
 }
@@ -37,6 +40,7 @@ function RootNavigator() {
 export default function RootLayout() {
   useEffect(() => {
     void useLedgerStore.getState().load();
+    void useProfileStore.getState().load();
   }, []);
 
   return (

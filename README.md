@@ -14,18 +14,24 @@ Strava, for studying.*
 - **Backend:** Supabase (Postgres, Auth, Realtime, Edge Functions)
 - **Push:** expo-notifications · **Analytics:** PostHog
 
-## Status: Phase 0 (scaffold) ✅
-What's in place:
-- Expo + expo-router app shell: auth flow, tabs (Home / League / Profile), and a
-  full-screen round modal with a working countdown + foreground guard.
-- Email-OTP sign-in and an onboarding screen (name, avatar, exam tag).
-- Zustand round store + `useRound` / `useAppStateGuard` hooks (interfaces wired,
-  server calls stubbed for Phase 1).
-- Supabase migrations `001`–`003` (profiles/rounds, leagues, synced events) with
-  RLS, plus `complete-round` and `league-rollover` edge-function stubs.
+## Status: playable offline prototype ✅
+The full single-player loop works with no backend (demo mode):
+- Auth flow with a **demo mode** ("Explore the app, no account") + onboarding
+  (name, avatar, exam tag) that persists.
+- **Round session:** focus → 5-min break → chain another round or end; chains
+  past 4 require a check-in tap; hold-to-give-up; dev "skip to end"; leaving the
+  app fails the round.
+- First-run **rules contract** before the first round.
+- **Local pomo ledger** → streak, freezes, today/week, best day, longest chain.
+- **League** standings against a deterministic demo cohort (promotion/relegation
+  zones, tier badge, team-goal bar) — shaped to swap to Supabase Realtime later.
+- **Profile** with tier, stats, 12-week activity heatmap, and a **weekly recap
+  card** (shares as text now; image export is a later dev-build step).
 
-What's **not** done yet (needs your accounts): a live Supabase project and the
-real server validation/scoring. See the Phase checklist in CLAUDE.md.
+What's **not** done yet (needs your accounts): a live Supabase project, real
+server-validated rounds, real opponents, and weekly rollover. The Supabase
+migrations `001`–`003` and edge-function stubs are in `supabase/`. See the
+Phase checklist in CLAUDE.md.
 
 ## Get it running
 
