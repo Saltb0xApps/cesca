@@ -207,14 +207,19 @@ create index on rounds (user_id, started_at);
 RLS: users select/insert own rounds; status transitions only via RPC/edge function.
 
 ### Tasks
-- [ ] `useAppStateGuard`: subscribe to AppState; accumulate background time during a running round; >10s → mark failed locally + log to server on return
-- [ ] `useRound` state machine per Part 2 (idle/running/break/failed/completed), driven by server `started_at`, not a local stopwatch (survives app suspend)
-- [ ] `start_round` RPC (inserts row, returns server timestamp)
-- [ ] `complete-round` edge function: validates elapsed ≥ 24:45, no fail event, applies daily league cap (16), updates streak (+ freeze consumption logic), returns new totals
-- [ ] Round screen: full-screen timer, calm, keep-awake, big "give up" friction (hold to abandon)
-- [ ] Break screen: 5:00 countdown, "chain next round" button (check-in tap required when chain_index ≥ 4)
-- [ ] Failed screen: honest, non-punishing copy + instant "restart round"
-- [ ] App-kill recovery: on launch, reconcile any `running` round against server time → mark failed if window passed
+- [x] `useAppStateGuard`: subscribe to AppState; accumulate background time during a running round; >10s → mark failed locally + log to server on return *(local enforcement done; server fail-log pending Supabase)*
+- [x] `useRound` state machine per Part 2 (idle/running/break/failed/completed), driven by `started_at`, not a local stopwatch (survives app suspend) *(orchestrated in round.tsx + roundStore; reads server time once wired)*
+- [ ] `start_round` RPC (inserts row, returns server timestamp) — needs Supabase
+- [ ] `complete-round` edge function: validates elapsed ≥ 24:45, no fail event, applies daily league cap (16), updates streak (+ freeze consumption logic), returns new totals — needs Supabase
+- [x] Round screen: full-screen timer, calm, keep-awake, big "give up" friction (hold to abandon)
+- [x] Break screen: 5:00 countdown, "chain next round" button (check-in tap required when chain_index ≥ 4)
+- [x] Failed screen: honest, non-punishing copy + instant "restart round"
+- [ ] App-kill recovery: on launch, reconcile any `running` round against server time → mark failed if window passed — needs Supabase
+
+> Offline-first note: pomos bank to a local ledger (`src/stores/ledgerStore.ts`)
+> so the full round/break/chain/stats loop works in demo mode without a backend.
+> The Supabase phase makes the server authoritative (start_round + complete-round)
+> and adds app-kill reconciliation.
 
 **Accept:** Complete a real pomo on device; background the app 15s mid-round → round fails; chain 2 rounds; kill app mid-round → reconciles as failed; streak increments once per day.
 

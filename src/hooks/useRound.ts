@@ -32,8 +32,8 @@ export function useRound() {
   );
 
   const completeRound = useCallback(async () => {
-    // TODO(Phase 1): await supabase.functions.invoke('complete-round', { body: { roundId } });
-    store.setStatus('break');
+    // TODO(supabase): await supabase.functions.invoke('complete-round', { body: { roundId } });
+    store.startBreak();
   }, [store]);
 
   const abandon = useCallback(async () => {

@@ -1,28 +1,30 @@
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { computeStats, useLedgerStore } from '@/stores/ledgerStore';
 import { colors } from '@/theme';
 
-// Phase 2 fills these from the profile/round data. Placeholders for the
-// scaffold so the Home shell is real and navigable.
 export default function Home() {
   const router = useRouter();
+  const pomos = useLedgerStore((s) => s.pomos);
+  const stats = useMemo(() => computeStats(pomos), [pomos]);
 
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
         <View>
           <Text style={styles.hi}>Today</Text>
-          <Text style={styles.streak}>🔥 0 day streak</Text>
+          <Text style={styles.streak}>🔥 {stats.streak} day streak</Text>
         </View>
         <View style={styles.freezes}>
-          <Text style={styles.freezeText}>❄️ 0</Text>
+          <Text style={styles.freezeText}>❄️ {stats.freezes}</Text>
         </View>
       </View>
 
       <View style={styles.statsRow}>
-        <Stat value="0" label="pomos today" />
-        <Stat value="0" label="this week" />
+        <Stat value={stats.today} label="pomos today" />
+        <Stat value={stats.week} label="this week" />
       </View>
 
       <View style={styles.center}>
@@ -36,7 +38,7 @@ export default function Home() {
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+function Stat({ value, label }: { value: number; label: string }) {
   return (
     <View style={styles.stat}>
       <Text style={styles.statValue}>{value}</Text>

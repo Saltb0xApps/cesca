@@ -1,12 +1,24 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useMemo } from 'react';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/hooks/useAuth';
+import { computeStats, useLedgerStore } from '@/stores/ledgerStore';
 import { colors } from '@/theme';
 
-// Phase 5 finalizes this (tier badges + recap card). Scaffold shows identity +
-// sign out so the auth loop is testable end-to-end.
 export default function Profile() {
-  const { session, signOut } = useAuth();
+  const { session, demoMode, signOut } = useAuth();
+  const pomos = useLedgerStore((s) => s.pomos);
+  const clear = useLedgerStore((s) => s.clear);
+  const stats = useMemo(() => computeStats(pomos), [pomos]);
+
+  const who = session?.user.email ?? (demoMode ? 'Demo player' : 'Signed in');
+
+  const confirmClear = () => {
+    Alert.alert('Reset pomo history?', 'This clears your local stats on this device.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Reset', style: 'destructive', onPress: () => void clear() },
+    ]);
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -14,14 +26,35 @@ export default function Profile() {
 
       <View style={styles.card}>
         <Text style={styles.avatar}>🍅</Text>
-        <Text style={styles.name}>{session?.user.email ?? 'Signed in'}</Text>
-        <Text style={styles.tag}>Bronze · 0 pomos · 0-day streak</Text>
+        <Text style={styles.name}>{who}</Text>
+        <Text style={styles.tag}>
+          Bronze · {stats.total} pomos · {stats.streak}-day streak
+        </Text>
       </View>
 
-      <Pressable style={styles.signOut} onPress={signOut}>
+      <View style={styles.grid}>
+        <Cell value={stats.total} label="all-time pomos" />
+        <Cell value={stats.week} label="this week" />
+        <Cell value={stats.bestDay} label="best day" />
+        <Cell value={stats.longestChain} label="longest chain" />
+      </View>
+
+      <Pressable style={styles.link} onPress={confirmClear}>
+        <Text style={styles.linkText}>Reset pomo history</Text>
+      </Pressable>
+      <Pressable style={styles.link} onPress={signOut}>
         <Text style={styles.signOutText}>Sign out</Text>
       </Pressable>
     </SafeAreaView>
+  );
+}
+
+function Cell({ value, label }: { value: number; label: string }) {
+  return (
+    <View style={styles.cell}>
+      <Text style={styles.cellValue}>{value}</Text>
+      <Text style={styles.cellLabel}>{label}</Text>
+    </View>
   );
 }
 
@@ -29,7 +62,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   title: { fontSize: 28, fontWeight: '800', color: colors.ink, padding: 20 },
   card: {
-    margin: 20,
+    marginHorizontal: 20,
     backgroundColor: colors.card,
     borderColor: colors.line,
     borderWidth: 1,
@@ -41,6 +74,25 @@ const styles = StyleSheet.create({
   avatar: { fontSize: 48 },
   name: { fontSize: 18, fontWeight: '800', color: colors.ink },
   tag: { fontSize: 14, color: colors.subtle },
-  signOut: { alignSelf: 'center', marginTop: 8, padding: 12 },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    padding: 20,
+  },
+  cell: {
+    flexGrow: 1,
+    flexBasis: '45%',
+    backgroundColor: colors.card,
+    borderColor: colors.line,
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 16,
+    alignItems: 'center',
+  },
+  cellValue: { fontSize: 26, fontWeight: '800', color: colors.ink },
+  cellLabel: { fontSize: 12, color: colors.subtle },
+  link: { alignSelf: 'center', padding: 12 },
+  linkText: { color: colors.subtle, fontWeight: '700' },
   signOutText: { color: colors.tomatoDark, fontWeight: '700' },
 });
