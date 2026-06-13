@@ -11,6 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 import { colors } from '@/theme';
 
 const AVATARS = ['🍅', '🔥', '📚', '🧠', '⚡️', '🦉', '🌙', '☕️', '🎯', '🏆'];
@@ -18,6 +19,7 @@ const EXAM_SUGGESTIONS = ['USMLE', 'Bar Exam', 'A-Levels', 'Finals', 'Thesis'];
 
 export default function Onboarding() {
   const router = useRouter();
+  const { demoMode } = useAuth();
   const [name, setName] = useState('');
   const [avatar, setAvatar] = useState(AVATARS[0]!);
   const [examTag, setExamTag] = useState('');
@@ -28,6 +30,13 @@ export default function Onboarding() {
       Alert.alert('Pick a display name');
       return;
     }
+
+    // Demo mode: no Supabase — skip the profile write and go straight in.
+    if (demoMode) {
+      router.replace('/(tabs)');
+      return;
+    }
+
     setBusy(true);
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData.user?.id;

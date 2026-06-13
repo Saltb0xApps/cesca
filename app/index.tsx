@@ -5,7 +5,7 @@ import { colors } from '@/theme';
 
 // Entry route: send authenticated users to the app, everyone else to sign-in.
 export default function Index() {
-  const { session, loading } = useAuth();
+  const { authed, loading } = useAuth();
 
   if (loading) {
     return (
@@ -15,5 +15,5 @@ export default function Index() {
     );
   }
 
-  return <Redirect href={session ? '/(tabs)' : '/(auth)/sign-in'} />;
+  return <Redirect href={authed ? '/(tabs)' : '/(auth)/sign-in'} />;
 }

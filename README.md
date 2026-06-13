@@ -31,29 +31,30 @@ real server validation/scoring. See the Phase checklist in CLAUDE.md.
 
 You need Node 18+ and the Expo Go app on your phone (or an iOS/Android simulator).
 
+### Quick look — no backend needed
 ```bash
-# 1. install dependencies
 npm install
-# align Expo package versions to the SDK (recommended once after install)
-npx expo install --fix
+npx expo start   # press i (iOS) / a (Android), or scan the QR in Expo Go
+```
+On the sign-in screen tap **"Explore the app (no account)"** to walk through
+onboarding → Home → start a round → test the leave-and-lose mechanic. No
+Supabase required. (In demo mode the round runs locally and nothing is saved.)
 
-# 2. configure Supabase
+### Full setup — real accounts + persistence
+```bash
+# 1. configure Supabase
 #    - create a project at https://supabase.com
 #    - in Authentication > Providers, enable Email (OTP)
 cp .env.example .env
 #    fill EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in .env
 
-# 3. apply the database schema
+# 2. apply the database schema
 npx supabase init      # first time only, links the /supabase folder
 npx supabase db push   # applies migrations/001..003
 
-# 4. run the app
-npx expo start         # press i (iOS) / a (Android), or scan the QR in Expo Go
+# 3. run the app
+npx expo start
 ```
-
-Without a configured `.env`, the app still launches to the sign-in screen and
-shows a configuration warning — handy for eyeballing the UI before wiring the
-backend.
 
 ## Useful commands
 | Command | What |

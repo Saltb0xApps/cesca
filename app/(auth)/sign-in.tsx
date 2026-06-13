@@ -12,10 +12,12 @@ import {
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 import { colors } from '@/theme';
 
 export default function SignIn() {
   const router = useRouter();
+  const { enterDemo } = useAuth();
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [stage, setStage] = useState<'email' | 'code'>('email');
@@ -45,6 +47,11 @@ export default function SignIn() {
       return;
     }
     // New users continue to onboarding; the tabs gate handles existing users.
+    router.replace('/(auth)/onboarding');
+  };
+
+  const exploreDemo = async () => {
+    await enterDemo();
     router.replace('/(auth)/onboarding');
   };
 
@@ -95,6 +102,11 @@ export default function SignIn() {
             </Pressable>
           </>
         )}
+
+        <Text style={styles.or}>— or —</Text>
+        <Pressable style={styles.demo} onPress={exploreDemo}>
+          <Text style={styles.demoText}>Explore the app (no account)</Text>
+        </Pressable>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -132,4 +144,14 @@ const styles = StyleSheet.create({
   },
   buttonText: { color: '#fff', fontSize: 17, fontWeight: '700' },
   link: { color: colors.subtle, textAlign: 'center', marginTop: 4 },
+  or: { color: colors.subtle, textAlign: 'center', marginTop: 18 },
+  demo: {
+    borderColor: colors.line,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    backgroundColor: colors.card,
+  },
+  demoText: { color: colors.ink, fontSize: 16, fontWeight: '700' },
 });

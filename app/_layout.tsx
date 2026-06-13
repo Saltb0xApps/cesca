@@ -7,7 +7,7 @@ import { queryClient } from '@/lib/queryClient';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
 
 function RootNavigator() {
-  const { session, loading } = useAuth();
+  const { authed, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
@@ -17,10 +17,11 @@ function RootNavigator() {
 
     // Only force unauthenticated users out. Forward navigation after auth is
     // driven by the sign-in / onboarding screens so onboarding isn't skipped.
-    if (!session && !inAuthGroup) {
+    // `authed` is true for a real session OR demo mode.
+    if (!authed && !inAuthGroup) {
       router.replace('/(auth)/sign-in');
     }
-  }, [session, loading, segments, router]);
+  }, [authed, loading, segments, router]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
