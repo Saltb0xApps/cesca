@@ -261,7 +261,7 @@ create table league_results (               -- written by rollover, powers resul
 ### Tasks
 - [ ] Cohort assignment: on first completed pomo of the week, place user into an open league at their tier (<20 members) or create one; if total active users <15, show global leaderboard instead (cold-start fallback)
 - [ ] `complete-round` fn also increments `league_members.pomos` (respecting daily cap)
-- [ ] League screen: live standings via Supabase Realtime, promotion/relegation zones shaded, league team-goal progress bar (e.g., 300 pomos)
+- [~] League screen: standings UI with promotion/relegation zones shaded + team-goal progress bar — DONE against an offline demo cohort (`src/lib/demoLeague.ts`); swap data source to Supabase Realtime when wired
 - [ ] `league-rollover` edge function on cron (Sun 23:59 anchor tz): write league_results, promote top 5 / relegate bottom 5, form next week's cohorts
 - [ ] Results screen (Sunday night → Monday): animated rank reveal, movement banner, share button. Spend real design effort here — this is match day.
 - [ ] Push: "X just passed you" (debounced, max 2/day), "week ends in 24h and you're 2 pomos from promotion"

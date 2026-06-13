@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/hooks/useAuth';
 import { computeStats, useLedgerStore } from '@/stores/ledgerStore';
+import { Heatmap } from '@/components/Heatmap';
+import { TIER_NAMES, tierIndexFor } from '@/lib/demoLeague';
 import { colors } from '@/theme';
 
 export default function Profile() {
@@ -10,6 +12,7 @@ export default function Profile() {
   const pomos = useLedgerStore((s) => s.pomos);
   const clear = useLedgerStore((s) => s.clear);
   const stats = useMemo(() => computeStats(pomos), [pomos]);
+  const tier = TIER_NAMES[tierIndexFor(stats.total)];
 
   const who = session?.user.email ?? (demoMode ? 'Demo player' : 'Signed in');
 
@@ -22,29 +25,33 @@ export default function Profile() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Text style={styles.title}>Profile</Text>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <Text style={styles.title}>Profile</Text>
 
-      <View style={styles.card}>
-        <Text style={styles.avatar}>🍅</Text>
-        <Text style={styles.name}>{who}</Text>
-        <Text style={styles.tag}>
-          Bronze · {stats.total} pomos · {stats.streak}-day streak
-        </Text>
-      </View>
+        <View style={styles.card}>
+          <Text style={styles.avatar}>🍅</Text>
+          <Text style={styles.name}>{who}</Text>
+          <Text style={styles.tag}>
+            {tier} · {stats.total} pomos · {stats.streak}-day streak
+          </Text>
+        </View>
 
-      <View style={styles.grid}>
-        <Cell value={stats.total} label="all-time pomos" />
-        <Cell value={stats.week} label="this week" />
-        <Cell value={stats.bestDay} label="best day" />
-        <Cell value={stats.longestChain} label="longest chain" />
-      </View>
+        <View style={styles.grid}>
+          <Cell value={stats.total} label="all-time pomos" />
+          <Cell value={stats.week} label="this week" />
+          <Cell value={stats.bestDay} label="best day" />
+          <Cell value={stats.longestChain} label="longest chain" />
+        </View>
 
-      <Pressable style={styles.link} onPress={confirmClear}>
-        <Text style={styles.linkText}>Reset pomo history</Text>
-      </Pressable>
-      <Pressable style={styles.link} onPress={signOut}>
-        <Text style={styles.signOutText}>Sign out</Text>
-      </Pressable>
+        <Heatmap pomos={pomos} />
+
+        <Pressable style={styles.link} onPress={confirmClear}>
+          <Text style={styles.linkText}>Reset pomo history</Text>
+        </Pressable>
+        <Pressable style={styles.link} onPress={signOut}>
+          <Text style={styles.signOutText}>Sign out</Text>
+        </Pressable>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -60,6 +67,7 @@ function Cell({ value, label }: { value: number; label: string }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
+  scroll: { paddingBottom: 32, gap: 4 },
   title: { fontSize: 28, fontWeight: '800', color: colors.ink, padding: 20 },
   card: {
     marginHorizontal: 20,
