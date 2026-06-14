@@ -23,10 +23,10 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="league"
+        name="stats"
         options={{
-          title: 'League',
-          tabBarIcon: ({ focused }) => <Icon emoji="🏆" focused={focused} />,
+          title: 'Stats',
+          tabBarIcon: ({ focused }) => <Icon emoji="📊" focused={focused} />,
         }}
       />
       <Tabs.Screen

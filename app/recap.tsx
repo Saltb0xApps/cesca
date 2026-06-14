@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { computeStats, useLedgerStore } from '@/stores/ledgerStore';
 import { useProfileStore } from '@/stores/profileStore';
-import { buildCohort, TIER_NAMES, tierIndexFor } from '@/lib/demoLeague';
+import { TIER_NAMES, tierIndexFor } from '@/lib/tiers';
 import { colors } from '@/theme';
 
 // Weekly recap / share card — the growth loop. (Image export via view-shot is a
@@ -15,13 +15,12 @@ export default function Recap() {
   const pomos = useLedgerStore((s) => s.pomos);
   const { displayName, avatar, examTag } = useProfileStore();
   const stats = useMemo(() => computeStats(pomos), [pomos]);
-  const cohort = useMemo(() => buildCohort(pomos, stats.total), [pomos, stats.total]);
   const tier = TIER_NAMES[tierIndexFor(stats.total)];
 
   const shareText =
     `My week on PomoLeague 🍅\n` +
     (examTag ? `${examTag} · ${tier}\n` : `${tier}\n`) +
-    `${stats.week} pomos · #${cohort.yourRank} in my league · ${stats.streak}-day streak 🔥`;
+    `${stats.week} pomos this week · ${stats.total} all-time · ${stats.streak}-day streak 🔥`;
 
   const onShare = () => {
     void Share.share({ message: shareText });
@@ -33,7 +32,7 @@ export default function Recap() {
         <Text style={styles.brand}>POMOLEAGUE</Text>
         <Text style={styles.avatar}>{avatar}</Text>
         <Text style={styles.name}>{displayName || 'You'}</Text>
-        {!!examTag && <Text style={styles.exam}>{examTag}</Text>}
+        <Text style={styles.exam}>{examTag ? `${examTag} · ${tier}` : tier}</Text>
 
         <View style={styles.big}>
           <Text style={styles.bigNum}>{stats.week}</Text>
@@ -41,7 +40,7 @@ export default function Recap() {
         </View>
 
         <View style={styles.row}>
-          <Mini value={`#${cohort.yourRank}`} label={`${tier} league`} />
+          <Mini value={`${stats.total}`} label="all-time" />
           <Mini value={`${stats.streak}🔥`} label="day streak" />
           <Mini value={`${stats.bestDay}`} label="best day" />
         </View>

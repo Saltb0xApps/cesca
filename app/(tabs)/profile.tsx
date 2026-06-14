@@ -5,8 +5,7 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { computeStats, useLedgerStore } from '@/stores/ledgerStore';
 import { useProfileStore } from '@/stores/profileStore';
-import { Heatmap } from '@/components/Heatmap';
-import { TIER_NAMES, tierIndexFor } from '@/lib/demoLeague';
+import { TIER_NAMES, tierIndexFor } from '@/lib/tiers';
 import { colors } from '@/theme';
 
 export default function Profile() {
@@ -51,8 +50,6 @@ export default function Profile() {
         <Pressable style={styles.recap} onPress={() => router.push('/recap')}>
           <Text style={styles.recapText}>📸  Share weekly recap</Text>
         </Pressable>
-
-        <Heatmap pomos={pomos} />
 
         <Pressable style={styles.link} onPress={confirmClear}>
           <Text style={styles.linkText}>Reset pomo history</Text>

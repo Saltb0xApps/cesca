@@ -22,7 +22,7 @@ export default function Rules() {
 
         <Rule emoji="⏱️" text="25 minutes of focus, then a 5-minute break." />
         <Rule emoji="📵" text="Leave the app and the round dies. No partial credit — ever." />
-        <Rule emoji="🏆" text="Completed pomos are your score. Bank them to climb your league." />
+        <Rule emoji="🏆" text="Completed pomos are your score. Bank as many as you can." />
 
         <Text style={styles.fine}>
           Notification peeks are fine. Switching apps for more than ~10 seconds is not.
