@@ -11,13 +11,16 @@ export interface Pomo {
   id: string;
   completedAt: string; // ISO
   chainIndex: number;
+  task?: string; // what you were working on
 }
+
+export const POMO_MINUTES = 25;
 
 interface LedgerState {
   pomos: Pomo[];
   loaded: boolean;
   load: () => Promise<void>;
-  bankLocal: (chainIndex: number) => Promise<void>;
+  bankLocal: (chainIndex: number, task?: string) => Promise<void>;
   clear: () => Promise<void>;
 }
 
@@ -33,11 +36,13 @@ export const useLedgerStore = create<LedgerState>((set, get) => ({
       set({ loaded: true });
     }
   },
-  bankLocal: async (chainIndex) => {
+  bankLocal: async (chainIndex, task) => {
+    const trimmed = task?.trim();
     const pomo: Pomo = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       completedAt: new Date().toISOString(),
       chainIndex,
+      ...(trimmed ? { task: trimmed } : {}),
     };
     const pomos = [pomo, ...get().pomos];
     set({ pomos });
@@ -121,4 +126,40 @@ export function computeStats(pomos: Pomo[]): Stats {
   const freezes = Math.min(2, Math.floor(streak / 7));
 
   return { total: pomos.length, today, week, streak, freezes, bestDay, longestChain };
+}
+
+export interface Subject {
+  task: string;
+  count: number;
+  minutes: number;
+}
+
+/** Pomos grouped by task, most-focused first. Untagged pomos roll into "General". */
+export function subjectBreakdown(pomos: Pomo[]): Subject[] {
+  const byTask = new Map<string, number>();
+  for (const p of pomos) {
+    const key = p.task && p.task.length > 0 ? p.task : 'General';
+    byTask.set(key, (byTask.get(key) ?? 0) + 1);
+  }
+  return [...byTask.entries()]
+    .map(([task, count]) => ({ task, count, minutes: count * POMO_MINUTES }))
+    .sort((a, b) => b.count - a.count);
+}
+
+export function formatMinutes(mins: number): string {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+}
+
+/** Unique recent task names (most recent first), for quick re-selection. */
+export function recentTasks(pomos: Pomo[], limit = 6): string[] {
+  const seen: string[] = [];
+  for (const p of pomos) {
+    if (p.task && !seen.includes(p.task)) seen.push(p.task);
+    if (seen.length >= limit) break;
+  }
+  return seen;
 }

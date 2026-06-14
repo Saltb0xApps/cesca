@@ -1,7 +1,12 @@
 import { useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { computeStats, useLedgerStore } from '@/stores/ledgerStore';
+import {
+  computeStats,
+  formatMinutes,
+  subjectBreakdown,
+  useLedgerStore,
+} from '@/stores/ledgerStore';
 import { Heatmap } from '@/components/Heatmap';
 import { TIER_NAMES, pomosToNextTier, tierIndexFor } from '@/lib/tiers';
 import { colors } from '@/theme';
@@ -16,6 +21,7 @@ export default function Stats() {
   const tier = TIER_NAMES[tierIdx];
   const tierColor = TIER_COLORS[tierIdx] ?? colors.tomato;
   const next = pomosToNextTier(stats.total);
+  const subjects = useMemo(() => subjectBreakdown(pomos), [pomos]);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -51,6 +57,30 @@ export default function Stats() {
           <Stat value={stats.bestDay} label="best day" />
           <Stat value={stats.longestChain} label="longest chain" />
         </View>
+
+        {subjects.length > 0 && (
+          <View style={styles.subjectCard}>
+            <Text style={styles.subjectTitle}>Time by subject</Text>
+            {subjects.map((s) => {
+              const pct = subjects[0]!.count > 0 ? s.count / subjects[0]!.count : 0;
+              return (
+                <View key={s.task} style={styles.subjectRow}>
+                  <View style={styles.subjectTop}>
+                    <Text style={styles.subjectName} numberOfLines={1}>
+                      {s.task}
+                    </Text>
+                    <Text style={styles.subjectTime}>
+                      {formatMinutes(s.minutes)} · {s.count}🍅
+                    </Text>
+                  </View>
+                  <View style={styles.subjectTrack}>
+                    <View style={[styles.subjectFill, { width: `${Math.max(6, pct * 100)}%` }]} />
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
 
         <Heatmap pomos={pomos} />
       </ScrollView>
@@ -97,4 +127,20 @@ const styles = StyleSheet.create({
   statValue: { fontSize: 26, fontWeight: '800', color: colors.ink },
   statValueBig: { fontSize: 38 },
   statLabel: { fontSize: 12, color: colors.subtle },
+  subjectCard: {
+    backgroundColor: colors.card,
+    borderColor: colors.line,
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 16,
+    gap: 12,
+  },
+  subjectTitle: { fontWeight: '800', color: colors.ink, fontSize: 16 },
+  subjectRow: { gap: 6 },
+  subjectTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  subjectName: { flex: 1, fontSize: 14, fontWeight: '700', color: colors.ink, marginRight: 8 },
+  subjectTime: { fontSize: 13, fontWeight: '700', color: colors.subtle },
+  subjectTrack: { height: 8, borderRadius: 4, backgroundColor: colors.line, overflow: 'hidden' },
+  subjectFill: { height: 8, borderRadius: 4, backgroundColor: colors.tomato },
 });
+

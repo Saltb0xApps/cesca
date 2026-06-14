@@ -10,6 +10,7 @@ import {
   useRoundStore,
 } from '@/stores/roundStore';
 import { useLedgerStore } from '@/stores/ledgerStore';
+import { useTaskStore } from '@/stores/taskStore';
 import { colors } from '@/theme';
 
 export default function RoundScreen() {
@@ -39,7 +40,8 @@ export default function RoundScreen() {
         const remaining = ROUND_SECONDS - (Date.now() - s.startedAtMs) / 1000;
         if (remaining <= 0 && bankedRef.current !== s.roundId) {
           bankedRef.current = s.roundId;
-          void bankLocal(s.chainIndex); // TODO(supabase): call complete-round fn instead
+          const task = useTaskStore.getState().currentTask;
+          void bankLocal(s.chainIndex, task); // TODO(supabase): call complete-round fn instead
           s.bankIncrement();
           s.startBreak();
         }
@@ -131,6 +133,9 @@ export default function RoundScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.label}>FOCUS{store.chainIndex > 0 ? ` · round ${store.chainIndex + 1}` : ''}</Text>
+      {!!useTaskStore.getState().currentTask && (
+        <Text style={styles.task}>{useTaskStore.getState().currentTask}</Text>
+      )}
       <Text style={styles.timer}>{format(remaining)}</Text>
       <Text style={styles.warn}>Leave the app and you lose the round.</Text>
 
@@ -174,6 +179,7 @@ const styles = StyleSheet.create({
   break: { backgroundColor: '#16432b' },
   fail: { backgroundColor: colors.tomatoDark },
   label: { color: '#ffffff99', fontSize: 16, fontWeight: '800', letterSpacing: 3 },
+  task: { color: '#fff', fontSize: 18, fontWeight: '700' },
   timer: { color: '#fff', fontSize: 84, fontWeight: '200', fontVariant: ['tabular-nums'] },
   warn: { color: '#ffffff88', fontSize: 14 },
   banked: { color: '#ffffffcc', fontSize: 16, fontWeight: '700' },

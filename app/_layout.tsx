@@ -7,6 +7,7 @@ import { queryClient } from '@/lib/queryClient';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
 import { useLedgerStore } from '@/stores/ledgerStore';
 import { useProfileStore } from '@/stores/profileStore';
+import { useTaskStore } from '@/stores/taskStore';
 
 function RootNavigator() {
   const { authed, loading } = useAuth();
@@ -41,6 +42,7 @@ export default function RootLayout() {
   useEffect(() => {
     void useLedgerStore.getState().load();
     void useProfileStore.getState().load();
+    void useTaskStore.getState().load();
   }, []);
 
   return (

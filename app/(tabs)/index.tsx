@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { computeStats, useLedgerStore } from '@/stores/ledgerStore';
+import { computeStats, recentTasks, useLedgerStore } from '@/stores/ledgerStore';
 import { useProfileStore } from '@/stores/profileStore';
+import { useTaskStore } from '@/stores/taskStore';
 import { colors } from '@/theme';
 
 export default function Home() {
@@ -12,6 +13,9 @@ export default function Home() {
   const stats = useMemo(() => computeStats(pomos), [pomos]);
   const seenRules = useProfileStore((s) => s.seenRules);
   const dailyGoal = useProfileStore((s) => s.dailyGoal);
+  const currentTask = useTaskStore((s) => s.currentTask);
+  const setCurrentTask = useTaskStore((s) => s.setCurrentTask);
+  const recents = useMemo(() => recentTasks(pomos), [pomos]);
 
   const startRound = () => router.push(seenRules ? '/round' : '/rules');
 
@@ -54,6 +58,29 @@ export default function Home() {
       </View>
 
       <View style={styles.center}>
+        <View style={styles.taskCard}>
+          <Text style={styles.taskLabel}>Working on</Text>
+          <TextInput
+            style={styles.taskInput}
+            placeholder="e.g. Anatomy, Essay, Problem set…"
+            placeholderTextColor={colors.subtle}
+            value={currentTask}
+            onChangeText={setCurrentTask}
+            returnKeyType="done"
+          />
+          {recents.length > 0 && (
+            <View style={styles.chips}>
+              {recents.map((t) => (
+                <Pressable key={t} style={styles.chip} onPress={() => setCurrentTask(t)}>
+                  <Text style={styles.chipText} numberOfLines={1}>
+                    {t}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+        </View>
+
         <Pressable style={styles.start} onPress={startRound}>
           <Text style={styles.startTomato}>🍅</Text>
           <Text style={styles.startText}>START A ROUND</Text>
@@ -119,7 +146,33 @@ const styles = StyleSheet.create({
   },
   statValue: { fontSize: 28, fontWeight: '800', color: colors.ink },
   statLabel: { fontSize: 12, color: colors.subtle },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 24 },
+  taskCard: {
+    width: '100%',
+    paddingHorizontal: 20,
+    gap: 8,
+  },
+  taskLabel: { fontSize: 13, fontWeight: '700', color: colors.subtle, paddingHorizontal: 4 },
+  taskInput: {
+    backgroundColor: colors.card,
+    borderColor: colors.line,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 16,
+    color: colors.ink,
+  },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 2 },
+  chip: {
+    backgroundColor: colors.card,
+    borderColor: colors.line,
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    maxWidth: 160,
+  },
+  chipText: { color: colors.ink, fontWeight: '600', fontSize: 13 },
   start: {
     backgroundColor: colors.tomato,
     width: 220,
