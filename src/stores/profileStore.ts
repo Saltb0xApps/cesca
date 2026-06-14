@@ -12,6 +12,7 @@ interface Profile {
   avatar: string;
   examTag: string;
   seenRules: boolean;
+  dailyGoal: number;
 }
 
 interface ProfileState extends Profile {
@@ -25,6 +26,7 @@ const DEFAULTS: Profile = {
   avatar: '🍅',
   examTag: '',
   seenRules: false,
+  dailyGoal: 8,
 };
 
 export const useProfileStore = create<ProfileState>((set, get) => ({
@@ -45,6 +47,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       avatar: get().avatar,
       examTag: get().examTag,
       seenRules: get().seenRules,
+      dailyGoal: get().dailyGoal,
       ...patch,
     };
     set(next);

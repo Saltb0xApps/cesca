@@ -11,8 +11,12 @@ export default function Home() {
   const pomos = useLedgerStore((s) => s.pomos);
   const stats = useMemo(() => computeStats(pomos), [pomos]);
   const seenRules = useProfileStore((s) => s.seenRules);
+  const dailyGoal = useProfileStore((s) => s.dailyGoal);
 
   const startRound = () => router.push(seenRules ? '/round' : '/rules');
+
+  const goalPct = dailyGoal > 0 ? Math.min(1, stats.today / dailyGoal) : 0;
+  const hitGoal = stats.today >= dailyGoal;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -26,9 +30,27 @@ export default function Home() {
         </View>
       </View>
 
+      {/* daily goal */}
+      <View style={styles.goalCard}>
+        <View style={styles.goalTop}>
+          <Text style={styles.goalTitle}>{hitGoal ? 'Goal smashed 🎉' : "Today's goal"}</Text>
+          <Text style={styles.goalNums}>
+            {stats.today} / {dailyGoal}
+          </Text>
+        </View>
+        <View style={styles.barTrack}>
+          <View style={[styles.barFill, { width: `${goalPct * 100}%` }]} />
+        </View>
+        <Text style={styles.goalHint}>
+          {hitGoal
+            ? 'Keep going — every pomo still counts.'
+            : `${dailyGoal - stats.today} more to hit your goal. Change it in Profile.`}
+        </Text>
+      </View>
+
       <View style={styles.statsRow}>
-        <Stat value={stats.today} label="pomos today" />
         <Stat value={stats.week} label="this week" />
+        <Stat value={stats.total} label="all-time" />
       </View>
 
       <View style={styles.center}>
@@ -70,7 +92,22 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   freezeText: { fontSize: 16, fontWeight: '700', color: colors.ink },
-  statsRow: { flexDirection: 'row', gap: 12, paddingHorizontal: 20 },
+  goalCard: {
+    marginHorizontal: 20,
+    backgroundColor: colors.card,
+    borderColor: colors.line,
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 16,
+    gap: 8,
+  },
+  goalTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  goalTitle: { fontWeight: '800', color: colors.ink, fontSize: 16 },
+  goalNums: { fontWeight: '800', color: colors.tomato, fontSize: 16 },
+  barTrack: { height: 12, borderRadius: 6, backgroundColor: colors.line, overflow: 'hidden' },
+  barFill: { height: 12, borderRadius: 6, backgroundColor: colors.tomato },
+  goalHint: { fontSize: 12, color: colors.subtle },
+  statsRow: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, marginTop: 12 },
   stat: {
     flex: 1,
     backgroundColor: colors.card,
@@ -85,13 +122,13 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   start: {
     backgroundColor: colors.tomato,
-    width: 240,
-    height: 240,
-    borderRadius: 120,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  startTomato: { fontSize: 52 },
+  startTomato: { fontSize: 48 },
   startText: { color: '#fff', fontSize: 20, fontWeight: '800', marginTop: 6 },
   startSub: { color: '#ffffffcc', fontSize: 13, marginTop: 4 },
 });
