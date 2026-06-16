@@ -1,8 +1,12 @@
 import { useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
 import { computeStats, useLedgerStore } from '@/stores/ledgerStore';
 import { useProfileStore } from '@/stores/profileStore';
+import { useAuth } from '@/hooks/useAuth';
+import { isSupabaseConfigured } from '@/lib/supabase';
+import { fetchStandings } from '@/lib/leagueApi';
 import { buildCohort, type Cohort, type Member } from '@/lib/demoLeague';
 import { colors } from '@/theme';
 
@@ -16,11 +20,26 @@ function fmtRange(a: Date, b: Date): string {
 export default function League() {
   const pomos = useLedgerStore((s) => s.pomos);
   const { displayName, avatar } = useProfileStore();
+  const { session } = useAuth();
   const stats = useMemo(() => computeStats(pomos), [pomos]);
-  const cohort = useMemo(
+
+  const live = isSupabaseConfigured && !!session;
+
+  const { data: remoteCohort } = useQuery({
+    queryKey: ['standings'],
+    queryFn: () => fetchStandings(stats.total),
+    enabled: live,
+    refetchInterval: 20_000,
+    refetchOnMount: true,
+  });
+
+  const demoCohort = useMemo(
     () => buildCohort(pomos, stats.total, displayName || 'You', avatar),
     [pomos, stats.total, displayName, avatar],
   );
+
+  const cohort: Cohort = live && remoteCohort ? remoteCohort : demoCohort;
+  const usingReal = live && !!remoteCohort;
 
   const goalPct = Math.min(1, cohort.teamTotal / cohort.teamGoal);
   const tierColor = TIER_COLORS[cohort.tierIndex] ?? colors.tomato;
@@ -67,9 +86,11 @@ export default function League() {
           <Row key={m.id} member={m} rank={i + 1} cohort={cohort} total={cohort.members.length} />
         ))}
 
-        <Text style={styles.demoNote}>
-          Demo opponents for now — real leagues arrive with accounts.
-        </Text>
+        {!usingReal && (
+          <Text style={styles.demoNote}>
+            Demo opponents — sign in with Supabase configured for a real league.
+          </Text>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

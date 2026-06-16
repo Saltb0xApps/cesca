@@ -46,21 +46,32 @@ On the sign-in screen tap **"Explore the app (no account)"** to walk through
 onboarding → Home → start a round → test the leave-and-lose mechanic. No
 Supabase required. (In demo mode the round runs locally and nothing is saved.)
 
-### Full setup — real accounts + persistence
+### Full setup — real accounts + a real league
 ```bash
-# 1. configure Supabase
-#    - create a project at https://supabase.com
-#    - in Authentication > Providers, enable Email (OTP)
+# 1. create a project at https://supabase.com
+#    - Authentication > Providers: enable Email (OTP)
+#    - Project Settings > API: copy the Project URL and anon public key
+
 cp .env.example .env
 #    fill EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in .env
 
-# 2. apply the database schema
-npx supabase init      # first time only, links the /supabase folder
-npx supabase db push   # applies migrations/001..003
+# 2. apply the schema + server functions (migrations 001..004)
+npx supabase login
+npx supabase link --project-ref <your-project-ref>
+npx supabase db push
 
-# 3. run the app
+# 3. run the app and sign in (not "Explore" — real auth)
 npx expo start
 ```
+
+Once signed in with a configured project, completing a round calls the
+`bank_pomo` RPC: it records the pomo, drops you into an open weekly cohort
+(≤20), updates the league score (16/day cap), and advances your streak. The
+**League** tab then shows real standings (`league_standings` RPC, refreshed live).
+The first signed-in users all share one cohort — exactly what you want at launch.
+
+To see a real league fill up, sign in on two devices/simulators with different
+emails and complete rounds on each.
 
 ## Useful commands
 | Command | What |

@@ -9,8 +9,8 @@ import {
   ROUND_SECONDS,
   useRoundStore,
 } from '@/stores/roundStore';
-import { useLedgerStore } from '@/stores/ledgerStore';
 import { useTaskStore } from '@/stores/taskStore';
+import { bankPomo } from '@/lib/banking';
 import { VegIcon } from '@/components/VegIcon';
 import { colors } from '@/theme';
 
@@ -20,7 +20,6 @@ export default function RoundScreen() {
   useAppStateGuard();
 
   const store = useRoundStore();
-  const bankLocal = useLedgerStore((s) => s.bankLocal);
 
   const [, force] = useState(0);
   const [confirmChain, setConfirmChain] = useState(false);
@@ -42,7 +41,7 @@ export default function RoundScreen() {
         if (remaining <= 0 && bankedRef.current !== s.roundId) {
           bankedRef.current = s.roundId;
           const task = useTaskStore.getState().currentTask;
-          void bankLocal(s.chainIndex, task); // TODO(supabase): call complete-round fn instead
+          void bankPomo(s.chainIndex, task); // local mirror + server (when configured)
           s.bankIncrement();
           s.startBreak();
         }

@@ -60,6 +60,24 @@ export type Database = {
         Args: { p_chain_index?: number };
         Returns: Database['public']['Tables']['rounds']['Row'];
       };
+      bank_pomo: {
+        Args: { p_task?: string | null; p_chain_index?: number };
+        Returns: { weekly_pomos: number; league_rank: number }[];
+      };
+      league_standings: {
+        Args: Record<string, never>;
+        Returns: {
+          user_id: string;
+          display_name: string;
+          avatar: string | null;
+          pomos: number;
+          is_you: boolean;
+        }[];
+      };
+      ensure_current_league: {
+        Args: { p_user: string };
+        Returns: string;
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
