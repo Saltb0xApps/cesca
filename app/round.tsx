@@ -11,6 +11,7 @@ import {
 } from '@/stores/roundStore';
 import { useLedgerStore } from '@/stores/ledgerStore';
 import { useTaskStore } from '@/stores/taskStore';
+import { VegIcon } from '@/components/VegIcon';
 import { colors } from '@/theme';
 
 export default function RoundScreen() {
@@ -100,9 +101,10 @@ export default function RoundScreen() {
       <View style={[styles.container, styles.break]}>
         <Text style={styles.label}>BREAK</Text>
         <Text style={styles.timer}>{format(breakRemaining)}</Text>
-        <Text style={styles.banked}>
-          🍅 {store.sessionBanked} banked this session
-        </Text>
+        <View style={styles.bankedRow}>
+          <VegIcon type="tomato" size={22} color="#fff" strokeWidth={3} />
+          <Text style={styles.banked}>{store.sessionBanked} banked this session</Text>
+        </View>
 
         {needsCheckin && confirmChain ? (
           <Pressable style={styles.primary} onPress={() => beginRound(nextIndex)}>
@@ -182,6 +184,7 @@ const styles = StyleSheet.create({
   task: { color: '#fff', fontSize: 18, fontWeight: '700' },
   timer: { color: '#fff', fontSize: 84, fontWeight: '200', fontVariant: ['tabular-nums'] },
   warn: { color: '#ffffff88', fontSize: 14 },
+  bankedRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   banked: { color: '#ffffffcc', fontSize: 16, fontWeight: '700' },
   give: { marginTop: 30, padding: 14 },
   giveText: { color: '#ffffff88', fontSize: 15 },

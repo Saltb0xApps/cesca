@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { computeStats, recentTasks, useLedgerStore } from '@/stores/ledgerStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { useTaskStore } from '@/stores/taskStore';
+import { VegIcon } from '@/components/VegIcon';
 import { colors } from '@/theme';
 
 export default function Home() {
@@ -82,7 +83,7 @@ export default function Home() {
         </View>
 
         <Pressable style={styles.start} onPress={startRound}>
-          <Text style={styles.startTomato}>🍅</Text>
+          <VegIcon type="tomato" size={64} color="#fff" strokeWidth={3} />
           <Text style={styles.startText}>START A ROUND</Text>
           <Text style={styles.startSub}>25 min · stay in the app</Text>
         </Pressable>
@@ -181,7 +182,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  startTomato: { fontSize: 48 },
   startText: { color: '#fff', fontSize: 20, fontWeight: '800', marginTop: 6 },
   startSub: { color: '#ffffffcc', fontSize: 13, marginTop: 4 },
 });

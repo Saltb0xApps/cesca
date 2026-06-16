@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   computeStats,
@@ -8,14 +9,19 @@ import {
   useLedgerStore,
 } from '@/stores/ledgerStore';
 import { Heatmap } from '@/components/Heatmap';
+import { VegIcon } from '@/components/VegIcon';
 import { TIER_NAMES, pomosToNextTier, tierIndexFor } from '@/lib/tiers';
+import { VEGGIES, nextVeg, unlockedCount } from '@/lib/veggies';
 import { colors } from '@/theme';
 
 const TIER_COLORS = ['#A97142', '#9AA3AD', '#E0B11A', '#5FC9D6', colors.tomato];
 
 export default function Stats() {
+  const router = useRouter();
   const pomos = useLedgerStore((s) => s.pomos);
   const stats = useMemo(() => computeStats(pomos), [pomos]);
+  const grown = unlockedCount(stats.total);
+  const nextV = nextVeg(stats.total);
 
   const tierIdx = tierIndexFor(stats.total);
   const tier = TIER_NAMES[tierIdx];
@@ -42,6 +48,32 @@ export default function Stats() {
             <Text style={styles.levelNext}>Top tier reached 🍅</Text>
           )}
         </View>
+
+        {/* garden collection */}
+        <Pressable style={styles.gardenCard} onPress={() => router.push('/garden')}>
+          <View style={styles.gardenTop}>
+            <Text style={styles.gardenTitle}>Your garden</Text>
+            <Text style={styles.gardenCount}>
+              {grown} / {VEGGIES.length}
+            </Text>
+          </View>
+          <View style={styles.gardenRow}>
+            {VEGGIES.map((v, i) => (
+              <VegIcon
+                key={v.type}
+                type={v.type}
+                size={30}
+                color={i < grown ? colors.tomato : colors.line}
+                strokeWidth={3}
+              />
+            ))}
+          </View>
+          <Text style={styles.gardenHint}>
+            {nextV
+              ? `${nextV.remaining} more pomos to grow a ${nextV.veg.name.toLowerCase()} →`
+              : 'All vegetables grown 🎉'}
+          </Text>
+        </Pressable>
 
         <View style={styles.row}>
           <Stat value={stats.today} label="today" big />
@@ -114,6 +146,19 @@ const styles = StyleSheet.create({
   tierText: { color: '#fff', fontWeight: '800', fontSize: 16 },
   levelTotal: { fontSize: 18, fontWeight: '800', color: colors.ink, marginTop: 4 },
   levelNext: { fontSize: 13, color: colors.subtle },
+  gardenCard: {
+    backgroundColor: colors.card,
+    borderColor: colors.line,
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 16,
+    gap: 10,
+  },
+  gardenTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  gardenTitle: { fontWeight: '800', color: colors.ink, fontSize: 16 },
+  gardenCount: { fontWeight: '800', color: colors.tomato, fontSize: 16 },
+  gardenRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, justifyContent: 'space-between' },
+  gardenHint: { fontSize: 12, color: colors.subtle },
   row: { flexDirection: 'row', gap: 12 },
   stat: {
     flex: 1,

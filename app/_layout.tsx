@@ -34,6 +34,7 @@ function RootNavigator() {
       <Stack.Screen name="round" options={{ presentation: 'fullScreenModal' }} />
       <Stack.Screen name="rules" options={{ presentation: 'modal' }} />
       <Stack.Screen name="recap" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="garden" options={{ presentation: 'modal' }} />
     </Stack>
   );
 }
