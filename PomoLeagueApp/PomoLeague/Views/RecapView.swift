@@ -12,7 +12,7 @@ struct RecapView: View {
             + (profile.examTag.isEmpty ? "\(tier)\n" : "\(profile.examTag) · \(tier)\n")
             + "\(stats.week) pomos this week · \(stats.total) all-time · \(stats.streak)-day streak 🔥"
 
-        VStack(spacing: 16) {
+        return VStack(spacing: 16) {
             VStack(spacing: 8) {
                 Text("POMOLEAGUE").font(.caption.weight(.black)).tracking(3).foregroundStyle(.white.opacity(0.8))
                 Text(profile.avatar).font(.system(size: 64))

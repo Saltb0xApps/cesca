@@ -10,7 +10,7 @@ struct LeagueView: View {
 
     var body: some View {
         let c = cohort ?? demoCohort()
-        ScrollView {
+        return ScrollView {
             VStack(spacing: 10) {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 6) {

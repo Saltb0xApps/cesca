@@ -32,8 +32,8 @@ enum PomoMath {
         return "\(c.year ?? 0)-\(c.month ?? 0)-\(c.day ?? 0)"
     }
 
-    static func startOfWeek(_ d: Date, _ cal: Calendar = mondayCalendar) -> Date {
-        cal.dateInterval(of: .weekOfYear, for: d)?.start ?? d
+    static func startOfWeek(_ d: Date) -> Date {
+        mondayCalendar.dateInterval(of: .weekOfYear, for: d)?.start ?? d
     }
 
     static var mondayCalendar: Calendar {

@@ -12,7 +12,7 @@ struct ProfileView: View {
         let stats = ledger.stats
         let tier = Tiers.name(for: stats.total)
 
-        ScrollView {
+        return ScrollView {
             VStack(spacing: 12) {
                 HStack { Text("Profile").font(.largeTitle.bold()).foregroundStyle(Color.pomoInk); Spacer() }
 

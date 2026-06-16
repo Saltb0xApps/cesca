@@ -9,7 +9,7 @@ struct GardenView: View {
         let grown = Veggies.unlockedCount(total: total)
         let next = Veggies.next(total: total)
 
-        VStack(spacing: 0) {
+        return VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Your garden").font(.largeTitle.bold()).foregroundStyle(Color.pomoInk)
                 Text("\(grown) / \(Veggies.all.count) grown" +

@@ -12,7 +12,7 @@ struct StatsView: View {
         let nextVeg = Veggies.next(total: stats.total)
         let subjects = PomoMath.subjects(ledger.pomos)
 
-        ScrollView {
+        return ScrollView {
             VStack(spacing: 12) {
                 HStack {
                     Text("Your stats").font(.largeTitle.bold()).foregroundStyle(Color.pomoInk)

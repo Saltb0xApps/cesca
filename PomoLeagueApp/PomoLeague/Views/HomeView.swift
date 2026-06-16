@@ -14,7 +14,7 @@ struct HomeView: View {
         let pct = goal > 0 ? min(1, Double(stats.today) / Double(goal)) : 0
         let hit = stats.today >= goal
 
-        VStack(spacing: 14) {
+        return VStack(spacing: 14) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Today").font(.subheadline.bold()).foregroundStyle(Color.pomoSubtle)
