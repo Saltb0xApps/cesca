@@ -5,6 +5,11 @@ verified, uninterrupted 25-minute focus round. Weekly leagues, streaks, and
 synchronized rounds turn studying into a ranked sport. *Duolingo leagues meets
 Strava, for studying.*
 
+> **Two clients, one backend.** This repo root is the **Expo / React Native**
+> app. A native **SwiftUI** rewrite lives in **[`PomoLeagueApp/`](./PomoLeagueApp)**
+> — both talk to the same Supabase schema in `/supabase`. The Swift app is the
+> direction going forward; the Expo app remains until parity.
+
 > Full product spec, project context, and the phased build plan live in
 > **[CLAUDE.md](./CLAUDE.md)**. Out-of-scope ideas go in **[ICEBOX.md](./ICEBOX.md)**.
 
