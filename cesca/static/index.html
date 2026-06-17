@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cesca — Local CV Scorer</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Cesca</h1>
+    <p class="tagline">Private, on-device CV scoring. Your data never leaves this Mac.</p>
+    <div id="backend-badge" class="badge">…</div>
+  </header>
+
+  <main>
+    <section class="card upload-card">
+      <h2>Score a CV</h2>
+      <label id="dropzone" class="dropzone" for="file">
+        <input type="file" id="file" accept="application/pdf" hidden />
+        <span class="dz-text">Drop a PDF here or click to choose</span>
+        <span id="filename" class="filename"></span>
+      </label>
+      <button id="score-btn" disabled>Score CV</button>
+      <p id="status" class="status"></p>
+    </section>
+
+    <section id="result" class="card result-card hidden">
+      <div class="score-head">
+        <div class="gauge"><span id="overall">0</span><small>/100</small></div>
+        <div>
+          <h2 id="result-name">Result</h2>
+          <p id="summary" class="summary"></p>
+          <p id="result-backend" class="muted"></p>
+        </div>
+      </div>
+      <div id="dimensions" class="dimensions"></div>
+    </section>
+
+    <section class="card history-card">
+      <h2>History <small class="muted">(stored locally)</small></h2>
+      <ul id="history" class="history"></ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>All processing happens locally. CVs and scores are saved to a local
+    database on this machine and are never uploaded or shared.</p>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
