@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  username      String    @unique
+  passwordHash  String
+  tags          String    @default("") // CSV taste profile, e.g. "jazz,vinyl,slow"
+  activeSeconds Int       @default(0)  // cumulative engagement meter (rot fuel)
+  lastSeenAt    DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  plants        Plant[]
+  sessions      Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid()) // opaque token = cookie value
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Plant {
+  id                     String   @id @default(cuid())
+  userId                 String
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label                  String
+  drawing                String   @default("") // base64 PNG data URL the user hand-drew
+  tags                   String   @default("") // CSV
+  kind                   String   @default("NORMAL") // "NORMAL" | "GRAFT"
+  plantedAt              DateTime @default(now())
+  plantedAtActiveSeconds Int // snapshot of user.activeSeconds when planted
+  createdAt              DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Suggestion {
+  id        String   @id @default(cuid())
+  userId    String // who this incompatible seed is for
+  label     String
+  tags      String   @default("") // the OPPOSITE tags
+  source    String   @default("MAP") // "MAP" | "CLAUDE"
+  consumed  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}

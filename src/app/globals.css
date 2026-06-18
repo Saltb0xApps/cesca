@@ -1,0 +1,287 @@
+:root {
+  --bg: #0a0e0a;
+  --bg2: #0d130d;
+  --fg: #4dff7c;
+  --fg-dim: #2a8c45;
+  --fg-faint: #1c5e2f;
+  --warn: #ffd24d;
+  --rot: #b06b2e;
+  --dead: #6b6b6b;
+  --line: #163d22;
+  --mono: "SFMono-Regular", "Consolas", "Liberation Mono", "Menlo", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: none;
+}
+
+/* CRT scanlines over everything */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.18) 3px,
+    rgba(0, 0, 0, 0) 4px
+  );
+}
+
+a {
+  color: var(--fg);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--fg-dim);
+}
+a:hover {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.wrap {
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 0 16px 80px;
+}
+
+.cursor::after {
+  content: "_";
+  animation: blink 1s steps(1) infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ---- nav ---- */
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  padding: 14px 0;
+  margin-bottom: 22px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.nav .brand {
+  font-weight: 700;
+  font-size: 18px;
+  border: none;
+  letter-spacing: 0.2em;
+}
+.nav .spacer {
+  flex: 1;
+}
+
+/* ---- forms / buttons ---- */
+input,
+button,
+textarea {
+  font-family: var(--mono);
+  font-size: 15px;
+}
+.field {
+  display: block;
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  color: var(--fg);
+  padding: 10px 12px;
+  margin: 6px 0 16px;
+}
+.field:focus {
+  outline: none;
+  border-color: var(--fg);
+}
+label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg-dim);
+}
+.btn {
+  display: inline-block;
+  background: transparent;
+  border: 1px solid var(--fg);
+  color: var(--fg);
+  padding: 9px 18px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.btn:hover {
+  background: var(--fg);
+  color: var(--bg);
+}
+.btn.danger {
+  border-color: var(--rot);
+  color: var(--rot);
+}
+.btn.danger:hover {
+  background: var(--rot);
+  color: var(--bg);
+}
+.btn.ghost {
+  border-color: var(--line);
+  color: var(--fg-dim);
+}
+
+.muted {
+  color: var(--fg-dim);
+}
+.faint {
+  color: var(--fg-faint);
+}
+.warn {
+  color: var(--warn);
+}
+.err {
+  color: #ff6b6b;
+  margin: 8px 0;
+}
+
+/* ---- cards / grid ---- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+.card {
+  border: 1px solid var(--line);
+  background: var(--bg2);
+  padding: 12px;
+}
+.card .label {
+  margin-top: 8px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  word-break: break-word;
+}
+.card .stage {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--fg-dim);
+}
+
+/* ---- vitality bar ---- */
+.vbar {
+  height: 4px;
+  background: var(--line);
+  margin: 8px 0 4px;
+  overflow: hidden;
+}
+.vbar > span {
+  display: block;
+  height: 100%;
+  background: var(--fg);
+}
+
+/* ---- attention meter (sticky banner) ---- */
+.meter {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #170a0a;
+  border-bottom: 1px solid var(--rot);
+  color: var(--warn);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 7px 16px;
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+.meter .big {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ff8a4d;
+}
+
+/* ---- fence (peek-through) ---- */
+.fence {
+  position: relative;
+  overflow: hidden;
+}
+.fence > .caged {
+  filter: blur(5px) brightness(0.7) saturate(0.6);
+  pointer-events: none;
+  user-select: none;
+}
+.fence::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(10, 14, 10, 0.92) 0px,
+    rgba(10, 14, 10, 0.92) 7px,
+    transparent 7px,
+    transparent 26px
+  );
+  pointer-events: none;
+}
+
+/* ---- glitch (driven by --g: 0..1 from vitality) ---- */
+.glitch {
+  position: relative;
+  filter: blur(calc(var(--g, 0) * 1.6px)) hue-rotate(calc(var(--g, 0) * 40deg))
+    contrast(calc(1 + var(--g, 0) * 0.5)) saturate(calc(1 - var(--g, 0) * 0.6));
+  opacity: calc(1 - var(--g, 0) * 0.45);
+  animation: jitter calc(0.4s + (1 - var(--g, 0)) * 2s) steps(2) infinite;
+}
+@keyframes jitter {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(calc(var(--g, 0) * 1.5px), calc(var(--g, 0) * -1px));
+  }
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--rot);
+  padding: 28px;
+  max-width: 420px;
+  text-align: center;
+}
