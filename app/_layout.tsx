@@ -47,6 +47,8 @@ export default function RootLayout() {
                 options={{ title: 'Add a link', presentation: 'modal' }}
               />
               <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+              <Stack.Screen name="tags" options={{ title: 'Tags' }} />
+              <Stack.Screen name="tag/[name]" options={{ title: 'Tag' }} />
             </Stack>
           </ToastProvider>
         </SQLiteProvider>

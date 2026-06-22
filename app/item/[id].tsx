@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Linking,
   Pressable,
@@ -27,6 +27,7 @@ import {
 } from '@/repositories/items';
 import { getTrack } from '@/repositories/tracks';
 import { listFolders } from '@/repositories/folders';
+import { suggestTags } from '@/repositories/tags';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
 import { VideoPlayerView } from '@/components/VideoPlayerView';
@@ -42,6 +43,7 @@ export default function ItemDetailScreen() {
   const [item, setItem] = useState<SavedItem | null>(null);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [tagInput, setTagInput] = useState('');
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
   const reload = useCallback(async () => {
     const found = await getItem(db, id);
@@ -58,6 +60,18 @@ export default function ItemDetailScreen() {
     }, [reload])
   );
 
+  const existingTags = useMemo(() => item?.tags ?? [], [item?.tags]);
+  useEffect(() => {
+    let active = true;
+    // suggestTags returns [] for empty input, so this also clears suggestions.
+    suggestTags(db, tagInput).then((s) => {
+      if (active) setSuggestions(s.filter((t) => !existingTags.includes(t)));
+    });
+    return () => {
+      active = false;
+    };
+  }, [db, tagInput, existingTags]);
+
   if (!item) {
     return (
       <View style={styles.center}>
@@ -66,12 +80,13 @@ export default function ItemDetailScreen() {
     );
   }
 
-  const addTag = async () => {
-    const t = tagInput.trim();
+  const addTag = async (value?: string) => {
+    const t = (value ?? tagInput).trim();
     if (!t) return;
     const next = Array.from(new Set([...(item.tags ?? []), t.toLowerCase()]));
     await setItemTags(db, item.id, next);
     setTagInput('');
+    setSuggestions([]);
     reload();
   };
 
@@ -168,6 +183,19 @@ export default function ItemDetailScreen() {
             </Pressable>
           ))}
         </View>
+        {suggestions.length > 0 ? (
+          <View style={styles.chips}>
+            {suggestions.map((s) => (
+              <Pressable
+                key={s}
+                style={styles.suggestChip}
+                onPress={() => addTag(s)}
+              >
+                <Text style={styles.chipText}>#{s}</Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
         <View style={styles.tagInputRow}>
           <TextInput
             value={tagInput}
@@ -176,10 +204,10 @@ export default function ItemDetailScreen() {
             placeholderTextColor={theme.colors.textMuted}
             style={styles.tagInput}
             autoCapitalize="none"
-            onSubmitEditing={addTag}
+            onSubmitEditing={() => addTag()}
             returnKeyType="done"
           />
-          <Pressable style={styles.tagAddBtn} onPress={addTag}>
+          <Pressable style={styles.tagAddBtn} onPress={() => addTag()}>
             <Text style={styles.tagAddText}>Add</Text>
           </Pressable>
         </View>
@@ -270,6 +298,14 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   chipText: { color: theme.colors.text, fontSize: 13, fontWeight: '500' },
+  suggestChip: {
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.pill,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
   tagInputRow: { flexDirection: 'row', gap: 10 },
   tagInput: {
     flex: 1,

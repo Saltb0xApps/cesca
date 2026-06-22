@@ -3,6 +3,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import type { SavedItem } from '@/types';
 import { newId, now } from '@/lib/id';
 import { mapItem, type ItemRow } from '@/db/mappers';
+import { ensureTag } from '@/repositories/tags';
 
 export interface NewItemInput {
   source: SavedItem['source'];
@@ -87,16 +88,32 @@ export async function getItem(
   return item;
 }
 
+export type ItemSort = 'recent' | 'oldest' | 'az';
+
+export interface SearchFilters {
+  source?: SavedItem['source'];
+  hasMusic?: boolean;
+  hasVideo?: boolean;
+  folderId?: string;
+  sort?: ItemSort;
+}
+
+const SORT_SQL: Record<ItemSort, string> = {
+  recent: 'i.saved_at DESC',
+  oldest: 'i.saved_at ASC',
+  az: 'LOWER(COALESCE(i.caption, i.title, "")) ASC',
+};
+
 /**
- * Full-text-ish search across caption, title, author, track metadata and tags.
- * Each whitespace-separated token must match somewhere (AND semantics).
+ * Search across caption, title, author, track metadata and tags, with optional
+ * filters and sort. Each whitespace-separated token must match (AND semantics).
  */
 export async function searchItems(
   db: SQLiteDatabase,
-  query: string
+  query: string,
+  filters: SearchFilters = {}
 ): Promise<SavedItem[]> {
   const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  if (tokens.length === 0) return listItems(db);
 
   const haystack = `
     LOWER(COALESCE(i.caption,'') || ' ' || COALESCE(i.title,'') || ' ' ||
@@ -106,17 +123,55 @@ export async function searchItems(
              FROM item_tags it JOIN tags tg ON tg.id = it.tag_id
              WHERE it.item_id = i.id), ''))`;
 
-  const conditions = tokens.map(() => `${haystack} LIKE ?`).join(' AND ');
-  const args = tokens.map((tk) => `%${tk}%`);
+  const clauses = ['i.deleted_at IS NULL'];
+  const args: string[] = [];
 
+  for (const tk of tokens) {
+    clauses.push(`${haystack} LIKE ?`);
+    args.push(`%${tk}%`);
+  }
+  if (filters.source) {
+    clauses.push('i.source = ?');
+    args.push(filters.source);
+  }
+  if (filters.hasMusic) {
+    clauses.push('i.track_id IS NOT NULL');
+  }
+  if (filters.hasVideo) {
+    clauses.push('i.media_uri IS NOT NULL');
+  }
+  if (filters.folderId) {
+    clauses.push('i.folder_id = ?');
+    args.push(filters.folderId);
+  }
+
+  const sort = SORT_SQL[filters.sort ?? 'recent'];
   const rows = await db.getAllAsync<ItemRow>(
     `SELECT i.*, f.name AS folder_name
      FROM items i
      LEFT JOIN folders f ON f.id = i.folder_id
      LEFT JOIN tracks t ON t.id = i.track_id
-     WHERE i.deleted_at IS NULL AND ${conditions}
-     ORDER BY i.saved_at DESC`,
+     WHERE ${clauses.join(' AND ')}
+     ORDER BY ${sort}`,
     ...args
+  );
+  return attachTags(db, rows.map(mapItem));
+}
+
+/** Items carrying a specific tag (exact tag match), newest first. */
+export async function listItemsByTag(
+  db: SQLiteDatabase,
+  tagName: string
+): Promise<SavedItem[]> {
+  const rows = await db.getAllAsync<ItemRow>(
+    `SELECT i.*, f.name AS folder_name
+     FROM items i
+     LEFT JOIN folders f ON f.id = i.folder_id
+     JOIN item_tags it ON it.item_id = i.id
+     JOIN tags tg ON tg.id = it.tag_id
+     WHERE i.deleted_at IS NULL AND tg.name = ?
+     ORDER BY i.saved_at DESC`,
+    tagName.trim().toLowerCase()
   );
   return attachTags(db, rows.map(mapItem));
 }
@@ -223,14 +278,7 @@ export async function setItemTags(
   );
   await db.runAsync('DELETE FROM item_tags WHERE item_id = ?', itemId);
   for (const name of clean) {
-    const existing = await db.getFirstAsync<{ id: string }>(
-      'SELECT id FROM tags WHERE name = ?',
-      name
-    );
-    const tagId = existing?.id ?? newId();
-    if (!existing) {
-      await db.runAsync('INSERT INTO tags (id, name) VALUES (?, ?)', tagId, name);
-    }
+    const tagId = await ensureTag(db, name);
     await db.runAsync(
       'INSERT OR IGNORE INTO item_tags (item_id, tag_id) VALUES (?, ?)',
       itemId,
