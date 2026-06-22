@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@/components/EmptyState';
 import { VideoCard } from '@/components/VideoCard';
+import { GallerySkeleton } from '@/components/ui/Skeleton';
 import { listItems } from '@/repositories/items';
 import type { SavedItem } from '@/types';
 import { theme } from '@/theme';
@@ -14,12 +15,16 @@ export default function GalleryScreen() {
   const db = useSQLiteContext();
   const router = useRouter();
   const [items, setItems] = useState<SavedItem[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
       listItems(db).then((rows) => {
-        if (active) setItems(rows);
+        if (active) {
+          setItems(rows);
+          setLoaded(true);
+        }
       });
       return () => {
         active = false;
@@ -37,23 +42,30 @@ export default function GalleryScreen() {
           </Pressable>
         </Link>
       </View>
-      <FlatList
-        data={items}
-        keyExtractor={(i) => i.id}
-        numColumns={2}
-        columnWrapperStyle={styles.row}
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <VideoCard item={item} onPress={() => router.push(`/item/${item.id}`)} />
-        )}
-        ListEmptyComponent={
-          <EmptyState
-            icon="🎬"
-            title="No saved videos yet"
-            subtitle="Share a reel from Instagram → Cesca, or tap + Add to paste a link."
-          />
-        }
-      />
+      {!loaded ? (
+        <GallerySkeleton />
+      ) : (
+        <FlatList
+          data={items}
+          keyExtractor={(i) => i.id}
+          numColumns={2}
+          columnWrapperStyle={styles.row}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => (
+            <VideoCard
+              item={item}
+              onPress={() => router.push(`/item/${item.id}`)}
+            />
+          )}
+          ListEmptyComponent={
+            <EmptyState
+              icon="🎬"
+              title="No saved videos yet"
+              subtitle="Share a reel from Instagram → Cesca, or tap + Add to paste a link."
+            />
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }

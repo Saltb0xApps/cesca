@@ -1,4 +1,5 @@
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 
 import type { SavedItem } from '@/types';
 import { theme } from '@/theme';
@@ -28,7 +29,12 @@ export function VideoCard({
     >
       <View style={styles.thumbWrap}>
         {item.thumbnailUri ? (
-          <Image source={{ uri: item.thumbnailUri }} style={styles.thumb} />
+          <Image
+            source={{ uri: item.thumbnailUri }}
+            style={styles.thumb}
+            contentFit="cover"
+            transition={150}
+          />
         ) : (
           <View style={[styles.thumb, styles.thumbFallback]}>
             <Text style={styles.fallbackIcon}>🎬</Text>
