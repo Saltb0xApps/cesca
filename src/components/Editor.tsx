@@ -4,7 +4,11 @@ import type { Doc, Folder } from "../types";
 import { WriteMode } from "./WriteMode";
 import { EditMode } from "./EditMode";
 import { VersionPanel } from "./VersionPanel";
+import { SettingsMenu } from "./SettingsMenu";
+import { Shortcuts } from "./Shortcuts";
 import { reconcileBlocks, pruneAnnotations, blocksToText } from "../lib/text";
+import { applySettings, loadSettings, saveSettings } from "../lib/settings";
+import type { Settings } from "../lib/settings";
 
 type Status = "saved" | "saving" | "dirty";
 
@@ -14,6 +18,16 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
   const [mode, setMode] = useState<"write" | "edit">("write");
   const [status, setStatus] = useState<Status>("saved");
   const [showVersions, setShowVersions] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [settings, setSettings] = useState<Settings>(() => loadSettings());
+
+  useEffect(() => {
+    applySettings(settings);
+    saveSettings(settings);
+  }, [settings]);
+  const patchSettings = (patch: Partial<Settings>) =>
+    setSettings((s) => ({ ...s, ...patch }));
 
   const loadedRef = useRef(false);
   const timer = useRef<number | null>(null);
@@ -60,6 +74,37 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
     },
     [scheduleSave]
   );
+
+  // global keyboard shortcuts
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) {
+        if (e.key === "Escape") {
+          setShowSettings(false);
+          setShowShortcuts(false);
+          setShowVersions(false);
+        }
+        return;
+      }
+      const k = e.key.toLowerCase();
+      if (k === "e") {
+        e.preventDefault();
+        setMode((m) => (m === "write" ? "edit" : "write"));
+      } else if (k === "s") {
+        e.preventDefault();
+        saveVersion();
+      } else if (k === ",") {
+        e.preventDefault();
+        setShowSettings((v) => !v);
+      } else if (k === "/") {
+        e.preventDefault();
+        setShowShortcuts((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doc]);
 
   // Save immediately (e.g. before leaving) to avoid losing the debounce window.
   async function flush(d: Doc) {
@@ -150,6 +195,29 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
           <button className="ghost" onClick={() => setShowVersions(true)}>
             History
           </button>
+          <div className="pop-anchor">
+            <button
+              className="ghost icon"
+              title="Formatting (⌘,)"
+              onClick={() => setShowSettings((v) => !v)}
+            >
+              Aa
+            </button>
+            {showSettings && (
+              <SettingsMenu
+                settings={settings}
+                onChange={patchSettings}
+                onClose={() => setShowSettings(false)}
+              />
+            )}
+          </div>
+          <button
+            className="ghost icon"
+            title="Keyboard shortcuts (⌘/)"
+            onClick={() => setShowShortcuts(true)}
+          >
+            ⌘
+          </button>
 
           <span className={`status status-${status}`}>
             {status === "saving"
@@ -179,6 +247,8 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
           onRestored={onRestored}
         />
       )}
+
+      {showShortcuts && <Shortcuts onClose={() => setShowShortcuts(false)} />}
     </div>
   );
 }

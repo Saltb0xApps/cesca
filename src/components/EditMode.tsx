@@ -38,7 +38,7 @@ interface ComputedArrow {
   mid?: { x: number; y: number };
 }
 
-const COLORS: HighlightColor[] = ["yellow", "orange", "peach"];
+const COLORS: HighlightColor[] = ["light", "mid", "invert"];
 
 export function EditMode({ doc, update }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -328,6 +328,25 @@ export function EditMode({ doc, update }: Props) {
     stage?.addEventListener("scroll", onScroll);
     return () => stage?.removeEventListener("scroll", onScroll);
   }, []);
+
+  // keyboard shortcuts while text is selected
+  useEffect(() => {
+    if (!sel) return;
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement;
+      if (t && (t.tagName === "TEXTAREA" || t.tagName === "INPUT")) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "1") addHighlight("light");
+      else if (e.key === "2") addHighlight("mid");
+      else if (e.key === "3") addHighlight("invert");
+      else if (e.key.toLowerCase() === "n") addNote("right");
+      else return;
+      e.preventDefault();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sel]);
 
   /* ------------------------------ render -------------------------------- */
 

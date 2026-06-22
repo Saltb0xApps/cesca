@@ -6,7 +6,7 @@ export interface Block {
   text: string;
 }
 
-export type HighlightColor = "yellow" | "orange" | "peach";
+export type HighlightColor = "light" | "mid" | "invert";
 
 export interface Highlight {
   id: string;

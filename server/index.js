@@ -9,6 +9,7 @@
 // Folders are a small JSON registry at data/folders.json.
 
 import express from "express";
+import os from "node:os";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
@@ -373,6 +374,20 @@ if (fs.existsSync(DIST_DIR)) {
   app.get("*", (_req, res) => res.sendFile(path.join(DIST_DIR, "index.html")));
 }
 
-app.listen(PORT, () => {
-  console.log(`Margins backend running on http://localhost:${PORT}`);
+// Bind to 0.0.0.0 so other devices (phone / iPad) on the same network can reach it.
+app.listen(PORT, "0.0.0.0", () => {
+  const nets = os.networkInterfaces();
+  const lan = [];
+  for (const name of Object.keys(nets)) {
+    for (const net of nets[name] || []) {
+      if (net.family === "IPv4" && !net.internal) lan.push(net.address);
+    }
+  }
+  console.log(`\n  Margins server running:`);
+  console.log(`    Local:   http://localhost:${PORT}`);
+  for (const ip of lan) console.log(`    Network: http://${ip}:${PORT}`);
+  console.log(
+    `\n  In dev, open the Vite URL instead (npm run dev prints it). ` +
+      `On your phone/iPad use the Network address.\n`
+  );
 });
