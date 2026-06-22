@@ -158,6 +158,26 @@ export async function moveItemToFolder(
   await db.runAsync('UPDATE items SET folder_id = ? WHERE id = ?', folderId, itemId);
 }
 
+/** Sets the local media/thumbnail URIs (used after a background download). */
+export async function updateItemMedia(
+  db: SQLiteDatabase,
+  id: string,
+  media: { mediaUri?: string | null; thumbnailUri?: string | null }
+): Promise<void> {
+  const sets: string[] = [];
+  const args: (string | null)[] = [];
+  if ('mediaUri' in media) {
+    sets.push('media_uri = ?');
+    args.push(media.mediaUri ?? null);
+  }
+  if ('thumbnailUri' in media) {
+    sets.push('thumbnail_uri = ?');
+    args.push(media.thumbnailUri ?? null);
+  }
+  if (sets.length === 0) return;
+  await db.runAsync(`UPDATE items SET ${sets.join(', ')} WHERE id = ?`, ...args, id);
+}
+
 export async function setItemTrack(
   db: SQLiteDatabase,
   itemId: string,

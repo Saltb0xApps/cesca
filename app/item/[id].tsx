@@ -29,6 +29,8 @@ import { getTrack } from '@/repositories/tracks';
 import { listFolders } from '@/repositories/folders';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
+import { VideoPlayerView } from '@/components/VideoPlayerView';
+import { isLocalFile } from '@/services/media';
 import type { Folder, SavedItem } from '@/types';
 import { theme } from '@/theme';
 
@@ -112,7 +114,9 @@ export default function ItemDetailScreen() {
         }}
       />
 
-      {item.thumbnailUri ? (
+      {isLocalFile(item.mediaUri) ? (
+        <VideoPlayerView uri={item.mediaUri!} />
+      ) : item.thumbnailUri ? (
         <Image source={{ uri: item.thumbnailUri }} style={styles.hero} />
       ) : (
         <View style={[styles.hero, styles.heroFallback]}>

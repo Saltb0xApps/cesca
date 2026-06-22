@@ -78,5 +78,15 @@ export async function migrateDb(db: SQLiteDatabase): Promise<void> {
     version = 3;
   }
 
+  if (version < 4) {
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY NOT NULL,
+        value TEXT NOT NULL
+      );
+    `);
+    version = 4;
+  }
+
   await db.execAsync(`PRAGMA user_version = ${version};`);
 }

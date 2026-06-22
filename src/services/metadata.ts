@@ -6,6 +6,8 @@ export interface LinkMetadata {
   caption: string | null;
   author: string | null;
   thumbnailUri: string | null;
+  /** Direct video file URL if the page exposes one (og:video). */
+  videoUrl: string | null;
   /** Best-effort music detected from the page/caption. */
   musicTitle: string | null;
   musicArtist: string | null;
@@ -89,6 +91,7 @@ export async function fetchLinkMetadata(url: string): Promise<LinkMetadata> {
     caption: null,
     author: null,
     thumbnailUri: null,
+    videoUrl: null,
     musicTitle: null,
     musicArtist: null,
   };
@@ -107,6 +110,10 @@ export async function fetchLinkMetadata(url: string): Promise<LinkMetadata> {
     const title = metaTag(html, 'og:title');
     const caption = metaTag(html, 'og:description');
     const thumbnailUri = metaTag(html, 'og:image');
+    const videoUrl =
+      metaTag(html, 'og:video:secure_url') ??
+      metaTag(html, 'og:video:url') ??
+      metaTag(html, 'og:video');
     const author =
       metaTag(html, 'og:site_name') ??
       metaTag(html, 'author') ??
@@ -124,6 +131,7 @@ export async function fetchLinkMetadata(url: string): Promise<LinkMetadata> {
       caption,
       author,
       thumbnailUri,
+      videoUrl,
       musicTitle: music.title,
       musicArtist: music.artist,
     };

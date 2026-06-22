@@ -39,6 +39,7 @@ export default function RootLayout() {
                 name="add"
                 options={{ title: 'Add a link', presentation: 'modal' }}
               />
+              <Stack.Screen name="settings" options={{ title: 'Settings' }} />
             </Stack>
           </ToastProvider>
         </SQLiteProvider>

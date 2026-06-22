@@ -36,11 +36,18 @@ export default function GalleryScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Gallery</Text>
-        <Link href="/add" asChild>
-          <Pressable style={styles.addBtn}>
-            <Text style={styles.addBtnText}>+ Add</Text>
-          </Pressable>
-        </Link>
+        <View style={styles.headerActions}>
+          <Link href="/add" asChild>
+            <Pressable style={styles.addBtn}>
+              <Text style={styles.addBtnText}>+ Add</Text>
+            </Pressable>
+          </Link>
+          <Link href="/settings" asChild>
+            <Pressable style={styles.gearBtn} hitSlop={8}>
+              <Text style={styles.gear}>⚙︎</Text>
+            </Pressable>
+          </Link>
+        </View>
       </View>
       {!loaded ? (
         <GallerySkeleton />
@@ -80,6 +87,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   title: { color: theme.colors.text, fontSize: 28, fontWeight: '800' },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  gearBtn: { padding: 4 },
+  gear: { color: theme.colors.textMuted, fontSize: 22 },
   addBtn: {
     backgroundColor: theme.colors.accent,
     paddingHorizontal: 16,

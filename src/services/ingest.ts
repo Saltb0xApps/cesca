@@ -1,8 +1,10 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { createItem } from '@/repositories/items';
+import { createItem, updateItemMedia } from '@/repositories/items';
 import { upsertTrackByName } from '@/repositories/tracks';
+import { getSettings } from '@/repositories/settings';
 import { detectTrackSource, fetchLinkMetadata } from '@/services/metadata';
+import { downloadVideo, generateThumbnail } from '@/services/media';
 
 export interface SharePayload {
   /** A shared web URL (e.g. an Instagram reel link). */
@@ -42,7 +44,7 @@ export async function ingestShare(
         externalUrl: url,
       });
     }
-    return createItem(db, {
+    const id = await createItem(db, {
       source: meta.source,
       sourceUrl: url,
       title: meta.title,
@@ -51,6 +53,16 @@ export async function ingestShare(
       thumbnailUri: meta.thumbnailUri,
       trackId,
     });
+
+    // If enabled, download the actual video in the background so the share
+    // flow stays snappy. Updates the item's media/thumbnail when it finishes.
+    if (meta.videoUrl) {
+      const settings = await getSettings(db);
+      if (settings.downloadVideos) {
+        void downloadAndAttach(db, id, meta.videoUrl, !meta.thumbnailUri);
+      }
+    }
+    return id;
   }
 
   const file = payload.files?.[0];
@@ -67,6 +79,40 @@ export async function ingestShare(
     source: 'link',
     caption: payload.text ?? null,
   });
+}
+
+async function downloadAndAttach(
+  db: SQLiteDatabase,
+  itemId: string,
+  videoUrl: string,
+  needThumbnail: boolean
+): Promise<void> {
+  const localVideo = await downloadVideo(videoUrl);
+  if (!localVideo) return;
+  await updateItemMedia(db, itemId, { mediaUri: localVideo });
+  if (needThumbnail) {
+    const thumb = await generateThumbnail(localVideo);
+    if (thumb) {
+      await updateItemMedia(db, itemId, { thumbnailUri: thumb });
+    }
+  }
+}
+
+/** Imports a local video file (from the device) and generates a thumbnail. */
+export async function importVideoFile(
+  db: SQLiteDatabase,
+  uri: string,
+  name?: string
+): Promise<string> {
+  const id = await createItem(db, {
+    source: 'upload',
+    mediaUri: uri,
+    title: name ?? null,
+  });
+  void generateThumbnail(uri).then((thumb) => {
+    if (thumb) return updateItemMedia(db, id, { thumbnailUri: thumb });
+  });
+  return id;
 }
 
 /** Saves an external music link (Spotify/YouTube/SoundCloud) as a track. */
