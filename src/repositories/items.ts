@@ -55,14 +55,20 @@ export async function createItem(
 
 export async function listItems(
   db: SQLiteDatabase,
-  opts: { folderId?: string } = {}
+  opts: { folderId?: string; trackId?: string } = {}
 ): Promise<SavedItem[]> {
-  const where = opts.folderId
-    ? 'WHERE i.deleted_at IS NULL AND i.folder_id = ?'
-    : 'WHERE i.deleted_at IS NULL';
-  const args = opts.folderId ? [opts.folderId] : [];
+  const clauses = ['i.deleted_at IS NULL'];
+  const args: string[] = [];
+  if (opts.folderId) {
+    clauses.push('i.folder_id = ?');
+    args.push(opts.folderId);
+  }
+  if (opts.trackId) {
+    clauses.push('i.track_id = ?');
+    args.push(opts.trackId);
+  }
   const rows = await db.getAllAsync<ItemRow>(
-    `${SELECT_ITEM} ${where} ORDER BY i.saved_at DESC`,
+    `${SELECT_ITEM} WHERE ${clauses.join(' AND ')} ORDER BY i.saved_at DESC`,
     ...args
   );
   return attachTags(db, rows.map(mapItem));

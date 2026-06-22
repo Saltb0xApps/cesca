@@ -70,6 +70,48 @@ export async function deleteTrack(db: SQLiteDatabase, id: string): Promise<void>
   await db.runAsync('DELETE FROM tracks WHERE id = ?', id);
 }
 
+export async function updateTrack(
+  db: SQLiteDatabase,
+  id: string,
+  edit: { title?: string | null; artist?: string | null }
+): Promise<void> {
+  await db.runAsync(
+    'UPDATE tracks SET title = ?, artist = ? WHERE id = ?',
+    edit.title ?? null,
+    edit.artist ?? null,
+    id
+  );
+}
+
+/** Number of (non-deleted) saved items using this track. */
+export async function trackUsageCount(
+  db: SQLiteDatabase,
+  id: string
+): Promise<number> {
+  const row = await db.getFirstAsync<{ n: number }>(
+    'SELECT COUNT(*) AS n FROM items WHERE track_id = ? AND deleted_at IS NULL',
+    id
+  );
+  return row?.n ?? 0;
+}
+
+/** Repoints every item from `fromId` onto `intoId`, then deletes `fromId`. */
+export async function mergeTracks(
+  db: SQLiteDatabase,
+  fromId: string,
+  intoId: string
+): Promise<void> {
+  if (fromId === intoId) return;
+  await db.withTransactionAsync(async () => {
+    await db.runAsync(
+      'UPDATE items SET track_id = ? WHERE track_id = ?',
+      intoId,
+      fromId
+    );
+    await db.runAsync('DELETE FROM tracks WHERE id = ?', fromId);
+  });
+}
+
 /**
  * Finds an existing track matching title+artist (case-insensitive) or creates
  * one. Used when ingesting reels so the same song isn't duplicated.

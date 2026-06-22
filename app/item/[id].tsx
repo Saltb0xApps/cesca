@@ -139,10 +139,13 @@ export default function ItemDetailScreen() {
       {item.author ? <Text style={styles.author}>{item.author}</Text> : null}
 
       {music ? (
-        <View style={styles.section}>
+        <Pressable
+          style={styles.section}
+          onPress={() => item.trackId && router.push(`/track/${item.trackId}`)}
+        >
           <Text style={styles.sectionLabel}>Music</Text>
-          <Text style={styles.music}>♪ {music}</Text>
-        </View>
+          <Text style={styles.music}>♪ {music} ›</Text>
+        </Pressable>
       ) : null}
 
       {item.note ? (

@@ -7,20 +7,21 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import * as DocumentPicker from 'expo-document-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@/components/EmptyState';
 import { SearchBar } from '@/components/SearchBar';
+import { Chip } from '@/components/ui/Chip';
 import {
   createTrack,
   deleteTrack,
   searchTracks,
 } from '@/repositories/tracks';
 import { ingestMusicLink } from '@/services/ingest';
-import type { Track } from '@/types';
+import type { Track, TrackSource } from '@/types';
 import { theme } from '@/theme';
 
 const SOURCE_LABEL: Record<Track['source'], string> = {
@@ -32,13 +33,33 @@ const SOURCE_LABEL: Record<Track['source'], string> = {
   other: 'Link',
 };
 
+type MusicFilter = 'all' | 'reel' | 'upload' | 'link';
+
+const FILTERS: { key: MusicFilter; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'reel', label: 'From reels' },
+  { key: 'upload', label: 'Uploaded' },
+  { key: 'link', label: 'Links' },
+];
+
+function matchesFilter(source: TrackSource, filter: MusicFilter): boolean {
+  if (filter === 'all') return true;
+  if (filter === 'reel') return source === 'reel';
+  if (filter === 'upload') return source === 'upload';
+  return ['spotify', 'youtube', 'soundcloud', 'other'].includes(source);
+}
+
 export default function MusicScreen() {
   const db = useSQLiteContext();
+  const router = useRouter();
   const [query, setQuery] = useState('');
   const [tracks, setTracks] = useState<Track[]>([]);
+  const [filter, setFilter] = useState<MusicFilter>('all');
   const [showLinkForm, setShowLinkForm] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
   const [linkTitle, setLinkTitle] = useState('');
+
+  const visible = tracks.filter((t) => matchesFilter(t.source, filter));
 
   const reload = useCallback(() => {
     searchTracks(db, query).then(setTracks);
@@ -122,14 +143,27 @@ export default function MusicScreen() {
             </Pressable>
           </View>
         ) : null}
+        <View style={styles.filters}>
+          {FILTERS.map((f) => (
+            <Chip
+              key={f.key}
+              label={f.label}
+              active={filter === f.key}
+              onPress={() => setFilter(f.key)}
+            />
+          ))}
+        </View>
       </View>
 
       <FlatList
-        data={tracks}
+        data={visible}
         keyExtractor={(t) => t.id}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
-          <View style={styles.trackRow}>
+          <Pressable
+            style={styles.trackRow}
+            onPress={() => router.push(`/track/${item.id}`)}
+          >
             <View style={styles.trackIcon}>
               <Text style={{ fontSize: 18 }}>🎵</Text>
             </View>
@@ -149,7 +183,7 @@ export default function MusicScreen() {
             >
               <Text style={styles.delete}>✕</Text>
             </Pressable>
-          </View>
+          </Pressable>
         )}
         ListEmptyComponent={
           <EmptyState
@@ -167,6 +201,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.colors.bg },
   header: { paddingHorizontal: 16, paddingVertical: 12, gap: 12 },
   title: { color: theme.colors.text, fontSize: 28, fontWeight: '800' },
+  filters: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   actions: { flexDirection: 'row', gap: 10 },
   action: {
     flex: 1,

@@ -35,6 +35,7 @@ export default function RootLayout() {
                 options={{ title: 'Edit', presentation: 'modal' }}
               />
               <Stack.Screen name="folder/[id]" options={{ title: 'Folder' }} />
+              <Stack.Screen name="track/[id]" options={{ title: 'Track' }} />
               <Stack.Screen
                 name="add"
                 options={{ title: 'Add a link', presentation: 'modal' }}
