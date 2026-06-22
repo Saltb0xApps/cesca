@@ -50,3 +50,14 @@ export interface Tag {
   id: string;
   name: string;
 }
+
+export type ProjectStatus = 'idea' | 'editing' | 'done';
+
+export interface Project {
+  id: string;
+  name: string;
+  status: ProjectStatus;
+  notes: string | null;
+  createdAt: number;
+  itemCount?: number;
+}

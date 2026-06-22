@@ -95,6 +95,13 @@ export default function TrackDetailScreen() {
         <Field label="Song" value={title} onChangeText={setTitle} />
         <Field label="Artist" value={artist} onChangeText={setArtist} />
         <Button title="Save details" onPress={saveMeta} />
+        <Button
+          title="Add to a project"
+          variant="secondary"
+          onPress={() =>
+            router.push({ pathname: '/pick-project', params: { trackId: id } })
+          }
+        />
       </View>
 
       <Text style={styles.sectionLabel}>

@@ -88,5 +88,37 @@ export async function migrateDb(db: SQLiteDatabase): Promise<void> {
     version = 4;
   }
 
+  if (version < 5) {
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS projects (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'idea',
+        notes TEXT,
+        created_at INTEGER NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS project_items (
+        project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+        item_id TEXT NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+        position INTEGER NOT NULL,
+        PRIMARY KEY (project_id, item_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS project_tracks (
+        project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+        track_id TEXT NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+        position INTEGER NOT NULL,
+        PRIMARY KEY (project_id, track_id)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_project_items_proj
+        ON project_items(project_id, position);
+      CREATE INDEX IF NOT EXISTS idx_project_tracks_proj
+        ON project_tracks(project_id, position);
+    `);
+    version = 5;
+  }
+
   await db.execAsync(`PRAGMA user_version = ${version};`);
 }

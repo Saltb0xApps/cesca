@@ -210,10 +210,17 @@ export default function ItemDetailScreen() {
       </View>
 
       <Button
+        title="Add to a project"
+        variant="secondary"
+        onPress={() =>
+          router.push({ pathname: '/pick-project', params: { itemId: item.id } })
+        }
+        style={styles.deleteBtn}
+      />
+      <Button
         title="Delete video"
         variant="danger"
         onPress={handleDelete}
-        style={styles.deleteBtn}
       />
     </ScrollView>
   );
