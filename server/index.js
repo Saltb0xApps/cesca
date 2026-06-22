@@ -57,6 +57,7 @@ function serializeDoc(doc) {
     blocks: (doc.blocks || []).map((b) => ({ id: b.id, type: b.type || "p" })),
     annotations: doc.annotations || { highlights: [], notes: [], arrows: [] },
   };
+  if (doc.format) meta.format = doc.format;
   if (doc.versionLabel !== undefined) meta.versionLabel = doc.versionLabel;
   const body = (doc.blocks || []).map((b) => b.text ?? "").join("\n\n");
   return `${META_OPEN}\n${JSON.stringify(meta, null, 2)}\n${META_CLOSE}\n\n${body}\n`;
@@ -94,6 +95,7 @@ function parseDoc(raw) {
     updatedAt: meta.updatedAt || nowISO(),
     blocks,
     annotations: meta.annotations || { highlights: [], notes: [], arrows: [] },
+    format: meta.format,
     versionLabel: meta.versionLabel,
   };
 }
@@ -271,6 +273,7 @@ app.put("/api/docs/:id", async (req, res) => {
     updatedAt: nowISO(),
     blocks: Array.isArray(b.blocks) ? b.blocks : existing.blocks,
     annotations: b.annotations ?? existing.annotations,
+    format: b.format === undefined ? existing.format : b.format,
   };
   await writeDoc(doc);
   res.json(doc);

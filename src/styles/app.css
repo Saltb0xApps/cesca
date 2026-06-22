@@ -894,6 +894,27 @@ mark.hl-invert {
   width: 300px;
   box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
 }
+.set-head {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.set-default {
+  width: 100%;
+  background: #111;
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  padding: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 4px 0 12px;
+}
+.set-default:hover {
+  background: #333;
+}
 .set-row {
   display: flex;
   align-items: center;

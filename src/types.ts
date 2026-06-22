@@ -39,6 +39,8 @@ export interface Annotations {
   arrows: MoveArrow[];
 }
 
+import type { Settings } from "./lib/settings";
+
 export interface Doc {
   id: string;
   title: string;
@@ -47,6 +49,7 @@ export interface Doc {
   updatedAt: string;
   blocks: Block[];
   annotations: Annotations;
+  format?: Settings; // per-essay typography; falls back to the device default
 }
 
 export interface DocSummary {

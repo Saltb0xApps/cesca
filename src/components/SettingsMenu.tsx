@@ -4,16 +4,19 @@ import { FONTS, PAGES } from "../lib/settings";
 export function SettingsMenu({
   settings,
   onChange,
+  onMakeDefault,
   onClose,
 }: {
   settings: Settings;
   onChange: (patch: Partial<Settings>) => void;
+  onMakeDefault: () => void;
   onClose: () => void;
 }) {
   return (
     <>
       <div className="popover-scrim" onClick={onClose} />
       <div className="popover settings-pop" role="dialog">
+        <div className="set-head">Formatting · this essay</div>
         <div className="set-row">
           <span className="set-label">Typeface</span>
           <div className="set-seg">
@@ -89,7 +92,12 @@ export function SettingsMenu({
           </button>
         </div>
 
-        <div className="set-foot">Preferences are saved on this device.</div>
+        <button className="set-default" onClick={onMakeDefault}>
+          Use these for new essays
+        </button>
+        <div className="set-foot">
+          These settings apply to this essay only and are saved with it.
+        </div>
       </div>
     </>
   );

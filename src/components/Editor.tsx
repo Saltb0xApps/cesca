@@ -20,14 +20,20 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
   const [showVersions, setShowVersions] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
-  const [settings, setSettings] = useState<Settings>(() => loadSettings());
+  const [format, setFormat] = useState<Settings>(() => loadSettings());
 
+  // Apply this essay's formatting to the page; restore the device default on leave.
   useEffect(() => {
-    applySettings(settings);
-    saveSettings(settings);
-  }, [settings]);
-  const patchSettings = (patch: Partial<Settings>) =>
-    setSettings((s) => ({ ...s, ...patch }));
+    applySettings(format);
+  }, [format]);
+  useEffect(() => () => applySettings(loadSettings()), []);
+
+  const patchFormat = (patch: Partial<Settings>) => {
+    const next = { ...format, ...patch };
+    setFormat(next);
+    update((d) => ({ ...d, format: next }));
+  };
+  const makeDefault = () => saveSettings(format);
 
   const loadedRef = useRef(false);
   const timer = useRef<number | null>(null);
@@ -37,6 +43,7 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
     Promise.all([api.getDoc(id), api.listFolders()]).then(([d, f]) => {
       if (!alive) return;
       setDoc(d);
+      setFormat(d.format ?? loadSettings());
       setFolders(f);
       loadedRef.current = true;
     });
@@ -55,6 +62,7 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
         folderId: next.folderId,
         blocks: next.blocks,
         annotations: next.annotations,
+        format: next.format,
       });
       setStatus("saved");
       setDoc((cur) =>
@@ -114,6 +122,7 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
       folderId: d.folderId,
       blocks: d.blocks,
       annotations: d.annotations,
+      format: d.format,
     });
   }
 
@@ -205,8 +214,9 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
             </button>
             {showSettings && (
               <SettingsMenu
-                settings={settings}
-                onChange={patchSettings}
+                settings={format}
+                onChange={patchFormat}
+                onMakeDefault={makeDefault}
                 onClose={() => setShowSettings(false)}
               />
             )}
