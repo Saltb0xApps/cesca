@@ -57,7 +57,9 @@ export async function listItems(
   db: SQLiteDatabase,
   opts: { folderId?: string } = {}
 ): Promise<SavedItem[]> {
-  const where = opts.folderId ? 'WHERE i.folder_id = ?' : '';
+  const where = opts.folderId
+    ? 'WHERE i.deleted_at IS NULL AND i.folder_id = ?'
+    : 'WHERE i.deleted_at IS NULL';
   const args = opts.folderId ? [opts.folderId] : [];
   const rows = await db.getAllAsync<ItemRow>(
     `${SELECT_ITEM} ${where} ORDER BY i.saved_at DESC`,
@@ -106,11 +108,46 @@ export async function searchItems(
      FROM items i
      LEFT JOIN folders f ON f.id = i.folder_id
      LEFT JOIN tracks t ON t.id = i.track_id
-     WHERE ${conditions}
+     WHERE i.deleted_at IS NULL AND ${conditions}
      ORDER BY i.saved_at DESC`,
     ...args
   );
   return attachTags(db, rows.map(mapItem));
+}
+
+export interface ItemEdit {
+  title?: string | null;
+  caption?: string | null;
+  author?: string | null;
+  note?: string | null;
+}
+
+/** Updates only the user-editable fields that were provided. */
+export async function updateItem(
+  db: SQLiteDatabase,
+  id: string,
+  edit: ItemEdit
+): Promise<void> {
+  const columns: Record<keyof ItemEdit, string> = {
+    title: 'title',
+    caption: 'caption',
+    author: 'author',
+    note: 'note',
+  };
+  const sets: string[] = [];
+  const args: (string | null)[] = [];
+  for (const key of Object.keys(columns) as (keyof ItemEdit)[]) {
+    if (key in edit) {
+      sets.push(`${columns[key]} = ?`);
+      args.push(edit[key] ?? null);
+    }
+  }
+  if (sets.length === 0) return;
+  await db.runAsync(
+    `UPDATE items SET ${sets.join(', ')} WHERE id = ?`,
+    ...args,
+    id
+  );
 }
 
 export async function moveItemToFolder(
@@ -129,6 +166,22 @@ export async function setItemTrack(
   await db.runAsync('UPDATE items SET track_id = ? WHERE id = ?', trackId, itemId);
 }
 
+/** Marks an item deleted (hidden from lists) so the delete can be undone. */
+export async function softDeleteItem(
+  db: SQLiteDatabase,
+  id: string
+): Promise<void> {
+  await db.runAsync('UPDATE items SET deleted_at = ? WHERE id = ?', now(), id);
+}
+
+export async function restoreItem(
+  db: SQLiteDatabase,
+  id: string
+): Promise<void> {
+  await db.runAsync('UPDATE items SET deleted_at = NULL WHERE id = ?', id);
+}
+
+/** Permanently removes an item and its tag links. */
 export async function deleteItem(db: SQLiteDatabase, id: string): Promise<void> {
   await db.runAsync('DELETE FROM items WHERE id = ?', id);
 }

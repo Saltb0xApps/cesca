@@ -35,6 +35,7 @@ export interface SavedItem {
   author: string | null;
   thumbnailUri: string | null;
   mediaUri: string | null;
+  note: string | null;
   folderId: string | null;
   trackId: string | null;
   createdAt: number;

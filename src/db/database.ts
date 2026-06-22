@@ -68,5 +68,15 @@ export async function migrateDb(db: SQLiteDatabase): Promise<void> {
     version = 1;
   }
 
+  if (version < 2) {
+    await db.execAsync(`ALTER TABLE items ADD COLUMN note TEXT;`);
+    version = 2;
+  }
+
+  if (version < 3) {
+    await db.execAsync(`ALTER TABLE items ADD COLUMN deleted_at INTEGER;`);
+    version = 3;
+  }
+
   await db.execAsync(`PRAGMA user_version = ${version};`);
 }

@@ -1,7 +1,5 @@
 import { useCallback, useState } from 'react';
 import {
-  Alert,
-  Image,
   Linking,
   Pressable,
   ScrollView,
@@ -10,17 +8,27 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { Image } from 'expo-image';
+import {
+  Link,
+  Stack,
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+} from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 
 import {
-  deleteItem,
   getItem,
   moveItemToFolder,
+  restoreItem,
   setItemTags,
+  softDeleteItem,
 } from '@/repositories/items';
 import { getTrack } from '@/repositories/tracks';
 import { listFolders } from '@/repositories/folders';
+import { Button } from '@/components/ui/Button';
+import { useToast } from '@/components/ui/Toast';
 import type { Folder, SavedItem } from '@/types';
 import { theme } from '@/theme';
 
@@ -28,6 +36,7 @@ export default function ItemDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const db = useSQLiteContext();
   const router = useRouter();
+  const toast = useToast();
   const [item, setItem] = useState<SavedItem | null>(null);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [tagInput, setTagInput] = useState('');
@@ -75,18 +84,14 @@ export default function ItemDetailScreen() {
     reload();
   };
 
-  const confirmDelete = () => {
-    Alert.alert('Delete video?', 'This removes it from your library.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          await deleteItem(db, item.id);
-          router.back();
-        },
-      },
-    ]);
+  const handleDelete = async () => {
+    const deletedId = item.id;
+    await softDeleteItem(db, deletedId);
+    router.back();
+    toast.show('Video deleted', {
+      label: 'Undo',
+      onPress: () => restoreItem(db, deletedId),
+    });
   };
 
   const music = item.track
@@ -95,11 +100,17 @@ export default function ItemDetailScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Stack.Screen options={{ headerRight: () => (
-        <Pressable hitSlop={10} onPress={confirmDelete}>
-          <Text style={styles.headerDelete}>Delete</Text>
-        </Pressable>
-      ) }} />
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <Link href={`/edit/${item.id}`} asChild>
+              <Pressable hitSlop={10}>
+                <Text style={styles.headerEdit}>Edit</Text>
+              </Pressable>
+            </Link>
+          ),
+        }}
+      />
 
       {item.thumbnailUri ? (
         <Image source={{ uri: item.thumbnailUri }} style={styles.hero} />
@@ -127,6 +138,13 @@ export default function ItemDetailScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Music</Text>
           <Text style={styles.music}>♪ {music}</Text>
+        </View>
+      ) : null}
+
+      {item.note ? (
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Notes</Text>
+          <Text style={styles.note}>{item.note}</Text>
         </View>
       ) : null}
 
@@ -183,6 +201,13 @@ export default function ItemDetailScreen() {
           ))}
         </View>
       </View>
+
+      <Button
+        title="Delete video"
+        variant="danger"
+        onPress={handleDelete}
+        style={styles.deleteBtn}
+      />
     </ScrollView>
   );
 }
@@ -192,7 +217,9 @@ const styles = StyleSheet.create({
   content: { padding: 16, gap: 16, paddingBottom: 48 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.bg },
   muted: { color: theme.colors.textMuted },
-  headerDelete: { color: theme.colors.danger, fontWeight: '600' },
+  headerEdit: { color: theme.colors.accent, fontWeight: '700', fontSize: 16 },
+  note: { color: theme.colors.text, fontSize: 15, lineHeight: 21 },
+  deleteBtn: { marginTop: 8 },
   hero: {
     width: '100%',
     aspectRatio: 9 / 16,

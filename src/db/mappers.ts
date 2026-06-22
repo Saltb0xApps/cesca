@@ -9,6 +9,7 @@ export interface ItemRow {
   author: string | null;
   thumbnail_uri: string | null;
   media_uri: string | null;
+  note: string | null;
   folder_id: string | null;
   track_id: string | null;
   created_at: number;
@@ -44,6 +45,7 @@ export function mapItem(row: ItemRow): SavedItem {
     author: row.author,
     thumbnailUri: row.thumbnail_uri,
     mediaUri: row.media_uri,
+    note: row.note,
     folderId: row.folder_id,
     trackId: row.track_id,
     createdAt: row.created_at,

@@ -30,10 +30,11 @@ export default function RootLayout() {
             >
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="item/[id]" options={{ title: 'Saved video' }} />
-              <Stack.Screen name="item/[id]/edit" options={{ title: 'Edit' }} />
+              <Stack.Screen
+                name="edit/[id]"
+                options={{ title: 'Edit', presentation: 'modal' }}
+              />
               <Stack.Screen name="folder/[id]" options={{ title: 'Folder' }} />
-              <Stack.Screen name="track/[id]" options={{ title: 'Track' }} />
-              <Stack.Screen name="project/[id]" options={{ title: 'Project' }} />
               <Stack.Screen
                 name="add"
                 options={{ title: 'Add a link', presentation: 'modal' }}
