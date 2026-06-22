@@ -1,0 +1,80 @@
+import { useCallback, useState } from 'react';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Link, useFocusEffect, useRouter } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { EmptyState } from '@/components/EmptyState';
+import { VideoCard } from '@/components/VideoCard';
+import { listItems } from '@/repositories/items';
+import type { SavedItem } from '@/types';
+import { theme } from '@/theme';
+
+export default function GalleryScreen() {
+  const db = useSQLiteContext();
+  const router = useRouter();
+  const [items, setItems] = useState<SavedItem[]>([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      listItems(db).then((rows) => {
+        if (active) setItems(rows);
+      });
+      return () => {
+        active = false;
+      };
+    }, [db])
+  );
+
+  return (
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Gallery</Text>
+        <Link href="/add" asChild>
+          <Pressable style={styles.addBtn}>
+            <Text style={styles.addBtnText}>+ Add</Text>
+          </Pressable>
+        </Link>
+      </View>
+      <FlatList
+        data={items}
+        keyExtractor={(i) => i.id}
+        numColumns={2}
+        columnWrapperStyle={styles.row}
+        contentContainerStyle={styles.list}
+        renderItem={({ item }) => (
+          <VideoCard item={item} onPress={() => router.push(`/item/${item.id}`)} />
+        )}
+        ListEmptyComponent={
+          <EmptyState
+            icon="🎬"
+            title="No saved videos yet"
+            subtitle="Share a reel from Instagram → Cesca, or tap + Add to paste a link."
+          />
+        }
+      />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: theme.colors.bg },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  title: { color: theme.colors.text, fontSize: 28, fontWeight: '800' },
+  addBtn: {
+    backgroundColor: theme.colors.accent,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: theme.radius.pill,
+  },
+  addBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  list: { padding: 12, gap: 12, flexGrow: 1 },
+  row: { gap: 12 },
+});
