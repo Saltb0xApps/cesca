@@ -57,6 +57,21 @@ any device on the **same Wi-Fi** can connect to your Mac.
 The data lives on your Mac, so every device edits the same essays. (Add it to
 your iPad home screen via Share → *Add to Home Screen* for an app-like window.)
 
+## Make it live without the Mac
+
+To reach your essays from anywhere (not just on your home Wi-Fi), deploy it to
+the cloud. See **[DEPLOY.md](DEPLOY.md)** for a step-by-step Fly.io setup with a
+persistent disk and password protection. In short:
+
+```bash
+fly launch --no-deploy
+fly volume create margins_data --size 1 --region <your-region>
+fly secrets set APP_PASSWORD="choose-a-good-password"
+fly deploy
+```
+
+Set `APP_PASSWORD` (any host) to require a login before anyone can read or edit.
+
 ## Formatting & preferences (the `Aa` button)
 
 Tune how the page looks — saved per device:

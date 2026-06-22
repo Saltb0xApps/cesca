@@ -1,0 +1,28 @@
+# Fly.io config for Margins.
+# Change "app" to your own unique name (or let `fly launch` set it for you).
+
+app = "margins-writing"
+primary_region = "iad"   # pick the region closest to you: fly platform regions
+
+[build]
+
+[env]
+  PORT = "8080"
+  DATA_DIR = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 0   # scales to zero when idle to save money; cold start is a few seconds
+
+# Persistent disk for your essays. Create it once with:
+#   fly volume create margins_data --size 1
+[[mounts]]
+  source = "margins_data"
+  destination = "/data"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

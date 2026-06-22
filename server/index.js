@@ -17,12 +17,16 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
-const DATA_DIR = path.join(ROOT, "data");
+// DATA_DIR is configurable so a cloud host can point it at a persistent volume.
+const DATA_DIR = process.env.DATA_DIR
+  ? path.resolve(process.env.DATA_DIR)
+  : path.join(ROOT, "data");
 const VERSIONS_DIR = path.join(DATA_DIR, "versions");
 const FOLDERS_FILE = path.join(DATA_DIR, "folders.json");
 const DIST_DIR = path.join(ROOT, "dist");
 
 const PORT = process.env.PORT || 3001;
+const PASSWORD = process.env.APP_PASSWORD; // optional; protects everything when set
 const META_OPEN = "<!--margins";
 const META_CLOSE = "-->";
 
@@ -30,6 +34,22 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
 fs.mkdirSync(VERSIONS_DIR, { recursive: true });
 
 const app = express();
+
+// Optional password gate (HTTP Basic). Set APP_PASSWORD to require it — the
+// browser will prompt once and remember it. Without it, the app is open.
+if (PASSWORD) {
+  app.use((req, res, next) => {
+    const hdr = req.headers.authorization || "";
+    const [scheme, encoded] = hdr.split(" ");
+    if (scheme === "Basic" && encoded) {
+      const pass = Buffer.from(encoded, "base64").toString().split(":")[1];
+      if (pass === PASSWORD) return next();
+    }
+    res.set("WWW-Authenticate", 'Basic realm="Margins"');
+    res.status(401).send("Authentication required");
+  });
+}
+
 app.use(express.json({ limit: "10mb" }));
 
 /* ----------------------------- helpers ----------------------------------- */
