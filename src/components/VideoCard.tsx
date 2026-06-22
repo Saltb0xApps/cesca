@@ -24,6 +24,8 @@ export function VideoCard({
 
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Saved video: ${item.caption || item.title || 'untitled'}`}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
       onPress={onPress}
     >

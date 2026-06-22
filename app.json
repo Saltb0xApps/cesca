@@ -6,6 +6,11 @@
     "orientation": "portrait",
     "scheme": "cesca",
     "userInterfaceStyle": "automatic",
+    "backgroundColor": "#0B0B0F",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0B0B0F"
+    },
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,

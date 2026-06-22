@@ -1,5 +1,12 @@
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { Link, useFocusEffect, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,6 +23,7 @@ export default function GalleryScreen() {
   const router = useRouter();
   const [items, setItems] = useState<SavedItem[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -31,6 +39,12 @@ export default function GalleryScreen() {
       };
     }, [db])
   );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    setItems(await listItems(db));
+    setRefreshing(false);
+  }, [db]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -58,6 +72,13 @@ export default function GalleryScreen() {
           numColumns={2}
           columnWrapperStyle={styles.row}
           contentContainerStyle={styles.list}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={theme.colors.textMuted}
+            />
+          }
           renderItem={({ item }) => (
             <VideoCard
               item={item}

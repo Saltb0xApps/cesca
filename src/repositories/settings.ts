@@ -39,3 +39,28 @@ function parseBool(value: string | undefined, fallback: boolean): boolean {
   if (value === undefined) return fallback;
   return value === 'true';
 }
+
+/** Generic boolean flag (e.g. whether onboarding has been completed). */
+export async function getFlag(
+  db: SQLiteDatabase,
+  key: string,
+  fallback = false
+): Promise<boolean> {
+  const row = await db.getFirstAsync<{ value: string }>(
+    'SELECT value FROM settings WHERE key = ?',
+    key
+  );
+  return parseBool(row?.value, fallback);
+}
+
+export async function setFlag(
+  db: SQLiteDatabase,
+  key: string,
+  value: boolean
+): Promise<void> {
+  await db.runAsync(
+    'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value',
+    key,
+    String(value)
+  );
+}

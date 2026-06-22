@@ -8,6 +8,7 @@ import { useShareIntent } from 'expo-share-intent';
 
 import { DATABASE_NAME, migrateDb } from '@/db/database';
 import { ingestShare } from '@/services/ingest';
+import { getFlag } from '@/repositories/settings';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ToastProvider } from '@/components/ui/Toast';
 import { theme } from '@/theme';
@@ -20,6 +21,7 @@ export default function RootLayout() {
           <ToastProvider>
             <StatusBar style="light" />
             <ShareIntentHandler />
+            <OnboardingGate />
             <Stack
               screenOptions={{
                 headerStyle: { backgroundColor: theme.colors.bg },
@@ -47,6 +49,7 @@ export default function RootLayout() {
                 options={{ title: 'Add a link', presentation: 'modal' }}
               />
               <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+              <Stack.Screen name="onboarding" options={{ headerShown: false }} />
               <Stack.Screen name="tags" options={{ title: 'Tags' }} />
               <Stack.Screen name="tag/[name]" options={{ title: 'Tag' }} />
             </Stack>
@@ -55,6 +58,24 @@ export default function RootLayout() {
       </ErrorBoundary>
     </SafeAreaProvider>
   );
+}
+
+/** Redirects to onboarding on first launch (until the user completes it). */
+function OnboardingGate() {
+  const db = useSQLiteContext();
+  const router = useRouter();
+
+  useEffect(() => {
+    let active = true;
+    getFlag(db, 'onboarded').then((onboarded) => {
+      if (active && !onboarded) router.replace('/onboarding');
+    });
+    return () => {
+      active = false;
+    };
+  }, [db, router]);
+
+  return null;
 }
 
 /**
