@@ -15,6 +15,13 @@ export interface ItemRow {
   created_at: number;
   saved_at: number;
   folder_name?: string | null;
+  // Optional joined track columns (present in the main item queries).
+  track_title?: string | null;
+  track_artist?: string | null;
+  track_source?: string | null;
+  track_external_url?: string | null;
+  track_file_uri?: string | null;
+  track_created_at?: number | null;
 }
 
 export interface TrackRow {
@@ -51,6 +58,18 @@ export function mapItem(row: ItemRow): SavedItem {
     createdAt: row.created_at,
     savedAt: row.saved_at,
     folderName: row.folder_name ?? null,
+    track:
+      row.track_id && row.track_created_at != null
+        ? {
+            id: row.track_id,
+            title: row.track_title ?? null,
+            artist: row.track_artist ?? null,
+            source: (row.track_source as Track['source']) ?? 'other',
+            externalUrl: row.track_external_url ?? null,
+            fileUri: row.track_file_uri ?? null,
+            createdAt: row.track_created_at,
+          }
+        : null,
   };
 }
 

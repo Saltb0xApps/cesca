@@ -19,9 +19,13 @@ export interface NewItemInput {
 }
 
 const SELECT_ITEM = `
-  SELECT i.*, f.name AS folder_name
+  SELECT i.*, f.name AS folder_name,
+         t.title AS track_title, t.artist AS track_artist,
+         t.source AS track_source, t.external_url AS track_external_url,
+         t.file_uri AS track_file_uri, t.created_at AS track_created_at
   FROM items i
   LEFT JOIN folders f ON f.id = i.folder_id
+  LEFT JOIN tracks t ON t.id = i.track_id
 `;
 
 export async function createItem(
@@ -147,12 +151,7 @@ export async function searchItems(
 
   const sort = SORT_SQL[filters.sort ?? 'recent'];
   const rows = await db.getAllAsync<ItemRow>(
-    `SELECT i.*, f.name AS folder_name
-     FROM items i
-     LEFT JOIN folders f ON f.id = i.folder_id
-     LEFT JOIN tracks t ON t.id = i.track_id
-     WHERE ${clauses.join(' AND ')}
-     ORDER BY ${sort}`,
+    `${SELECT_ITEM} WHERE ${clauses.join(' AND ')} ORDER BY ${sort}`,
     ...args
   );
   return attachTags(db, rows.map(mapItem));

@@ -1,18 +1,25 @@
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
+import * as Sharing from 'expo-sharing';
+import * as DocumentPicker from 'expo-document-picker';
 
+import { Button } from '@/components/ui/Button';
+import { useToast } from '@/components/ui/Toast';
 import {
   DEFAULT_SETTINGS,
   getSettings,
   setSetting,
   type Settings,
 } from '@/repositories/settings';
+import { exportLibrary, importLibrary } from '@/services/backup';
 import { theme } from '@/theme';
 
 export default function SettingsScreen() {
   const db = useSQLiteContext();
+  const toast = useToast();
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -28,6 +35,42 @@ export default function SettingsScreen() {
     const next = !settings[key];
     setSettings((s) => ({ ...s, [key]: next }));
     await setSetting(db, key, next);
+  };
+
+  const backup = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const uri = await exportLibrary(db);
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          mimeType: 'application/json',
+          dialogTitle: 'Save your Cesca backup',
+        });
+      } else {
+        toast.show('Backup saved to app storage');
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const restore = async () => {
+    if (busy) return;
+    const res = await DocumentPicker.getDocumentAsync({
+      type: 'application/json',
+      copyToCacheDirectory: true,
+    });
+    if (res.canceled || !res.assets?.[0]) return;
+    setBusy(true);
+    try {
+      const result = await importLibrary(db, res.assets[0].uri);
+      toast.show(`Restored ${result.items} videos`);
+    } catch (e) {
+      toast.show(e instanceof Error ? e.message : 'Import failed');
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -47,6 +90,29 @@ export default function SettingsScreen() {
           value={settings.wifiOnly}
           onToggle={() => toggle('wifiOnly')}
         />
+      </View>
+
+      <Text style={styles.groupLabel}>Backup</Text>
+      <View style={styles.group}>
+        <Text style={styles.about}>
+          Export your whole library (videos, music, folders, projects) to a JSON
+          file you can save to Files or Drive — then restore it on any device.
+        </Text>
+        <View style={styles.actions}>
+          <Button
+            title="Back up library"
+            onPress={backup}
+            loading={busy}
+            style={styles.flex}
+          />
+          <Button
+            title="Restore"
+            variant="secondary"
+            onPress={restore}
+            disabled={busy}
+            style={styles.flex}
+          />
+        </View>
       </View>
 
       <Text style={styles.groupLabel}>About</Text>
@@ -116,4 +182,6 @@ const styles = StyleSheet.create({
   rowSubtitle: { color: theme.colors.textMuted, fontSize: 13, lineHeight: 18 },
   divider: { height: 1, backgroundColor: theme.colors.border },
   about: { color: theme.colors.textMuted, fontSize: 14, lineHeight: 20, paddingVertical: 16 },
+  actions: { flexDirection: 'row', gap: 10, paddingBottom: 16 },
+  flex: { flex: 1 },
 });

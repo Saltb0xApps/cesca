@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { FlatList, StyleSheet } from 'react-native';
+import { FlatList, Pressable, Share, StyleSheet, Text } from 'react-native';
 import {
   Stack,
   useFocusEffect,
@@ -12,7 +12,8 @@ import { EmptyState } from '@/components/EmptyState';
 import { VideoCard } from '@/components/VideoCard';
 import { getFolder } from '@/repositories/folders';
 import { listItems } from '@/repositories/items';
-import type { SavedItem } from '@/types';
+import { buildFolderText } from '@/services/export';
+import type { Folder, SavedItem } from '@/types';
 import { theme } from '@/theme';
 
 export default function FolderScreen() {
@@ -20,15 +21,15 @@ export default function FolderScreen() {
   const db = useSQLiteContext();
   const router = useRouter();
   const [items, setItems] = useState<SavedItem[]>([]);
-  const [title, setTitle] = useState('Folder');
+  const [folder, setFolder] = useState<Folder | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
       Promise.all([getFolder(db, id), listItems(db, { folderId: id })]).then(
-        ([folder, rows]) => {
+        ([f, rows]) => {
           if (!active) return;
-          if (folder) setTitle(folder.name);
+          setFolder(f);
           setItems(rows);
         }
       );
@@ -38,9 +39,27 @@ export default function FolderScreen() {
     }, [db, id])
   );
 
+  const exportFolder = async () => {
+    if (!folder) return;
+    await Share.share({
+      message: buildFolderText(folder, items),
+      title: folder.name,
+    });
+  };
+
   return (
     <>
-      <Stack.Screen options={{ title }} />
+      <Stack.Screen
+        options={{
+          title: folder?.name ?? 'Folder',
+          headerRight: () =>
+            items.length > 0 ? (
+              <Pressable hitSlop={10} onPress={exportFolder}>
+                <Text style={styles.export}>Export</Text>
+              </Pressable>
+            ) : null,
+        }}
+      />
       <FlatList
         style={styles.screen}
         data={items}
@@ -67,4 +86,5 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: theme.colors.bg },
   list: { padding: 12, gap: 12, flexGrow: 1 },
   row: { gap: 12 },
+  export: { color: theme.colors.accent, fontWeight: '700', fontSize: 16 },
 });

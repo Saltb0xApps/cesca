@@ -1,4 +1,4 @@
-import type { Project, SavedItem, Track } from '@/types';
+import type { Folder, Project, SavedItem, Track } from '@/types';
 
 function trackLine(t: Track): string {
   const name = [t.title, t.artist].filter(Boolean).join(' — ') || 'Untitled';
@@ -32,6 +32,27 @@ export function buildShotList(
     tracks.forEach((t) => lines.push(`- ${trackLine(t)}`));
   }
 
+  lines.push('');
+  lines.push('Exported from Cesca');
+  return lines.join('\n');
+}
+
+/** Renders a folder's clips and their music as a plain-text list. */
+export function buildFolderText(folder: Folder, items: SavedItem[]): string {
+  const lines: string[] = [];
+  lines.push(`# ${folder.name} (${items.length})`);
+  lines.push('');
+  items.forEach((item, i) => {
+    const caption = item.caption || item.title || 'Untitled clip';
+    lines.push(`${i + 1}. ${caption}`);
+    if (item.track) {
+      const music = [item.track.title, item.track.artist]
+        .filter(Boolean)
+        .join(' — ');
+      if (music) lines.push(`   ♪ ${music}`);
+    }
+    if (item.sourceUrl) lines.push(`   ${item.sourceUrl}`);
+  });
   lines.push('');
   lines.push('Exported from Cesca');
   return lines.join('\n');
