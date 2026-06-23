@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api";
 import type { DocSummary, Folder } from "../types";
 import { timeAgo, dateLabel } from "../lib/format";
+import { splitText, guessType, uid } from "../lib/text";
 
 type SortKey = "edited" | "added";
 type ViewKey = "gallery" | "list";
@@ -18,6 +19,7 @@ export function Landing({ onOpen }: { onOpen: (id: string) => void }) {
   );
   const [folderId, setFolderId] = useState<string | "all" | "unfiled">("all");
   const [query, setQuery] = useState("");
+  const fileInput = useRef<HTMLInputElement>(null);
 
   async function refresh() {
     const [d, f] = await Promise.all([api.listDocs(), api.listFolders()]);
@@ -57,6 +59,31 @@ export function Landing({ onOpen }: { onOpen: (id: string) => void }) {
     const fid = folderId === "all" || folderId === "unfiled" ? null : folderId;
     const doc = await api.createDoc("Untitled essay", fid);
     onOpen(doc.id);
+  }
+
+  async function importFiles(files: FileList | null) {
+    if (!files || !files.length) return;
+    const fid = folderId === "all" || folderId === "unfiled" ? null : folderId;
+    let firstId: string | null = null;
+    for (const file of Array.from(files)) {
+      const text = await file.text();
+      const title =
+        text.match(/^#\s+(.+)$/m)?.[1]?.trim() ||
+        file.name.replace(/\.(md|markdown|txt)$/i, "") ||
+        "Imported";
+      const doc = await api.createDoc(title, fid);
+      await api.saveDoc(doc.id, {
+        blocks: splitText(text).map((t) => ({
+          id: uid(),
+          type: guessType(t),
+          text: t,
+        })),
+      });
+      firstId = firstId || doc.id;
+    }
+    if (fileInput.current) fileInput.current.value = "";
+    if (files.length === 1 && firstId) onOpen(firstId);
+    else refresh();
   }
 
   async function newFolder() {
@@ -149,6 +176,20 @@ export function Landing({ onOpen }: { onOpen: (id: string) => void }) {
         <button className="new-essay" onClick={newDoc}>
           + New essay
         </button>
+        <button
+          className="import-btn"
+          onClick={() => fileInput.current?.click()}
+        >
+          Import .md
+        </button>
+        <input
+          ref={fileInput}
+          type="file"
+          accept=".md,.markdown,.txt,text/markdown,text/plain"
+          multiple
+          hidden
+          onChange={(e) => importFiles(e.target.files)}
+        />
       </aside>
 
       <main className="library">

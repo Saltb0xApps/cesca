@@ -165,6 +165,19 @@ button {
 .new-essay:hover {
   background: #ddd;
 }
+.import-btn {
+  background: transparent;
+  color: #cfcfcf;
+  border: 1px solid #3a3a3a;
+  padding: 9px;
+  border-radius: 10px;
+  font-size: 12px;
+  margin-top: 8px;
+}
+.import-btn:hover {
+  background: #222;
+  color: #fff;
+}
 
 .library {
   background: #fafafa;
@@ -1072,10 +1085,51 @@ kbd {
   padding: 40px clamp(40px, 18vw, 240px);
 }
 
-@media (max-width: 720px) {
-  .landing {
-    grid-template-columns: 1fr;
+@media print {
+  body {
+    background: #fff;
   }
+  .editor-bar,
+  .edit-toolbar,
+  .write-foot,
+  .drag-handle,
+  .margin-note,
+  .arrow-layer,
+  .sel-toolbar,
+  .sidebar,
+  .popover,
+  .popover-scrim {
+    display: none !important;
+  }
+  .editor,
+  .editor-stage {
+    background: #fff !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    height: auto !important;
+  }
+  .paper,
+  .paper-frame,
+  .edit-stage-inner,
+  .edit-paper {
+    box-shadow: none !important;
+    width: auto !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .block {
+    margin: 0 0 12px !important;
+    break-inside: avoid;
+  }
+  .writer {
+    min-height: 0 !important;
+  }
+  mark.hl-invert {
+    background: #ddd !important;
+    color: #111 !important;
+  }
+}
   .sidebar {
     flex-direction: row;
     flex-wrap: wrap;

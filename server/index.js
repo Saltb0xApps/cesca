@@ -397,8 +397,55 @@ if (fs.existsSync(DIST_DIR)) {
   app.get("*", (_req, res) => res.sendFile(path.join(DIST_DIR, "index.html")));
 }
 
+/* ------------------------- first-run welcome ----------------------------- */
+
+async function seedIfEmpty() {
+  try {
+    const ids = await listDocIds();
+    if (ids.length) return;
+    const id = uid("doc");
+    const mk = (type, text) => ({ id: uid("b"), type, text });
+    const doc = {
+      id,
+      title: "Welcome to Margins",
+      folderId: null,
+      createdAt: nowISO(),
+      updatedAt: nowISO(),
+      blocks: [
+        mk("h", "# Welcome to Margins"),
+        mk(
+          "p",
+          "This is your writing studio. Drafts live here as plain, portable markdown files — one per essay — so your words are always yours."
+        ),
+        mk("h", "## Two modes"),
+        mk(
+          "p",
+          "Use **Write** mode for clean, distraction-free drafting. Switch to **Edit** mode to mark a piece up like homework: select any text to highlight it or pin a margin note, drag the handle to reorder paragraphs, and draw arrows where things should move."
+        ),
+        mk("h", "## A few shortcuts"),
+        mk(
+          "p",
+          "Press Cmd-slash any time to see every shortcut. Cmd-E switches modes, Cmd-S saves a version, and Cmd-comma opens formatting — typeface, size, spacing, and page width, set per essay."
+        ),
+        mk(
+          "p",
+          "Delete this note whenever you like, and start your first essay from the library."
+        ),
+      ],
+      annotations: { highlights: [], notes: [], arrows: [] },
+    };
+    await writeDoc(doc);
+    console.log("  Seeded a welcome essay.");
+  } catch (e) {
+    console.warn("  Could not seed welcome essay:", e.message);
+  }
+}
+
+/* --------------------------------- boot ---------------------------------- */
+
 // Bind to 0.0.0.0 so other devices (phone / iPad) on the same network can reach it.
-app.listen(PORT, "0.0.0.0", () => {
+app.listen(PORT, "0.0.0.0", async () => {
+  await seedIfEmpty();
   const nets = os.networkInterfaces();
   const lan = [];
   for (const name of Object.keys(nets)) {

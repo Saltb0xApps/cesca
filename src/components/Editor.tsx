@@ -151,6 +151,18 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
     setShowVersions(false);
   }
 
+  function exportMd() {
+    if (!doc) return;
+    const text = blocksToText(doc.blocks);
+    const safe = (doc.title || "essay").replace(/[^\w\- ]+/g, "").trim() || "essay";
+    const blob = new Blob([text + "\n"], { type: "text/markdown" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${safe}.md`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
   if (!doc) return <div className="editor-loading">Opening…</div>;
 
   return (
@@ -203,6 +215,12 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
           </button>
           <button className="ghost" onClick={() => setShowVersions(true)}>
             History
+          </button>
+          <button className="ghost" onClick={exportMd} title="Download as .md">
+            Export
+          </button>
+          <button className="ghost" onClick={() => window.print()} title="Print / PDF">
+            Print
           </button>
           <div className="pop-anchor">
             <button
