@@ -5,6 +5,7 @@ import Foundation
 struct Supabase {
     struct Session: Codable {
         var accessToken: String
+        var refreshToken: String
         var userId: String
     }
 
@@ -27,6 +28,20 @@ struct Supabase {
             body: ["type": "email", "email": email, "token": token],
             accessToken: nil
         )
+        return try session(from: data)
+    }
+
+    /// Exchange a refresh token for a fresh access token.
+    func refreshSession(refreshToken: String) async throws -> Session {
+        let data = try await post(
+            path: "/auth/v1/token?grant_type=refresh_token",
+            body: ["refresh_token": refreshToken],
+            accessToken: nil
+        )
+        return try session(from: data)
+    }
+
+    private func session(from data: Data) throws -> Session {
         let obj = try JSONSerialization.jsonObject(with: data)
         guard
             let json = obj as? [String: Any],
@@ -34,7 +49,8 @@ struct Supabase {
             let user = json["user"] as? [String: Any],
             let uid = user["id"] as? String
         else { throw SupaError.decode }
-        return Session(accessToken: access, userId: uid)
+        let refresh = json["refresh_token"] as? String ?? ""
+        return Session(accessToken: access, refreshToken: refresh, userId: uid)
     }
 
     // MARK: Profiles
@@ -54,6 +70,22 @@ struct Supabase {
             accessToken: session.accessToken,
             extraHeaders: ["Prefer": "resolution=merge-duplicates"]
         )
+    }
+
+    struct ProfileRow: Codable {
+        var display_name: String?
+        var avatar: String?
+        var exam_tag: String?
+        var daily_goal: Int?
+    }
+
+    /// The caller's existing profile row (so a returning user skips onboarding).
+    func fetchProfile(session: Session) async throws -> ProfileRow? {
+        let data = try await get(
+            path: "/rest/v1/profiles?select=display_name,avatar,exam_tag,daily_goal&id=eq.\(session.userId)",
+            accessToken: session.accessToken
+        )
+        return (try? JSONDecoder().decode([ProfileRow].self, from: data))?.first
     }
 
     // MARK: RPCs
@@ -130,6 +162,19 @@ struct Supabase {
         for (k, v) in extraHeaders { req.setValue(v, forHTTPHeaderField: k) }
         req.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
 
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200..<300).contains(code) else {
+            throw SupaError.http(code, String(data: data, encoding: .utf8) ?? "")
+        }
+        return data
+    }
+
+    private func get(path: String, accessToken: String) async throws -> Data {
+        guard Secrets.isConfigured, let url = URL(string: base + path) else { throw SupaError.notConfigured }
+        var req = URLRequest(url: url)
+        req.setValue(anon, forHTTPHeaderField: "apikey")
+        req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         let (data, resp) = try await URLSession.shared.data(for: req)
         let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
         guard (200..<300).contains(code) else {

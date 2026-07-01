@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SignInView: View {
     @EnvironmentObject var auth: Auth
+    @EnvironmentObject var profile: ProfileStore
     @State private var email = ""
     @State private var code = ""
     @State private var stage: Stage = .email
@@ -81,9 +82,22 @@ struct SignInView: View {
     private func verify() {
         error = nil; busy = true
         Task {
-            do { try await auth.verifyOTP(email: email, token: code) }
-            catch { self.error = "Invalid code." }
+            do {
+                try await auth.verifyOTP(email: email, token: code)
+                await hydrateProfile()
+            } catch { self.error = "Invalid code." }
             busy = false
         }
+    }
+
+    /// Pull an existing server profile so a returning user skips onboarding.
+    private func hydrateProfile() async {
+        let fetched = try? await auth.withValidSession { try await Supabase.shared.fetchProfile(session: $0) }
+        guard let row = fetched ?? nil, let name = row.display_name, !name.isEmpty else { return }
+        profile.displayName = name
+        profile.avatar = row.avatar ?? profile.avatar
+        profile.examTag = row.exam_tag ?? ""
+        if let g = row.daily_goal { profile.dailyGoal = g; profile.hasPickedGoal = true }
+        profile.save()
     }
 }

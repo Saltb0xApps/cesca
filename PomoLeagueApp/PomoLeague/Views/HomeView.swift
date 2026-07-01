@@ -4,6 +4,8 @@ struct HomeView: View {
     @EnvironmentObject var ledger: Ledger
     @EnvironmentObject var profile: ProfileStore
     @EnvironmentObject var tasks: TaskStore
+    @EnvironmentObject var partner: PartnerStore
+    @EnvironmentObject var auth: Auth
 
     @State private var showRules = false
     @State private var showRound = false
@@ -72,6 +74,7 @@ struct HomeView: View {
         }
         .fullScreenCover(isPresented: $showRound) { RoundView() }
         .onAppear { SharedStore.sync(today: ledger.stats.today, goal: profile.dailyGoal) }
+        .task { await partner.settle(auth: auth) } // detect mutual-loss even if Partner tab isn't opened
     }
 
     private func start() {

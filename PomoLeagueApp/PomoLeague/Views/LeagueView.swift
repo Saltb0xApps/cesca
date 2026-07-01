@@ -89,11 +89,11 @@ struct LeagueView: View {
     }
 
     private func refresh() async {
-        guard Secrets.isConfigured, let session = auth.session else {
+        guard Secrets.isConfigured, auth.session != nil else {
             cohort = demoCohort(); usingReal = false; return
         }
         do {
-            let rows = try await Supabase.shared.leagueStandings(session: session)
+            let rows = try await auth.withValidSession { try await Supabase.shared.leagueStandings(session: $0) }
             cohort = cohortFrom(rows); usingReal = true
         } catch {
             cohort = demoCohort(); usingReal = false

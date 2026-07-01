@@ -8,19 +8,19 @@ final class PartnerStore: ObservableObject {
     @Published var lostBanner = false
 
     func refresh(auth: Auth) async {
-        guard Secrets.isConfigured, let s = auth.session else { return }
+        guard Secrets.isConfigured, auth.session != nil else { return }
         loading = true
         defer { loading = false }
-        do { summary = try await Supabase.shared.partnerSummary(session: s) }
+        do { summary = try await auth.withValidSession { try await Supabase.shared.partnerSummary(session: $0) } }
         catch { errorText = friendly(error) }
     }
 
     /// Create (or fetch) my invite code, then refresh.
     @discardableResult
     func createInvite(auth: Auth) async -> String? {
-        guard Secrets.isConfigured, let s = auth.session else { return nil }
+        guard Secrets.isConfigured, auth.session != nil else { return nil }
         do {
-            let code = try await Supabase.shared.createPartnerInvite(session: s)
+            let code = try await auth.withValidSession { try await Supabase.shared.createPartnerInvite(session: $0) }
             await refresh(auth: auth)
             return code
         } catch {
@@ -31,9 +31,9 @@ final class PartnerStore: ObservableObject {
 
     func accept(code: String, auth: Auth) async {
         let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard Secrets.isConfigured, let s = auth.session, !trimmed.isEmpty else { return }
+        guard Secrets.isConfigured, auth.session != nil, !trimmed.isEmpty else { return }
         do {
-            try await Supabase.shared.acceptPartnerInvite(trimmed, session: s)
+            try await auth.withValidSession { try await Supabase.shared.acceptPartnerInvite(trimmed, session: $0) }
             errorText = nil
             await refresh(auth: auth)
         } catch {
@@ -43,9 +43,9 @@ final class PartnerStore: ObservableObject {
 
     /// Settle finished days (mutual-loss check), surfacing a banner on a loss.
     func settle(auth: Auth) async {
-        guard Secrets.isConfigured, let s = auth.session else { return }
+        guard Secrets.isConfigured, auth.session != nil else { return }
         do {
-            if let r = try await Supabase.shared.settlePartnerDays(session: s), r.lost {
+            if let r = try await auth.withValidSession({ try await Supabase.shared.settlePartnerDays(session: $0) }), r.lost {
                 lostBanner = true
             }
             await refresh(auth: auth)

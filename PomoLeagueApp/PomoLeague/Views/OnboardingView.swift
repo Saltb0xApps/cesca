@@ -56,12 +56,14 @@ struct OnboardingView: View {
         profile.examTag = examTag.trimmingCharacters(in: .whitespaces)
         profile.save()
 
-        if Secrets.isConfigured, let session = auth.session {
+        if Secrets.isConfigured, auth.session != nil {
+            let name = profile.displayName, avatar = profile.avatar
+            let tag = profile.examTag.isEmpty ? nil : profile.examTag
             Task {
-                try? await Supabase.shared.upsertProfile(
-                    session: session, displayName: profile.displayName,
-                    avatar: profile.avatar, examTag: profile.examTag.isEmpty ? nil : profile.examTag
-                )
+                try? await auth.withValidSession { s in
+                    try await Supabase.shared.upsertProfile(
+                        session: s, displayName: name, avatar: avatar, examTag: tag)
+                }
             }
         }
     }

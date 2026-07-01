@@ -29,10 +29,32 @@ final class Auth: ObservableObject {
     }
 
     func verifyOTP(email: String, token: String) async throws {
-        let s = try await Supabase.shared.verifyOTP(email: email, token: token)
+        setSession(try await Supabase.shared.verifyOTP(email: email, token: token))
+    }
+
+    private func setSession(_ s: Supabase.Session) {
         session = s
         if let data = try? JSONEncoder().encode(s) {
             UserDefaults.standard.set(data, forKey: sessionKey)
+        }
+    }
+
+    /// Run an authenticated Supabase call, transparently refreshing the session
+    /// once if the access token has expired (HTTP 401). Signs out if the refresh
+    /// itself fails (e.g. the refresh token is revoked).
+    func withValidSession<T>(_ work: (Supabase.Session) async throws -> T) async throws -> T {
+        guard let s = session else { throw Supabase.SupaError.notConfigured }
+        do {
+            return try await work(s)
+        } catch Supabase.SupaError.http(401, _) {
+            do {
+                let refreshed = try await Supabase.shared.refreshSession(refreshToken: s.refreshToken)
+                setSession(refreshed)
+                return try await work(refreshed)
+            } catch {
+                signOut()
+                throw error
+            }
         }
     }
 
