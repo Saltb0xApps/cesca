@@ -25,10 +25,10 @@ struct RootView: View {
 
     var body: some View {
         Group {
-            if !auth.isAuthed {
+            if !profile.seenIntro {
+                PowerIntroView()
+            } else if !auth.isAuthed {
                 SignInView()
-            } else if profile.displayName.isEmpty {
-                OnboardingView()
             } else {
                 MainTabView()
             }

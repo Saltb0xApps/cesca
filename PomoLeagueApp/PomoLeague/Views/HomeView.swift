@@ -11,7 +11,6 @@ struct HomeView: View {
     var body: some View {
         let stats = ledger.stats
         let goal = profile.dailyGoal
-        let pct = goal > 0 ? min(1, Double(stats.today) / Double(goal)) : 0
         let hit = stats.today >= goal
 
         return VStack(spacing: 14) {
@@ -24,13 +23,13 @@ struct HomeView: View {
                 Text("❄️ \(stats.freezes)").font(.headline).foregroundStyle(Color.pomoInk).pomoCard(padding: 10, radius: 12)
             }
 
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Text(hit ? "Goal smashed 🎉" : "Today's goal").font(.headline).foregroundStyle(Color.pomoInk)
                     Spacer()
                     Text("\(stats.today) / \(goal)").font(.headline).foregroundStyle(Color.pomoTomato)
                 }
-                ProgressBar(pct: pct)
+                TomatoField(filled: stats.today, total: max(goal, stats.today))
                 Text(hit ? "Keep going — every pomo counts." : "\(goal - stats.today) more to hit your goal. Change it in Profile.")
                     .font(.caption).foregroundStyle(Color.pomoSubtle)
             }
@@ -72,6 +71,7 @@ struct HomeView: View {
             RulesView { showRules = false; showRound = true }
         }
         .fullScreenCover(isPresented: $showRound) { RoundView() }
+        .onAppear { SharedStore.sync(today: ledger.stats.today, goal: profile.dailyGoal) }
     }
 
     private func start() {

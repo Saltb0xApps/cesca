@@ -44,11 +44,25 @@ core rule: start a round, swipe to the Home screen, come back → the round fail
 | `Components/` | `VegIcon` (line-art veggies via Canvas), `Heatmap` |
 | `Views/` | SignIn, Onboarding, Rules, Home, Round, Stats, League, Profile, Recap, Garden |
 
+## First-run flow
+
+1. **PowerIntroView** — "you've been given the power to focus" (drop your art
+   into the `PowerHero` image set; a tomato placeholder shows until then).
+2. **Give me the power** → choose today's deep-focus goal (pomodoros).
+3. Into the app. The **Home** screen is a field of tomatoes that fill in as you
+   complete pomos (the in-app "background").
+
+## Home-screen widget
+
+Widget code lives in `PomoLeagueWidget/` and shows today's pomos vs goal. It's a
+separate target — follow **WIDGET_SETUP.md** (~5 min in Xcode) to add it and the
+shared App Group. The app updates it whenever you open Home or bank a pomo.
+
 ## Status
 
-First native cut. It was written without a compiler available, so expect a few
-build errors on first open — they'll be quick fixes. The offline experience is
-complete; the Supabase auth/RPC paths need a live project to verify end-to-end.
+Native cut, written without a compiler available — expect a few build errors on
+first open (quick fixes). The offline experience is complete; the Supabase
+auth/RPC paths need a live project to verify end-to-end.
 
-Not yet ported (deliberate, follow-ups): push notifications, Live Activity /
-Dynamic Island timer, widgets, and image-export of the recap card.
+Not yet ported (follow-ups): push notifications, Live Activity / Dynamic Island
+timer, and image-export of the recap card.

@@ -6,6 +6,7 @@ final class ProfileStore: ObservableObject {
     @Published var avatar = "🍅"
     @Published var examTag = ""
     @Published var seenRules = false
+    @Published var seenIntro = false
     @Published var dailyGoal = 8
 
     private let key = "pomoleague.profile.v1"
@@ -17,6 +18,7 @@ final class ProfileStore: ObservableObject {
         var avatar: String
         var examTag: String
         var seenRules: Bool
+        var seenIntro: Bool
         var dailyGoal: Int
     }
 
@@ -27,12 +29,13 @@ final class ProfileStore: ObservableObject {
         avatar = s.avatar
         examTag = s.examTag
         seenRules = s.seenRules
+        seenIntro = s.seenIntro
         dailyGoal = s.dailyGoal
     }
 
     func save() {
         let s = Saved(displayName: displayName, avatar: avatar, examTag: examTag,
-                      seenRules: seenRules, dailyGoal: dailyGoal)
+                      seenRules: seenRules, seenIntro: seenIntro, dailyGoal: dailyGoal)
         if let data = try? JSONEncoder().encode(s) {
             UserDefaults.standard.set(data, forKey: key)
         }
