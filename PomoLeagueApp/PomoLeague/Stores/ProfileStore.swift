@@ -7,18 +7,21 @@ final class ProfileStore: ObservableObject {
     @Published var examTag = ""
     @Published var seenRules = false
     @Published var seenIntro = false
+    @Published var hasPickedGoal = false
     @Published var dailyGoal = 8
 
     private let key = "pomoleague.profile.v1"
 
     init() { load() }
 
+    // New fields are optional so adding more later won't wipe an existing profile.
     private struct Saved: Codable {
         var displayName: String
         var avatar: String
         var examTag: String
         var seenRules: Bool
         var seenIntro: Bool
+        var hasPickedGoal: Bool?
         var dailyGoal: Int
     }
 
@@ -30,12 +33,14 @@ final class ProfileStore: ObservableObject {
         examTag = s.examTag
         seenRules = s.seenRules
         seenIntro = s.seenIntro
+        hasPickedGoal = s.hasPickedGoal ?? false
         dailyGoal = s.dailyGoal
     }
 
     func save() {
         let s = Saved(displayName: displayName, avatar: avatar, examTag: examTag,
-                      seenRules: seenRules, seenIntro: seenIntro, dailyGoal: dailyGoal)
+                      seenRules: seenRules, seenIntro: seenIntro, hasPickedGoal: hasPickedGoal,
+                      dailyGoal: dailyGoal)
         if let data = try? JSONEncoder().encode(s) {
             UserDefaults.standard.set(data, forKey: key)
         }

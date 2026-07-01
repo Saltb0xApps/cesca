@@ -76,6 +76,46 @@ struct Supabase {
         var is_you: Bool
     }
 
+    // MARK: Partner RPCs
+
+    struct PartnerSummary: Codable {
+        var active: Bool
+        var invite_code: String?
+        var partner_name: String?
+        var partner_avatar: String?
+        var partner_today: Int?
+        var partner_goal: Int?
+        var you_today: Int
+        var you_goal: Int
+        var team_streak: Int
+    }
+
+    struct SettleResult: Codable {
+        var lost: Bool
+        var team_streak: Int
+    }
+
+    func createPartnerInvite(session: Session) async throws -> String {
+        let data = try await rpc("create_partner_invite", params: [:], session: session)
+        if let s = try? JSONDecoder().decode(String.self, from: data) { return s }
+        return (String(data: data, encoding: .utf8) ?? "")
+            .trimmingCharacters(in: CharacterSet(charactersIn: "\"\n "))
+    }
+
+    func acceptPartnerInvite(_ code: String, session: Session) async throws {
+        try await rpc("accept_partner_invite", params: ["code": code], session: session)
+    }
+
+    func partnerSummary(session: Session) async throws -> PartnerSummary? {
+        let data = try await rpc("partner_summary", params: [:], session: session)
+        return (try? JSONDecoder().decode([PartnerSummary].self, from: data))?.first
+    }
+
+    func settlePartnerDays(session: Session) async throws -> SettleResult? {
+        let data = try await rpc("settle_partner_days", params: [:], session: session)
+        return (try? JSONDecoder().decode([SettleResult].self, from: data))?.first
+    }
+
     // MARK: Plumbing
 
     @discardableResult

@@ -46,23 +46,34 @@ core rule: start a round, swipe to the Home screen, come back → the round fail
 
 ## First-run flow
 
-1. **PowerIntroView** — "you've been given the power to focus" (drop your art
-   into the `PowerHero` image set; a tomato placeholder shows until then).
-2. **Give me the power** → choose today's deep-focus goal (pomodoros).
-3. Into the app. The **Home** screen is a field of tomatoes that fill in as you
-   complete pomos (the in-app "background").
+1. **OnboardingCarouselView** — swipeable illustrated intro (drop your art into
+   the `Intro1/Intro2/Intro3` image sets; a tomato placeholder shows until then).
+2. **Create your account** — email OTP sign-in is **required** (no demo in
+   release builds; a DEBUG-only "Explore" bypass exists for testing).
+3. Set your **name/avatar**, then pick today's **deep-focus goal**.
+4. Into the app. **Home** is a field of tomatoes that fill in as you complete pomos.
+
+## Accountability (the core)
+
+- **Phone penalty:** leaving the app during a round loses **today's tomatoes AND
+  breaks your streak** — locally (`Ledger.applyPenaltyLocal`) and server-side
+  (`apply_penalty` RPC, migration `006`).
+- **Partner:** the **Partner** tab links you to one person via an invite code
+  (`create_partner_invite` / `accept_partner_invite`). You share a **team streak**;
+  if either of you misses your daily goal, it resets for both. Settlement is lazy
+  (evaluated on open via `settle_partner_days`); backend is migration `005`.
+  A reliable end-of-day cron is a follow-up.
 
 ## Home-screen widget
 
 Widget code lives in `PomoLeagueWidget/` and shows today's pomos vs goal. It's a
-separate target — follow **WIDGET_SETUP.md** (~5 min in Xcode) to add it and the
-shared App Group. The app updates it whenever you open Home or bank a pomo.
+separate target — follow **WIDGET_SETUP.md** to add it + the shared App Group.
 
 ## Status
 
-Native cut, written without a compiler available — expect a few build errors on
-first open (quick fixes). The offline experience is complete; the Supabase
-auth/RPC paths need a live project to verify end-to-end.
+Requires **Supabase** (accounts are mandatory): fill `Services/Secrets.swift` and
+run `supabase db push` (applies `001`–`006`). Written without a compiler
+available — expect a few build errors on first open (quick fixes).
 
-Not yet ported (follow-ups): push notifications, Live Activity / Dynamic Island
-timer, and image-export of the recap card.
+Follow-ups: push notifications, Live Activity timer, image-export recap card, and
+a cron for reliable partner day-settlement.

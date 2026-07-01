@@ -35,9 +35,9 @@ struct ProfileView: View {
                     Text("Daily goal").font(.headline).foregroundStyle(Color.pomoInk)
                     Spacer()
                     HStack(spacing: 16) {
-                        stepper("−") { profile.setGoal(-1) }
+                        stepper("−") { changeGoal(-1) }
                         Text("\(profile.dailyGoal)").font(.title3.bold()).foregroundStyle(Color.pomoTomato).frame(minWidth: 24)
-                        stepper("+") { profile.setGoal(1) }
+                        stepper("+") { changeGoal(1) }
                     }
                 }
                 .pomoCard(padding: 16, radius: 14)
@@ -60,6 +60,12 @@ struct ProfileView: View {
             Button("Cancel", role: .cancel) {}
             Button("Reset", role: .destructive) { ledger.clear() }
         } message: { Text("This clears your local stats on this device.") }
+    }
+
+    private func changeGoal(_ delta: Int) {
+        profile.setGoal(delta)
+        SharedStore.sync(today: ledger.stats.today, goal: profile.dailyGoal)
+        Banking.setDailyGoal(auth: auth, goal: profile.dailyGoal)
     }
 
     private func cell(_ value: Int, _ label: String) -> some View {

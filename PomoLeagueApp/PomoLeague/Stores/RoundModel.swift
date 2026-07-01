@@ -12,8 +12,10 @@ enum RoundConst {
 @MainActor
 final class RoundModel: ObservableObject {
     enum Phase { case running, breakTime, failed }
+    enum FailReason: Equatable { case backgrounded, abandoned }
 
     @Published var phase: Phase = .running
+    @Published var failReason: FailReason = .abandoned
     @Published var chainIndex = 0
     @Published var sessionBanked = 0
     @Published var now = Date()
@@ -29,6 +31,9 @@ final class RoundModel: ObservableObject {
     /// (chainIndex, task) -> bank a pomo.
     var onBank: ((Int, String?) -> Void)?
     var taskProvider: (() -> String?)?
+    /// Called when a round fails because the user left the app: wipe today's
+    /// tomatoes + break the streak.
+    var onPenalty: (() -> Void)?
 
     // Derived
     var remaining: TimeInterval { max(0, RoundConst.roundSeconds - now.timeIntervalSince(startedAt)) }
@@ -54,6 +59,7 @@ final class RoundModel: ObservableObject {
     }
 
     func giveUp() {
+        failReason = .abandoned
         phase = .failed
         stopTimer()
     }
@@ -69,8 +75,10 @@ final class RoundModel: ObservableObject {
                 backgroundedTotal += Date().timeIntervalSince(left)
                 leftAt = nil
                 if backgroundedTotal > RoundConst.backgroundGrace {
+                    failReason = .backgrounded
                     phase = .failed
                     stopTimer()
+                    onPenalty?() // wipe today's tomatoes + break streak
                 }
             }
         } else {

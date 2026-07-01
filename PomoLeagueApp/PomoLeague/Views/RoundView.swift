@@ -4,6 +4,7 @@ struct RoundView: View {
     @EnvironmentObject var ledger: Ledger
     @EnvironmentObject var auth: Auth
     @EnvironmentObject var tasks: TaskStore
+    @EnvironmentObject var profile: ProfileStore
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
 
@@ -21,6 +22,11 @@ struct RoundView: View {
         .onAppear {
             model.onBank = { idx, task in
                 Banking.bankPomo(ledger: ledger, auth: auth, chainIndex: idx, task: task)
+            }
+            model.onPenalty = {
+                ledger.applyPenaltyLocal()
+                SharedStore.sync(today: 0, goal: profile.dailyGoal)
+                Banking.applyPenalty(auth: auth)
             }
             model.taskProvider = { tasks.currentTask }
             model.begin(chainIndex: 0)
@@ -41,7 +47,9 @@ struct RoundView: View {
             Text(timeString(model.remaining))
                 .font(.system(size: 84, weight: .thin, design: .rounded))
                 .monospacedDigit().foregroundStyle(.white)
-            Text("Leave the app and you lose the round.").font(.subheadline).foregroundStyle(.white.opacity(0.6))
+            Text("Leave the app and you lose today's tomatoes + your streak.")
+                .font(.subheadline).foregroundStyle(Color.pomoTomato.opacity(0.9))
+                .multilineTextAlignment(.center)
 
             Text("Hold to give up").foregroundStyle(.white.opacity(0.6))
                 .padding(.top, 30)
@@ -88,15 +96,14 @@ struct RoundView: View {
     // MARK: Failed
 
     private var failed: some View {
-        VStack(spacing: 14) {
-            Text("💔").font(.system(size: 64))
-            Text("Round lost").font(.largeTitle.bold()).foregroundStyle(.white)
-            Text("Your phone left the app. A dead round banks nothing.")
-                .foregroundStyle(.white.opacity(0.85)).multilineTextAlignment(.center)
-            if model.sessionBanked > 0 {
-                Text("You keep \(model.sessionBanked) pomo(s) from this session.")
-                    .font(.subheadline).foregroundStyle(.white.opacity(0.85))
-            }
+        let backgrounded = model.failReason == .backgrounded
+        return VStack(spacing: 14) {
+            Text(backgrounded ? "💥" : "💔").font(.system(size: 64))
+            Text(backgrounded ? "You left." : "Round given up").font(.largeTitle.bold()).foregroundStyle(.white)
+            Text(backgrounded
+                 ? "Today's tomatoes and your streak are gone. That's the deal."
+                 : "No harm done — you just ended this round. Today's tomatoes are safe.")
+                .foregroundStyle(.white.opacity(0.9)).multilineTextAlignment(.center)
             Button { model.begin(chainIndex: 0); confirmChain = false } label: {
                 Text("Restart round").font(.headline).foregroundStyle(Color.pomoTomatoDark)
                     .padding(.horizontal, 28).padding(.vertical, 16)

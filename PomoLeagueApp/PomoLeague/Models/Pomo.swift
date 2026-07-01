@@ -42,7 +42,7 @@ enum PomoMath {
         return c
     }
 
-    static func stats(_ pomos: [Pomo]) -> Stats {
+    static func stats(_ pomos: [Pomo], streakBrokenOn: Date? = nil) -> Stats {
         let cal = Calendar.current
         var s = Stats()
         s.total = pomos.count
@@ -60,13 +60,15 @@ enum PomoMath {
         }
         s.today = byDay[todayKey] ?? 0
 
-        // streak: consecutive days ending today (or yesterday if none today yet)
+        // streak: consecutive days ending today (or yesterday if none today yet),
+        // but never counting days on/before a phone-penalty break.
+        let brokenDay = streakBrokenOn.map { cal.startOfDay(for: $0) }
         var streak = 0
         var cursor = cal.startOfDay(for: Date())
         if byDay[dayKey(cursor, cal)] == nil {
             cursor = cal.date(byAdding: .day, value: -1, to: cursor) ?? cursor
         }
-        while byDay[dayKey(cursor, cal)] != nil {
+        while byDay[dayKey(cursor, cal)] != nil, brokenDay == nil || cursor > brokenDay! {
             streak += 1
             cursor = cal.date(byAdding: .day, value: -1, to: cursor) ?? cursor
         }

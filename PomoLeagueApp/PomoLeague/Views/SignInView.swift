@@ -41,13 +41,16 @@ struct SignInView: View {
 
             if let error { Text(error).font(.footnote).foregroundStyle(.red) }
 
+            #if DEBUG
+            // Dev-only offline bypass; real users must create an account.
             Text("— or —").foregroundStyle(Color.pomoSubtle).padding(.top, 10)
             Button(action: auth.enterDemo) {
-                Text("Explore the app (no account)")
+                Text("Explore (dev, no account)")
                     .font(.headline).foregroundStyle(Color.pomoInk)
                     .frame(maxWidth: .infinity).padding()
                     .background(RoundedRectangle(cornerRadius: 12).stroke(Color.pomoLine))
             }
+            #endif
             Spacer()
         }
         .padding(24)

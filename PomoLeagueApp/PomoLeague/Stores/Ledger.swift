@@ -6,17 +6,23 @@ import Foundation
 @MainActor
 final class Ledger: ObservableObject {
     @Published private(set) var pomos: [Pomo] = []
+    /// Day the streak was last broken by a phone penalty. Streak counting ignores
+    /// days on/before this (see PomoMath.stats).
+    @Published private(set) var streakBrokenOn: Date?
 
     private let key = "pomoleague.pomos.v1"
+    private let brokenKey = "pomoleague.streakBrokenOn.v1"
 
     init() { load() }
 
-    var stats: Stats { PomoMath.stats(pomos) }
+    var stats: Stats { PomoMath.stats(pomos, streakBrokenOn: streakBrokenOn) }
 
     func load() {
-        guard let data = UserDefaults.standard.data(forKey: key),
-              let saved = try? JSONDecoder.iso.decode([Pomo].self, from: data) else { return }
-        pomos = saved
+        if let data = UserDefaults.standard.data(forKey: key),
+           let saved = try? JSONDecoder.iso.decode([Pomo].self, from: data) {
+            pomos = saved
+        }
+        streakBrokenOn = UserDefaults.standard.object(forKey: brokenKey) as? Date
     }
 
     func bankLocal(chainIndex: Int, task: String?) {
@@ -33,7 +39,19 @@ final class Ledger: ObservableObject {
 
     func clear() {
         pomos = []
+        streakBrokenOn = nil
         UserDefaults.standard.removeObject(forKey: key)
+        UserDefaults.standard.removeObject(forKey: brokenKey)
+    }
+
+    /// Phone-penalty (local half): drop every pomo completed today and break the
+    /// streak. The server half is Banking.applyPenalty.
+    func applyPenaltyLocal() {
+        let cal = Calendar.current
+        pomos.removeAll { cal.isDateInToday($0.completedAt) }
+        streakBrokenOn = cal.startOfDay(for: Date())
+        save()
+        UserDefaults.standard.set(streakBrokenOn, forKey: brokenKey)
     }
 
     private func save() {
