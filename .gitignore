@@ -1,34 +1,24 @@
-# dependencies
-node_modules/
-
-# expo
-.expo/
-dist/
-web-build/
-expo-env.d.ts
-
-# native
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-
-# env
-.env
-.env.local
-.env*.local
-
 # macOS
 .DS_Store
 
-# supabase
+# Xcode
+xcuserdata/
+*.xcuserstate
+*.xcuserdatad/
+DerivedData/
+build/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Signing
+*.mobileprovision
+*.p12
+*.certSigningRequest
+
+# Supabase
 supabase/.branches
 supabase/.temp
 supabase/.env
-
-# logs
-npm-debug.*
-yarn-debug.*
-yarn-error.*
