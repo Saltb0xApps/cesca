@@ -11,72 +11,172 @@ struct LeagueView: View {
     var body: some View {
         let c = cohort ?? demoCohort()
         return ScrollView {
-            VStack(spacing: 10) {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("\(c.tierName) League").font(.headline).foregroundStyle(.white)
-                            .padding(.horizontal, 12).padding(.vertical, 6)
-                            .background(Capsule().fill(Tiers.colors[c.tierIndex]))
-                        Text(range(c.weekStart, c.weekEnd)).font(.caption).foregroundStyle(Color.pomoSubtle)
-                    }
-                    Spacer()
-                    VStack { Text("#\(c.yourRank)").font(.title.bold()).foregroundStyle(Color.pomoInk)
-                        Text("your rank").font(.caption2).foregroundStyle(Color.pomoSubtle) }
-                }
-
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack { Text("League goal").bold().foregroundStyle(Color.pomoInk)
-                        Spacer(); Text("\(c.teamTotal) / \(c.teamGoal)").bold().foregroundStyle(Color.pomoTomato) }
-                    ProgressBar(pct: min(1, Double(c.teamTotal) / Double(c.teamGoal)))
-                    Text("Everyone earns a badge if the league banks \(c.teamGoal) pomos together.")
-                        .font(.caption).foregroundStyle(Color.pomoSubtle)
-                }
-                .pomoCard()
-
+            VStack(spacing: 0) {
+                // Header
                 HStack {
-                    Text("▲ Top \(c.promoteCount) promote").font(.caption.bold()).foregroundStyle(Color.pomoGood)
+                    Text("league.")
+                        .font(.marker(32))
+                        .foregroundStyle(Color.pomoRed)
                     Spacer()
-                    Text("▼ Bottom \(c.relegateCount) relegate").font(.caption.bold()).foregroundStyle(Color.pomoTomatoDark)
+                    // Tier badge
+                    Text(c.tierName.uppercased())
+                        .font(.caveatBold(13))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 5)
+                        .background(Capsule().fill(Tiers.colors[c.tierIndex]))
                 }
+                .padding(.horizontal, 24)
+                .padding(.top, 52)
+                .padding(.bottom, 6)
 
-                ForEach(Array(c.members.enumerated()), id: \.element.id) { i, m in
-                    row(m, rank: i + 1, cohort: c)
-                }
+                Text(range(c.weekStart, c.weekEnd))
+                    .font(.caveat(14))
+                    .foregroundStyle(Color.pomoRedFaded)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 16)
 
-                if !usingReal {
-                    Text("Demo opponents — sign in (with Supabase configured) for a real league.")
-                        .font(.caption).foregroundStyle(Color.pomoSubtle).multilineTextAlignment(.center).padding(.top, 8)
+                VStack(spacing: 14) {
+                    // Rank + team goal card
+                    HStack(spacing: 14) {
+                        // Your rank
+                        VStack(alignment: .leading, spacing: 0) {
+                            SketchLabel("your rank")
+                            Text("#\(c.yourRank)")
+                                .font(.marker(44))
+                                .foregroundStyle(Color.pomoRed)
+                                .padding(.top, 6)
+                            Text("of \(c.members.count)")
+                                .font(.caveat(13))
+                                .foregroundStyle(Color.pomoRedFaded)
+                                .padding(.top, 2)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .sketchCard()
+
+                        // Team goal
+                        VStack(alignment: .leading, spacing: 0) {
+                            SketchLabel("team goal")
+                            HStack(alignment: .bottom, spacing: 3) {
+                                Text("\(c.teamTotal)")
+                                    .font(.marker(44))
+                                    .foregroundStyle(Color.pomoRed)
+                                Text("/ \(c.teamGoal)")
+                                    .font(.caveatBold(18))
+                                    .foregroundStyle(Color.pomoRedFaded)
+                                    .padding(.bottom, 6)
+                            }
+                            .padding(.top, 6)
+                            GeometryReader { geo in
+                                ZStack(alignment: .leading) {
+                                    RoundedRectangle(cornerRadius: 2).fill(Color.pomoRed.opacity(0.12))
+                                    RoundedRectangle(cornerRadius: 2).fill(Color.pomoRed)
+                                        .frame(width: geo.size.width * min(1, Double(c.teamTotal) / Double(c.teamGoal)))
+                                }
+                            }
+                            .frame(height: 6)
+                            .padding(.top, 4)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .sketchCard()
+                    }
+
+                    // Zone labels
+                    HStack {
+                        HStack(spacing: 4) {
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Color(red: 0.18, green: 0.62, blue: 0.36))
+                                .frame(width: 8, height: 8)
+                            Text("top \(c.promoteCount) promote")
+                                .font(.caveatBold(13))
+                                .foregroundStyle(Color(red: 0.18, green: 0.62, blue: 0.36))
+                        }
+                        Spacer()
+                        HStack(spacing: 4) {
+                            Text("bottom \(c.relegateCount) relegate")
+                                .font(.caveatBold(13))
+                                .foregroundStyle(Color.pomoRed.opacity(0.7))
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Color.pomoRed.opacity(0.7))
+                                .frame(width: 8, height: 8)
+                        }
+                    }
+                    .padding(.horizontal, 2)
+
+                    // Standings list
+                    VStack(spacing: 8) {
+                        ForEach(Array(c.members.enumerated()), id: \.element.id) { i, m in
+                            standingRow(m, rank: i + 1, cohort: c)
+                        }
+                    }
+
+                    if !usingReal {
+                        Text("demo opponents — sign in for a real league.")
+                            .font(.caveat(14))
+                            .foregroundStyle(Color.pomoRedFaded)
+                            .multilineTextAlignment(.center)
+                            .padding(.top, 4)
+                    }
                 }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 100)
             }
-            .padding(16)
         }
         .background(Color.pomoBg.ignoresSafeArea())
         .task { await refreshLoop() }
         .refreshable { await refresh() }
     }
 
-    private func row(_ m: Member, rank: Int, cohort c: Cohort) -> some View {
+    private func standingRow(_ m: Member, rank: Int, cohort c: Cohort) -> some View {
         let promote = rank <= c.promoteCount
         let relegate = rank > c.members.count - c.relegateCount
-        let bg: Color = promote ? Color(red: 0.917, green: 0.969, blue: 0.937)
-            : relegate ? Color(red: 0.988, green: 0.929, blue: 0.922) : Color.pomoCard
-        let border: Color = m.isYou ? .pomoTomato : (promote ? .pomoGood : relegate ? Color(red: 0.95, green: 0.78, blue: 0.76) : .pomoLine)
+        let isYou = m.isYou
+
         return HStack(spacing: 12) {
-            Text("\(rank)").bold().foregroundStyle(Color.pomoSubtle).frame(width: 24)
-            Text(m.avatar).font(.title3)
-            Text(m.name).font(.subheadline).fontWeight(m.isYou ? .heavy : .semibold)
-                .foregroundStyle(m.isYou ? Color.pomoTomato : Color.pomoInk).lineLimit(1)
+            // Rank number
+            Text("\(rank)")
+                .font(.caveatBold(16))
+                .foregroundStyle(Color.pomoRedFaded)
+                .frame(width: 22, alignment: .center)
+
+            // Zone indicator dot
+            Circle()
+                .fill(promote ? Color(red: 0.18, green: 0.62, blue: 0.36)
+                      : relegate ? Color.pomoRed.opacity(0.55) : Color.clear)
+                .frame(width: 6, height: 6)
+
+            Text(m.avatar)
+                .font(.system(size: 20))
+
+            Text(m.name)
+                .font(isYou ? .caveatBold(18) : .caveat(18))
+                .foregroundStyle(isYou ? Color.pomoRed : Color.pomoInk)
+                .lineLimit(1)
+
             Spacer()
-            Text("\(m.pomos)").font(.headline).foregroundStyle(m.isYou ? Color.pomoTomato : Color.pomoInk)
+
+            Text("\(m.pomos)")
+                .font(.marker(22))
+                .foregroundStyle(isYou ? Color.pomoRed : Color.pomoInk)
+
+            Text("pomos")
+                .font(.caveat(13))
+                .foregroundStyle(Color.pomoRedFaded)
         }
-        .padding(.horizontal, 12).padding(.vertical, 10)
-        .background(RoundedRectangle(cornerRadius: 10).fill(bg)
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(border, lineWidth: m.isYou ? 2 : 1)))
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 4)
+                .fill(isYou ? Color.pomoRed.opacity(0.06) : Color.white)
+                .overlay(RoundedRectangle(cornerRadius: 4)
+                    .stroke(isYou ? Color.pomoRed : Color.pomoRed.opacity(0.2), lineWidth: isYou ? 2 : 1))
+        )
     }
 
     private func demoCohort() -> Cohort {
         DemoLeague.cohort(pomos: ledger.pomos, total: ledger.stats.total,
-                          youName: profile.displayName.isEmpty ? "You" : profile.displayName,
+                          youName: profile.displayName.isEmpty ? "you" : profile.displayName,
                           youAvatar: profile.avatar)
     }
 
@@ -102,7 +202,7 @@ struct LeagueView: View {
 
     private func cohortFrom(_ rows: [Supabase.StandingRow]) -> Cohort {
         let members = rows.map {
-            Member(id: $0.user_id, name: $0.is_you ? "You" : $0.display_name,
+            Member(id: $0.user_id, name: $0.is_you ? "you" : $0.display_name,
                    avatar: $0.avatar ?? "🍅", pomos: $0.pomos, isYou: $0.is_you)
         }
         let weekStart = PomoMath.startOfWeek(Date())

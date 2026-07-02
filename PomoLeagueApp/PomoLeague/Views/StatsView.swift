@@ -2,94 +2,146 @@ import SwiftUI
 
 struct StatsView: View {
     @EnvironmentObject var ledger: Ledger
-    @State private var showGarden = false
 
     var body: some View {
         let stats = ledger.stats
         let tierIdx = Tiers.index(for: stats.total)
-        let next = Tiers.next(for: stats.total)
-        let grown = Veggies.unlockedCount(total: stats.total)
-        let nextVeg = Veggies.next(total: stats.total)
-        let subjects = PomoMath.subjects(ledger.pomos)
+        let next    = Tiers.next(for: stats.total)
 
-        return ScrollView {
-            VStack(spacing: 12) {
+        ScrollView {
+            VStack(spacing: 0) {
                 HStack {
-                    Text("Your stats").font(.largeTitle.bold()).foregroundStyle(Color.pomoInk)
+                    Text("your stats.")
+                        .font(.marker(32))
+                        .foregroundStyle(Color.pomoRed)
                     Spacer()
                 }
+                .padding(.horizontal, 24)
+                .padding(.top, 52)
+                .padding(.bottom, 18)
 
-                VStack(spacing: 6) {
-                    Text(Tiers.names[tierIdx]).font(.headline).foregroundStyle(.white)
-                        .padding(.horizontal, 14).padding(.vertical, 6)
-                        .background(Capsule().fill(Tiers.colors[tierIdx]))
-                    Text("\(stats.total) pomos all-time").font(.headline).foregroundStyle(Color.pomoInk)
-                    Text(next.map { "\($0.remaining) more to reach \($0.tier)" } ?? "Top tier reached 🍅")
-                        .font(.caption).foregroundStyle(Color.pomoSubtle)
-                }
-                .frame(maxWidth: .infinity).pomoCard(padding: 18, radius: 16)
-
-                Button { showGarden = true } label: {
-                    VStack(spacing: 10) {
+                VStack(spacing: 14) {
+                    // Tier + all-time card
+                    VStack(alignment: .leading, spacing: 0) {
                         HStack {
-                            Text("Your garden").font(.headline).foregroundStyle(Color.pomoInk)
+                            Text(Tiers.names[tierIdx])
+                                .font(.caveatBold(14))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 5)
+                                .background(Capsule().fill(Tiers.colors[tierIdx]))
                             Spacer()
-                            Text("\(grown) / \(Veggies.all.count)").font(.headline).foregroundStyle(Color.pomoTomato)
+                            Image(systemName: "trophy")
+                                .font(.system(size: 22))
+                                .foregroundStyle(Color.pomoRedFaded)
                         }
-                        HStack {
-                            ForEach(Array(Veggies.all.enumerated()), id: \.offset) { i, v in
-                                VegIcon(type: v.type, size: 30, color: i < grown ? .pomoTomato : .pomoLine)
-                                if i < Veggies.all.count - 1 { Spacer() }
-                            }
-                        }
-                        HStack {
-                            Text(nextVeg.map { "\($0.remaining) more pomos to grow a \($0.veg.name.lowercased()) →" } ?? "All grown 🎉")
-                                .font(.caption).foregroundStyle(Color.pomoSubtle)
-                            Spacer()
-                        }
-                    }
-                    .pomoCard(padding: 16, radius: 16)
-                }
-                .buttonStyle(.plain)
 
-                HStack(spacing: 12) {
-                    StatBox(value: stats.today, label: "today")
-                    StatBox(value: stats.week, label: "this week")
-                }
-                HStack(spacing: 12) {
-                    StatBox(value: stats.streak, label: "day streak 🔥")
-                    StatBox(value: stats.freezes, label: "freezes ❄️")
-                }
-                HStack(spacing: 12) {
-                    StatBox(value: stats.bestDay, label: "best day")
-                    StatBox(value: stats.longestChain, label: "longest chain")
-                }
+                        HStack(alignment: .bottom, spacing: 6) {
+                            Text("\(stats.total)")
+                                .font(.marker(64))
+                                .foregroundStyle(Color.pomoRed)
+                            Text("pomos")
+                                .font(.caveat(17))
+                                .foregroundStyle(Color.pomoRedFaded)
+                                .padding(.bottom, 12)
+                        }
+                        .padding(.top, 4)
 
-                if !subjects.isEmpty {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Time by subject").font(.headline).foregroundStyle(Color.pomoInk)
-                        ForEach(subjects) { s in
-                            let topCount = subjects.first?.count ?? 1
-                            VStack(alignment: .leading, spacing: 6) {
-                                HStack {
-                                    Text(s.task).font(.subheadline.bold()).foregroundStyle(Color.pomoInk).lineLimit(1)
-                                    Spacer()
-                                    Text("\(PomoMath.formatMinutes(s.minutes)) · \(s.count)🍅")
-                                        .font(.caption.bold()).foregroundStyle(Color.pomoSubtle)
+                        if let next {
+                            Text("\(next.remaining) more to reach \(next.tier)")
+                                .font(.caveat(15))
+                                .foregroundStyle(Color.pomoRedFaded)
+                            GeometryReader { geo in
+                                ZStack(alignment: .leading) {
+                                    RoundedRectangle(cornerRadius: 3).fill(Color.pomoRed.opacity(0.15))
+                                    RoundedRectangle(cornerRadius: 3).fill(Color.pomoRed)
+                                        .frame(width: geo.size.width * tierPct(stats.total, next: next))
                                 }
-                                ProgressBar(pct: topCount > 0 ? max(0.06, Double(s.count) / Double(topCount)) : 0)
-                                    .frame(height: 8)
                             }
+                            .frame(height: 6)
+                            .padding(.top, 8)
+                        } else {
+                            Text("top tier reached 🍅")
+                                .font(.caveat(15))
+                                .foregroundStyle(Color.pomoRedFaded)
                         }
                     }
-                    .pomoCard(padding: 16, radius: 16)
-                }
+                    .sketchCard()
 
-                Heatmap(pomos: ledger.pomos)
+                    // 2×3 stat grid
+                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 14),
+                                        GridItem(.flexible(), spacing: 14)],
+                              spacing: 14) {
+                        MiniStatCard(label: "today",      icon: "calendar",   value: "\(stats.today)")
+                        MiniStatCard(label: "this week",  icon: "flame",      value: "\(stats.week)")
+                        MiniStatCard(label: "streak",     icon: "flame.fill", value: "\(stats.streak)",        unit: "days")
+                        MiniStatCard(label: "freezes",    icon: "snowflake",  value: "\(stats.freezes)",       unit: "left")
+                        MiniStatCard(label: "best day",   icon: "star",       value: "\(stats.bestDay)",       unit: "pomos")
+                        MiniStatCard(label: "best chain", icon: "link",       value: "\(stats.longestChain)",  unit: "pomos")
+                    }
+
+                    // 12-week heatmap
+                    VStack(alignment: .leading, spacing: 10) {
+                        SketchLabel("12-week activity")
+                        Heatmap(pomos: ledger.pomos)
+                    }
+                    .sketchCard()
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 100)
             }
-            .padding(16)
         }
         .background(Color.pomoBg.ignoresSafeArea())
-        .sheet(isPresented: $showGarden) { GardenView() }
+    }
+
+    private func tierPct(_ total: Int, next: (tier: String, remaining: Int)) -> Double {
+        let idx  = Tiers.index(for: total)
+        let lo   = Tiers.thresholds[idx]
+        let hi   = lo + next.remaining
+        guard hi > lo else { return 1 }
+        return Double(total - lo) / Double(hi - lo)
+    }
+}
+
+private struct MiniStatCard: View {
+    let label: String
+    let icon: String
+    let value: String
+    var unit: String = "pomos"
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                SketchLabel(label)
+                Spacer()
+                Image(systemName: icon)
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.pomoRedFaded)
+            }
+            Text(value)
+                .font(.marker(44))
+                .foregroundStyle(Color.pomoRed)
+                .padding(.top, 8)
+            Text(unit)
+                .font(.caveat(13))
+                .foregroundStyle(Color.pomoRedFaded)
+                .padding(.top, 2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .sketchCard()
+    }
+}
+
+// Keep legacy ProgressBar + StatBox for existing code
+struct ProgressBar: View {
+    let pct: Double
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule().fill(Color.pomoRed.opacity(0.1))
+                Capsule().fill(Color.pomoRed).frame(width: geo.size.width * pct)
+            }
+        }
+        .frame(height: 8)
     }
 }

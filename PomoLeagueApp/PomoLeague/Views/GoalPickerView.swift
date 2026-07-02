@@ -1,8 +1,5 @@
 import SwiftUI
 
-/// Pick today's deep-focus goal. Shown once after the account + profile are set
-/// up (gated on profile.hasPickedGoal). Also pushes the goal to the server so
-/// the partner feature can evaluate it.
 struct GoalPickerView: View {
     @EnvironmentObject var profile: ProfileStore
     @EnvironmentObject var auth: Auth
@@ -12,35 +9,103 @@ struct GoalPickerView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: [Color.pomoTomato, Color.pomoTomatoDark],
-                           startPoint: .top, endPoint: .bottom).ignoresSafeArea()
-            VStack(spacing: 24) {
-                Spacer()
-                Text("Your goal for today").font(.system(size: 30, weight: .heavy)).foregroundStyle(.white)
-                Text("How many deep-focus pomodoros will you complete today?")
-                    .font(.body).foregroundStyle(.white.opacity(0.9)).multilineTextAlignment(.center)
+            Color(red: 0.980, green: 0.969, blue: 0.957).ignoresSafeArea()
 
-                Text("\(goal)").font(.system(size: 88, weight: .black)).foregroundStyle(.white)
-                Text("pomodoros · \(goal * pomoMinutes / 60)h \(goal * pomoMinutes % 60)m of focus")
-                    .font(.subheadline).foregroundStyle(.white.opacity(0.85))
+            VStack(spacing: 0) {
+                // Header
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("set your\ndaily goal.")
+                        .font(.marker(38))
+                        .foregroundStyle(Color.pomoRed)
+                        .lineSpacing(4)
 
+                    Text("how many rounds will you complete today?")
+                        .font(.caveat(17))
+                        .foregroundStyle(Color.pomoRedFaded)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 24)
+                .padding(.top, 72)
+                .padding(.bottom, 36)
+
+                // Big number display
+                HStack(alignment: .bottom, spacing: 6) {
+                    Text("\(goal)")
+                        .font(.marker(88))
+                        .foregroundStyle(Color.pomoRed)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("pomos")
+                            .font(.caveatBold(22))
+                            .foregroundStyle(Color.pomoRedFaded)
+                        Text("\(goal * 25 / 60)h \(goal * 25 % 60)m of focus")
+                            .font(.caveat(15))
+                            .foregroundStyle(Color.pomoRedFaded)
+                    }
+                    .padding(.bottom, 14)
+                }
+                .padding(.bottom, 32)
+
+                // Preset buttons
                 HStack(spacing: 10) {
                     ForEach(presets, id: \.self) { n in
-                        Button { goal = n } label: {
-                            Text("\(n)").font(.headline).foregroundStyle(goal == n ? Color.pomoTomato : .white)
-                                .frame(width: 52, height: 52)
-                                .background(Circle().fill(goal == n ? Color.white : Color.white.opacity(0.18)))
+                        Button { withAnimation(.easeInOut(duration: 0.15)) { goal = n } } label: {
+                            Text("\(n)")
+                                .font(.caveatBold(22))
+                                .foregroundStyle(goal == n ? .white : Color.pomoRed)
+                                .frame(width: 54, height: 54)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(goal == n ? Color.pomoRed : Color.white)
+                                        .overlay(RoundedRectangle(cornerRadius: 4)
+                                            .stroke(Color.pomoRed, lineWidth: 1.5))
+                                )
                         }
                     }
                 }
-                Spacer()
-                Button(action: begin) {
-                    Text("Begin").font(.headline).foregroundStyle(Color.pomoTomato)
-                        .frame(maxWidth: .infinity).padding()
-                        .background(RoundedRectangle(cornerRadius: 16).fill(.white))
+                .padding(.bottom, 16)
+
+                // Custom stepper
+                HStack(spacing: 20) {
+                    Button {
+                        if goal > 1 { withAnimation { goal -= 1 } }
+                    } label: {
+                        Text("−")
+                            .font(.marker(22))
+                            .foregroundStyle(Color.pomoRed)
+                            .frame(width: 36, height: 36)
+                            .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.pomoRed, lineWidth: 1.5))
+                    }
+
+                    Text("custom")
+                        .font(.caveat(15))
+                        .foregroundStyle(Color.pomoRedFaded)
+
+                    Button {
+                        if goal < 16 { withAnimation { goal += 1 } }
+                    } label: {
+                        Text("+")
+                            .font(.marker(22))
+                            .foregroundStyle(.white)
+                            .frame(width: 36, height: 36)
+                            .background(RoundedRectangle(cornerRadius: 4).fill(Color.pomoRed))
+                    }
                 }
+                .padding(.bottom, 48)
+
+                Spacer()
+
+                // Begin button
+                Button(action: begin) {
+                    Text("let's begin →")
+                        .font(.caveatBold(24))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 20)
+                        .background(RoundedRectangle(cornerRadius: 4).fill(Color.pomoRed))
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 40)
             }
-            .padding(28)
         }
         .onAppear { goal = profile.dailyGoal }
     }
@@ -48,7 +113,7 @@ struct GoalPickerView: View {
     private func begin() {
         profile.dailyGoal = goal
         profile.hasPickedGoal = true
-        profile.seenRules = true // the intro already set the focus contract
+        profile.seenRules = true
         profile.save()
         SharedStore.sync(today: 0, goal: goal)
         Banking.setDailyGoal(auth: auth, goal: goal)

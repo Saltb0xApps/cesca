@@ -2,6 +2,7 @@ import SwiftUI
 
 @main
 struct PomoLeagueApp: App {
+    init() { FontLoader.registerAll() }
     @StateObject private var auth = Auth()
     @StateObject private var ledger = Ledger()
     @StateObject private var profile = ProfileStore()
@@ -36,6 +37,8 @@ struct RootView: View {
                 OnboardingView()
             } else if !profile.hasPickedGoal {
                 GoalPickerView()
+            } else if !profile.hasMatchedGoal {
+                GoalMatchingView()
             } else {
                 MainTabView()
             }
@@ -46,14 +49,25 @@ struct RootView: View {
 struct MainTabView: View {
     @EnvironmentObject var appState: AppState
 
+    init() {
+        // Sketch-style tab bar: white bg, red top border
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .white
+        appearance.shadowColor = UIColor(Color.pomoRed)
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
+    }
+
     var body: some View {
         TabView {
-            HomeView().tabItem { Label("Home", systemImage: "house.fill") }
-            PartnerView().tabItem { Label("Partner", systemImage: "person.2.fill") }
-            LeagueView().tabItem { Label("League", systemImage: "trophy.fill") }
-            StatsView().tabItem { Label("Stats", systemImage: "chart.bar.fill") }
-            ProfileView().tabItem { Label("Profile", systemImage: "person.fill") }
+            HomeView()    .tabItem { Label("home",    systemImage: "house.fill") }
+            PartnerView() .tabItem { Label("partner", systemImage: "person.2.fill") }
+            LeagueView()  .tabItem { Label("league",  systemImage: "trophy.fill") }
+            StatsView()   .tabItem { Label("stats",   systemImage: "chart.bar.fill") }
+            ProfileView() .tabItem { Label("profile", systemImage: "person.fill") }
         }
+        .tint(Color.pomoRed)
         .overlay(alignment: .top) {
             if let msg = appState.errorMessage {
                 ErrorBanner(message: msg) { appState.clear() }

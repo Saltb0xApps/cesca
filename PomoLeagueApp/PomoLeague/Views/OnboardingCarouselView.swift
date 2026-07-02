@@ -1,95 +1,88 @@
 import SwiftUI
-import UIKit
 
-/// First-run illustrated intro. Swipeable slides, a Next button, and a final
-/// "Create account" that hands off to sign-in. Shown once (gated on
-/// profile.seenIntro). Drop your art into the Intro1/Intro2/Intro3 image sets;
-/// until then each slide falls back to a tomato illustration.
 struct OnboardingCarouselView: View {
     @EnvironmentObject var profile: ProfileStore
     @State private var index = 0
 
-    private struct Slide: Identifiable {
-        let id = UUID()
-        let image: String
-        let title: String
-        let body: String
-    }
-
-    private let slides: [Slide] = [
-        Slide(image: "Intro1",
-              title: "You've been given\nthe power to focus.",
-              body: "A pomo is 25 minutes where you beat the distraction — verified, uninterrupted, all-or-nothing."),
-        Slide(image: "Intro2",
-              title: "Guard it with\nyour attention.",
-              body: "Leave the app mid-round and you lose today's tomatoes — and your streak. That's the whole point."),
-        Slide(image: "Intro3",
-              title: "Grow it with\nsomeone else.",
-              body: "Link up with a partner. Hit your goals and you both climb. Miss them and you both lose."),
-    ]
+    private let images = ["knight1", "knight2", "knight3", "knight4"]
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: [Color.pomoTomato, Color.pomoTomatoDark],
-                           startPoint: .top, endPoint: .bottom).ignoresSafeArea()
+            Color.white.ignoresSafeArea()
 
-            VStack(spacing: 24) {
+            VStack(spacing: 0) {
+                // Dots — at the top, Figma style (active = wide pill)
+                HStack(spacing: 8) {
+                    ForEach(0..<images.count, id: \.self) { i in
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(Color.pomoRed.opacity(i == index ? 1 : 0.2))
+                            .frame(width: i == index ? 20 : 6, height: 6)
+                            .animation(.easeInOut(duration: 0.2), value: index)
+                    }
+                }
+                .padding(.top, 60)
+
+                // Slide images — already contain all text
                 TabView(selection: $index) {
-                    ForEach(Array(slides.enumerated()), id: \.offset) { i, slide in
-                        slideView(slide).tag(i)
+                    ForEach(0..<images.count, id: \.self) { i in
+                        Image(images[i])
+                            .resizable()
+                            .scaledToFit()
+                            .padding(.horizontal, 24)
+                            .tag(i)
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
 
-                dots
-                button
-            }
-            .padding(28)
-        }
-    }
+                // Buttons
+                VStack(spacing: 12) {
+                    Button(action: advance) {
+                        Text("i'm here")
+                            .font(.caveatBold(22))
+                            .foregroundStyle(Color.pomoRed)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 20)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .stroke(Color.pomoRed, lineWidth: 1.5)
+                            )
+                    }
 
-    private func slideView(_ slide: Slide) -> some View {
-        VStack(spacing: 22) {
-            Spacer()
-            Group {
-                if UIImage(named: slide.image) != nil {
-                    Image(slide.image).resizable().scaledToFit()
-                } else {
-                    VegIcon(type: .tomato, size: 160, color: .white, lineWidth: 4)
+                    Button(action: skip) {
+                        Text("skip")
+                            .font(.caveat(16))
+                            .foregroundStyle(Color.pomoRed.opacity(0.45))
+                    }
+                    .padding(.bottom, 8)
                 }
+                .padding(.horizontal, 28)
+                .padding(.bottom, 32)
             }
-            .frame(maxHeight: 240)
+        }
+        // Swipe also advances
+        .gesture(
+            DragGesture(minimumDistance: 40, coordinateSpace: .local)
+                .onEnded { v in
+                    if v.translation.width < 0 { advance() }
+                    else if v.translation.width > 0, index > 0 {
+                        withAnimation { index -= 1 }
+                    }
+                }
+        )
+    }
 
-            Text(slide.title).font(.system(size: 30, weight: .heavy))
-                .multilineTextAlignment(.center).foregroundStyle(.white)
-            Text(slide.body).font(.body).foregroundStyle(.white.opacity(0.9))
-                .multilineTextAlignment(.center).padding(.horizontal, 8)
-            Spacer()
+    private func advance() {
+        if index < images.count - 1 {
+            withAnimation { index += 1 }
+        } else {
+            finish()
         }
     }
 
-    private var dots: some View {
-        HStack(spacing: 8) {
-            ForEach(0..<slides.count, id: \.self) { i in
-                Circle().fill(.white.opacity(i == index ? 1 : 0.35))
-                    .frame(width: 8, height: 8)
-            }
-        }
-    }
+    private func skip() { finish() }
 
-    private var button: some View {
-        Button {
-            if index < slides.count - 1 {
-                withAnimation { index += 1 }
-            } else {
-                profile.seenIntro = true
-                profile.save()
-            }
-        } label: {
-            Text(index < slides.count - 1 ? "Next" : "Create your account")
-                .font(.headline).foregroundStyle(Color.pomoTomato)
-                .frame(maxWidth: .infinity).padding()
-                .background(RoundedRectangle(cornerRadius: 16).fill(.white))
-        }
+    private func finish() {
+        profile.seenIntro = true
+        profile.save()
     }
 }

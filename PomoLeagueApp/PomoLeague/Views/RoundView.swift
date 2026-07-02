@@ -14,9 +14,9 @@ struct RoundView: View {
     var body: some View {
         ZStack {
             switch model.phase {
-            case .running: running
+            case .running:  running
             case .breakTime: breakView
-            case .failed: failed
+            case .failed:   failed
             }
         }
         .onAppear {
@@ -38,31 +38,42 @@ struct RoundView: View {
     // MARK: Running
 
     private var running: some View {
-        VStack(spacing: 16) {
-            Text("FOCUS" + (model.chainIndex > 0 ? " · round \(model.chainIndex + 1)" : ""))
-                .font(.headline).foregroundStyle(.white.opacity(0.6)).tracking(3)
-            if !tasks.currentTask.isEmpty {
-                Text(tasks.currentTask).font(.title3.bold()).foregroundStyle(.white)
+        ZStack {
+            Color.pomoInk.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // "FOCUS" header
+                Text("FOCUS" + (model.chainIndex > 0 ? "  ·  ROUND \(model.chainIndex + 1)" : ""))
+                    .font(.system(size: 13, weight: .semibold))
+                    .tracking(4)
+                    .foregroundStyle(Color.white.opacity(0.45))
+                    .padding(.top, 56)
+
+                Spacer()
+
+                // Circular timer
+                CircularTimer(remaining: model.remaining)
+
+                Text("leave the app and you lose the round")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.white.opacity(0.4))
+                    .padding(.top, 24)
+
+                Spacer()
+
+                // Hold to give up
+                HoldToGiveUp { model.giveUp() }
+                    .padding(.horizontal, 28)
+                    .padding(.bottom, 40)
+
+                #if DEBUG
+                Button("⏩ skip to end") { model.devSkip() }
+                    .font(.caption2)
+                    .foregroundStyle(Color.white.opacity(0.2))
+                    .padding(.bottom, 8)
+                #endif
             }
-            Text(timeString(model.remaining))
-                .font(.system(size: 84, weight: .thin, design: .rounded))
-                .monospacedDigit().foregroundStyle(.white)
-            Text("Leave the app and you lose today's tomatoes + your streak.")
-                .font(.subheadline).foregroundStyle(Color.pomoTomato.opacity(0.9))
-                .multilineTextAlignment(.center)
-
-            Text("Hold to give up").foregroundStyle(.white.opacity(0.6))
-                .padding(.top, 30)
-                .onLongPressGesture(minimumDuration: 0.7) { model.giveUp() }
-
-            #if DEBUG
-            Button("⏩ dev: skip to end") { model.devSkip() }
-                .font(.footnote).foregroundStyle(.white.opacity(0.35)).padding(.top, 4)
-            #endif
         }
-        .padding(24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.pomoInk.ignoresSafeArea())
     }
 
     // MARK: Break
@@ -70,60 +81,109 @@ struct RoundView: View {
     private var breakView: some View {
         let next = model.chainIndex + 1
         let needsCheckin = next >= RoundConst.chainCheckinAfter
-        return VStack(spacing: 16) {
-            Text("BREAK").font(.headline).foregroundStyle(.white.opacity(0.7)).tracking(3)
-            Text(timeString(model.breakRemaining))
-                .font(.system(size: 84, weight: .thin, design: .rounded)).monospacedDigit().foregroundStyle(.white)
-            HStack(spacing: 8) {
-                VegIcon(type: .tomato, size: 22, color: .white)
-                Text("\(model.sessionBanked) banked this session").foregroundStyle(.white.opacity(0.85)).bold()
-            }
+        return ZStack {
+            Color(red: 0.086, green: 0.263, blue: 0.169).ignoresSafeArea()
 
-            if needsCheckin && confirmChain {
-                whiteButton("I'm still here — go") { model.begin(chainIndex: next); confirmChain = false }
-            } else {
-                whiteButton(needsCheckin ? "Chain again (check-in)" : "Chain next round") {
-                    if needsCheckin { confirmChain = true } else { model.begin(chainIndex: next) }
+            VStack(spacing: 0) {
+                Text("BREAK")
+                    .font(.system(size: 13, weight: .semibold))
+                    .tracking(4)
+                    .foregroundStyle(Color.white.opacity(0.55))
+                    .padding(.top, 56)
+
+                Spacer()
+
+                Text(timeString(model.breakRemaining))
+                    .font(.system(size: 80, weight: .light))
+                    .monospacedDigit()
+                    .foregroundStyle(.white)
+
+                HStack(spacing: 6) {
+                    Text("🍅").font(.system(size: 16))
+                    Text("\(model.sessionBanked) banked this session")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(Color.white.opacity(0.85))
                 }
+                .padding(.top, 12)
+
+                Spacer()
+
+                VStack(spacing: 12) {
+                    if needsCheckin && confirmChain {
+                        roundButton("I'm still here — go", opacity: 1.0) {
+                            model.begin(chainIndex: next); confirmChain = false
+                        }
+                    } else {
+                        roundButton(needsCheckin ? "chain again (check-in)" : "chain next round", opacity: 1.0) {
+                            if needsCheckin { confirmChain = true } else { model.begin(chainIndex: next) }
+                        }
+                    }
+                    Button("end session") { endSession() }
+                        .font(.caveatBold(17))
+                        .foregroundStyle(Color.white.opacity(0.7))
+                }
+                .padding(.horizontal, 28)
+                .padding(.bottom, 40)
             }
-            Button("End session") { endSession() }.foregroundStyle(.white.opacity(0.8)).bold().padding(.top, 4)
         }
-        .padding(24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(red: 0.086, green: 0.263, blue: 0.169).ignoresSafeArea())
     }
 
     // MARK: Failed
 
     private var failed: some View {
         let backgrounded = model.failReason == .backgrounded
-        return VStack(spacing: 14) {
-            Text(backgrounded ? "💥" : "💔").font(.system(size: 64))
-            Text(backgrounded ? "You left." : "Round given up").font(.largeTitle.bold()).foregroundStyle(.white)
-            Text(backgrounded
-                 ? "Today's tomatoes and your streak are gone. That's the deal."
-                 : "No harm done — you just ended this round. Today's tomatoes are safe.")
-                .foregroundStyle(.white.opacity(0.9)).multilineTextAlignment(.center)
-            Button { model.begin(chainIndex: 0); confirmChain = false } label: {
-                Text("Restart round").font(.headline).foregroundStyle(Color.pomoTomatoDark)
-                    .padding(.horizontal, 28).padding(.vertical, 16)
-                    .background(RoundedRectangle(cornerRadius: 14).fill(.white))
+        return ZStack {
+            Color(red: 0.125, green: 0.039, blue: 0.039).ignoresSafeArea() // #200a0a
+
+            VStack(spacing: 24) {
+                Spacer()
+
+                Image(systemName: "heart.slash.fill")
+                    .font(.system(size: 68, weight: .ultraLight))
+                    .foregroundStyle(Color.white.opacity(0.9))
+
+                Text("round lost.")
+                    .font(.marker(32))
+                    .foregroundStyle(.white)
+
+                Text(backgrounded
+                     ? "happens to everyone. come back stronger."
+                     : "happens to everyone. come back stronger.")
+                    .font(.caveat(17))
+                    .foregroundStyle(Color.white.opacity(0.55))
+                    .multilineTextAlignment(.center)
+
+                Spacer()
+
+                VStack(spacing: 12) {
+                    roundButton("restart round", opacity: 1.0) {
+                        model.begin(chainIndex: 0); confirmChain = false
+                    }
+                    roundButton("end session · \(model.sessionBanked) banked", opacity: 0.3) {
+                        endSession()
+                    }
+                }
+                .padding(.horizontal, 32)
+                .padding(.bottom, 40)
             }
-            .padding(.top, 12)
-            Button("Back to home") { endSession() }.foregroundStyle(.white.opacity(0.85))
+            .padding(.horizontal, 32)
         }
-        .padding(24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.pomoTomatoDark.ignoresSafeArea())
     }
 
-    private func whiteButton(_ title: String, action: @escaping () -> Void) -> some View {
+    // MARK: Helpers
+
+    private func roundButton(_ title: String, opacity: Double, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(title).font(.headline).foregroundStyle(Color.pomoInk)
-                .padding(.horizontal, 28).padding(.vertical, 16)
-                .background(RoundedRectangle(cornerRadius: 14).fill(.white))
+            Text(title)
+                .font(.caveatBold(20))
+                .foregroundStyle(Color.white.opacity(opacity))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 18)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 3)
+                        .stroke(Color.white.opacity(opacity), lineWidth: 2)
+                )
         }
-        .padding(.top, 20)
     }
 
     private func endSession() {
@@ -134,5 +194,112 @@ struct RoundView: View {
     private func timeString(_ t: TimeInterval) -> String {
         let total = Int(t.rounded(.up))
         return String(format: "%02d:%02d", total / 60, total % 60)
+    }
+}
+
+// MARK: - Circular Timer
+
+private struct CircularTimer: View {
+    let remaining: TimeInterval
+    private let total = RoundConst.roundSeconds
+    private let radius: CGFloat = 118
+
+    var progress: Double { 1.0 - remaining / total }
+
+    var body: some View {
+        ZStack {
+            // Background ring
+            Circle()
+                .stroke(Color.white.opacity(0.08), lineWidth: 1.5)
+                .frame(width: radius * 2, height: radius * 2)
+
+            // Cardinal dots (12, 3, 6, 9 o'clock)
+            ForEach([0.0, 90.0, 180.0, 270.0], id: \.self) { angle in
+                Circle()
+                    .fill(Color.pomoTomato)
+                    .frame(width: 6, height: 6)
+                    .offset(y: -radius)
+                    .rotationEffect(.degrees(angle))
+            }
+
+            // Sweeping progress dot
+            Circle()
+                .fill(Color.white)
+                .frame(width: 9, height: 9)
+                .offset(y: -radius)
+                .rotationEffect(.degrees(-90 + 360 * progress))
+                .animation(.linear(duration: 0.25), value: progress)
+
+            // Countdown
+            Text(timeString(remaining))
+                .font(.system(size: 66, weight: .light))
+                .monospacedDigit()
+                .foregroundStyle(.white)
+        }
+        .frame(width: radius * 2 + 20, height: radius * 2 + 20)
+    }
+
+    private func timeString(_ t: TimeInterval) -> String {
+        let total = Int(t.rounded(.up))
+        return String(format: "%02d:%02d", total / 60, total % 60)
+    }
+}
+
+// MARK: - Hold To Give Up Button
+
+private struct HoldToGiveUp: View {
+    let onTrigger: () -> Void
+
+    @GestureState private var pressing = false
+    @State private var progress: CGFloat = 0
+    @State private var timer: Timer?
+
+    var body: some View {
+        ZStack(alignment: .leading) {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.white.opacity(0.06))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                )
+
+            // Fill bar
+            if progress > 0 {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.pomoTomato.opacity(0.5))
+                    .frame(width: progress * UIScreen.main.bounds.width)
+                    .clipped()
+            }
+
+            Text("hold to give up")
+                .font(.system(size: 14))
+                .foregroundStyle(Color.white.opacity(0.35))
+                .frame(maxWidth: .infinity)
+        }
+        .frame(height: 52)
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in startHold() }
+                .onEnded { _ in cancelHold() }
+        )
+    }
+
+    private func startHold() {
+        guard timer == nil else { return }
+        timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
+            Task { @MainActor in
+                progress += 0.05 / 0.7
+                if progress >= 1 {
+                    cancelHold()
+                    onTrigger()
+                }
+            }
+        }
+    }
+
+    private func cancelHold() {
+        timer?.invalidate()
+        timer = nil
+        withAnimation(.easeOut(duration: 0.2)) { progress = 0 }
     }
 }

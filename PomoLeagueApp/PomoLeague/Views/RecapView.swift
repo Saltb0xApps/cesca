@@ -8,51 +8,116 @@ struct RecapView: View {
     var body: some View {
         let stats = ledger.stats
         let tier = Tiers.name(for: stats.total)
-        let shareText = "My week on PomoLeague 🍅\n"
+        let shareText = "my week on PomoLeague 🍅\n"
             + (profile.examTag.isEmpty ? "\(tier)\n" : "\(profile.examTag) · \(tier)\n")
-            + "\(stats.week) pomos this week · \(stats.total) all-time · \(stats.streak)-day streak 🔥"
+            + "\(stats.week) pomos · \(stats.total) all-time · \(stats.streak)-day streak 🔥\nstudy, scored as a sport."
 
-        return VStack(spacing: 16) {
-            VStack(spacing: 8) {
-                Text("POMOLEAGUE").font(.caption.weight(.black)).tracking(3).foregroundStyle(.white.opacity(0.8))
-                Text(profile.avatar).font(.system(size: 64))
-                Text(profile.displayName.isEmpty ? "You" : profile.displayName).font(.title.bold()).foregroundStyle(.white)
-                Text(profile.examTag.isEmpty ? tier : "\(profile.examTag) · \(tier)").foregroundStyle(.white.opacity(0.9)).bold()
+        return ZStack {
+            Color.pomoInk.ignoresSafeArea()
 
+            VStack(spacing: 16) {
+                // Card
                 VStack(spacing: 0) {
-                    Text("\(stats.week)").font(.system(size: 88, weight: .black)).foregroundStyle(.white)
-                    Text("pomos this week").foregroundStyle(.white.opacity(0.9)).bold()
-                }
-                .padding(.vertical, 16)
+                    // Top: brandmark
+                    HStack {
+                        Text("circle of pomodoros")
+                            .font(.marker(14))
+                            .foregroundStyle(Color.pomoRed.opacity(0.7))
+                        Spacer()
+                        Text("🍅")
+                            .font(.system(size: 20))
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 22)
+                    .padding(.bottom, 24)
 
-                HStack(spacing: 10) {
-                    mini("\(stats.total)", "all-time")
-                    mini("\(stats.streak)🔥", "day streak")
-                    mini("\(stats.bestDay)", "best day")
-                }
-                Text("Study, scored as a sport.").font(.footnote).foregroundStyle(.white.opacity(0.85)).bold().padding(.top, 16)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(RoundedRectangle(cornerRadius: 24).fill(Color.pomoTomato))
+                    // Avatar + name
+                    VStack(spacing: 6) {
+                        Text(profile.avatar.isEmpty ? "🍅" : profile.avatar)
+                            .font(.system(size: 52))
 
-            ShareLink(item: shareText) {
-                Text("Share my week").font(.headline).foregroundStyle(Color.pomoTomato)
-                    .padding(.horizontal, 40).padding(.vertical, 16)
-                    .background(RoundedRectangle(cornerRadius: 14).fill(.white))
+                        Text(profile.displayName.isEmpty ? "you" : profile.displayName)
+                            .font(.marker(28))
+                            .foregroundStyle(Color.pomoRed)
+
+                        if !profile.examTag.isEmpty || !tier.isEmpty {
+                            Text((profile.examTag.isEmpty ? "" : "\(profile.examTag) · ") + tier)
+                                .font(.caveatBold(16))
+                                .foregroundStyle(Color.pomoRedFaded)
+                        }
+                    }
+                    .padding(.bottom, 28)
+
+                    // Big number
+                    VStack(spacing: 2) {
+                        Text("\(stats.week)")
+                            .font(.marker(88))
+                            .foregroundStyle(Color.pomoRed)
+                        Text("pomos this week")
+                            .font(.caveatBold(20))
+                            .foregroundStyle(Color.pomoRedFaded)
+                    }
+                    .padding(.bottom, 28)
+
+                    // Mini stats row
+                    HStack(spacing: 0) {
+                        miniStat("\(stats.total)", "all-time")
+                        Divider()
+                            .background(Color.pomoRed.opacity(0.2))
+                            .frame(height: 40)
+                        miniStat("\(stats.streak)🔥", "day streak")
+                        Divider()
+                            .background(Color.pomoRed.opacity(0.2))
+                            .frame(height: 40)
+                        miniStat("\(stats.bestDay)", "best day")
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.bottom, 22)
+
+                    // Tagline
+                    Text("study, scored as a sport.")
+                        .font(.caveat(15))
+                        .foregroundStyle(Color.pomoRedFaded)
+                        .padding(.bottom, 20)
+                }
+                .background(Color.white)
+                .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.pomoRed, lineWidth: 1.5))
+                .cornerRadius(4)
+                .padding(.horizontal, 20)
+
+                // Share button
+                ShareLink(item: shareText) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 14))
+                        Text("share my week")
+                            .font(.caveatBold(22))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 18)
+                    .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.white, lineWidth: 1.5))
+                }
+                .padding(.horizontal, 20)
+
+                Button("close") { dismiss() }
+                    .font(.caveat(16))
+                    .foregroundStyle(Color.white.opacity(0.45))
+                    .padding(.bottom, 16)
             }
-            Button("Close") { dismiss() }.foregroundStyle(.white.opacity(0.7))
         }
-        .padding(20)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.pomoInk.ignoresSafeArea())
     }
 
-    private func mini(_ value: String, _ label: String) -> some View {
-        VStack(spacing: 2) {
-            Text(value).font(.title2.bold()).foregroundStyle(.white)
-            Text(label).font(.caption2).foregroundStyle(.white.opacity(0.85))
+    private func miniStat(_ value: String, _ label: String) -> some View {
+        VStack(spacing: 3) {
+            Text(value)
+                .font(.marker(28))
+                .foregroundStyle(Color.pomoRed)
+            Text(label)
+                .font(.caveat(13))
+                .foregroundStyle(Color.pomoRedFaded)
         }
-        .frame(minWidth: 92).padding(.vertical, 12)
-        .background(RoundedRectangle(cornerRadius: 14).fill(.white.opacity(0.15)))
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
     }
 }

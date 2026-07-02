@@ -1,27 +1,68 @@
 import SwiftUI
+import CoreText
 
-// Brand palette — mirrors the web app's tokens.
+// MARK: - Brand palette (from Figma)
 extension Color {
-    static let pomoTomato = Color(red: 0.902, green: 0.227, blue: 0.180) // #E63A2E
-    static let pomoTomatoDark = Color(red: 0.718, green: 0.110, blue: 0.110) // #B71C1C
-    static let pomoInk = Color(red: 0.110, green: 0.102, blue: 0.133) // #1C1A22
-    static let pomoSubtle = Color(red: 0.420, green: 0.404, blue: 0.463) // #6B6776
-    static let pomoBg = Color(red: 0.980, green: 0.969, blue: 0.957) // #FAF7F4
-    static let pomoCard = Color.white
-    static let pomoLine = Color(red: 0.925, green: 0.906, blue: 0.882) // #ECE7E1
-    static let pomoGood = Color(red: 0.180, green: 0.620, blue: 0.357) // #2E9E5B
-    static let pomoGold = Color(red: 0.878, green: 0.694, blue: 0.102) // #E0B11A
+    static let pomoRed      = Color(red: 0.545, green: 0.145, blue: 0.145) // #8b2525
+    static let pomoRedFaded = Color(red: 0.545, green: 0.145, blue: 0.145).opacity(0.35)
+    static let pomoInk      = Color(red: 0.10, green: 0.04, blue: 0.04)   // ~#200a0a (dark bg)
+    static let pomoBg       = Color.white
+    static let pomoCard     = Color.white
+    static let pomoLine     = Color(red: 0.545, green: 0.145, blue: 0.145) // border = pomoRed
+
+    // Legacy aliases so existing code compiles
+    static let pomoTomato     = Color.pomoRed
+    static let pomoTomatoDark = Color.pomoRed
+    static let pomoSubtle     = Color.pomoRedFaded
+    static let pomoBgOld      = Color(red: 0.980, green: 0.969, blue: 0.957)
+    static let pomoGood       = Color(red: 0.180, green: 0.620, blue: 0.357)
+    static let pomoGold       = Color(red: 0.878, green: 0.694, blue: 0.102)
 }
 
+// MARK: - Typography
+extension Font {
+    /// Permanent Marker — big numbers, primary headings
+    static func marker(_ size: CGFloat) -> Font {
+        .custom("PermanentMarker-Regular", size: size)
+    }
+    /// Caveat Regular — labels, body, subtitles
+    static func caveat(_ size: CGFloat) -> Font {
+        .custom("Caveat-Regular", size: size)
+    }
+    /// Caveat Bold — pills, buttons, card labels
+    static func caveatBold(_ size: CGFloat) -> Font {
+        .custom("Caveat-Bold", size: size)
+    }
+}
+
+// MARK: - Card style (Figma: white bg, 1.5px #8b2525 border, radius 4)
 extension View {
-    /// Standard rounded card used across the app.
-    func pomoCard(padding: CGFloat = 16, radius: CGFloat = 14) -> some View {
+    func sketchCard(padding: CGFloat = 20) -> some View {
         self
             .padding(padding)
             .background(
-                RoundedRectangle(cornerRadius: radius)
+                RoundedRectangle(cornerRadius: 4)
                     .fill(Color.pomoCard)
-                    .overlay(RoundedRectangle(cornerRadius: radius).stroke(Color.pomoLine, lineWidth: 1))
+                    .overlay(RoundedRectangle(cornerRadius: 4)
+                        .stroke(Color.pomoRed, lineWidth: 1.5))
             )
+    }
+
+    // Legacy
+    func pomoCard(padding: CGFloat = 16, radius: CGFloat = 14) -> some View {
+        sketchCard(padding: padding)
+    }
+}
+
+// MARK: - Font registration (call once at launch)
+enum FontLoader {
+    static func registerAll() {
+        for name in ["PermanentMarker-Regular", "Caveat-Regular", "Caveat-Bold"] {
+            guard let url = Bundle.main.url(forResource: name, withExtension: "ttf") else {
+                print("[FontLoader] missing: \(name).ttf")
+                continue
+            }
+            CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
+        }
     }
 }
