@@ -35,10 +35,6 @@ struct RootView: View {
                 SignInView()
             } else if profile.displayName.isEmpty {
                 OnboardingView()
-            } else if !profile.hasPickedGoal {
-                GoalPickerView()
-            } else if !profile.hasMatchedGoal {
-                GoalMatchingView()
             } else {
                 MainTabView()
             }

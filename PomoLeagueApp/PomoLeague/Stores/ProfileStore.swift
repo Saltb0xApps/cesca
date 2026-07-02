@@ -7,8 +7,6 @@ final class ProfileStore: ObservableObject {
     @Published var examTag = ""
     @Published var seenRules = false
     @Published var seenIntro = false
-    @Published var hasPickedGoal = false
-    @Published var hasMatchedGoal = false
     @Published var dailyGoal = 8
 
     // Settings
@@ -31,8 +29,6 @@ final class ProfileStore: ObservableObject {
         var examTag: String
         var seenRules: Bool
         var seenIntro: Bool
-        var hasPickedGoal: Bool?
-        var hasMatchedGoal: Bool?
         var dailyGoal: Int
         var focusDuration: Int?
         var shortBreak: Int?
@@ -51,8 +47,6 @@ final class ProfileStore: ObservableObject {
         examTag = s.examTag
         seenRules = s.seenRules
         seenIntro = s.seenIntro
-        hasPickedGoal = s.hasPickedGoal ?? false
-        hasMatchedGoal = s.hasMatchedGoal ?? false
         dailyGoal = s.dailyGoal
         focusDuration = s.focusDuration ?? 25
         shortBreak = s.shortBreak ?? 5
@@ -66,7 +60,6 @@ final class ProfileStore: ObservableObject {
     func save() {
         let s = Saved(displayName: displayName, avatar: avatar, examTag: examTag,
                       seenRules: seenRules, seenIntro: seenIntro,
-                      hasPickedGoal: hasPickedGoal, hasMatchedGoal: hasMatchedGoal,
                       dailyGoal: dailyGoal,
                       focusDuration: focusDuration, shortBreak: shortBreak, longBreak: longBreak,
                       autoStartBreak: autoStartBreak, strictMode: strictMode,

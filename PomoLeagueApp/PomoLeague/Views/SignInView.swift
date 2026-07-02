@@ -169,7 +169,7 @@ struct SignInView: View {
         profile.displayName = name
         profile.avatar = row.avatar ?? profile.avatar
         profile.examTag = row.exam_tag ?? ""
-        if let g = row.daily_goal { profile.dailyGoal = g; profile.hasPickedGoal = true }
+        if let g = row.daily_goal { profile.dailyGoal = g }
         profile.save()
     }
 }
