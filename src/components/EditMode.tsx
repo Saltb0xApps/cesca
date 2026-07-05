@@ -329,6 +329,19 @@ export function EditMode({ doc, update }: Props) {
     return () => stage?.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Esc cancels arrow-drawing mode
+  useEffect(() => {
+    if (!arrowMode) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setArrowMode(false);
+        setArrowFrom(null);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [arrowMode]);
+
   // keyboard shortcuts while text is selected
   useEffect(() => {
     if (!sel) return;
@@ -358,6 +371,11 @@ export function EditMode({ doc, update }: Props) {
     }
   }
 
+  function cancelArrow() {
+    setArrowMode(false);
+    setArrowFrom(null);
+  }
+
   function onArrowModeClick(blockId: string) {
     if (!arrowMode) return;
     if (!arrowFrom) {
@@ -380,22 +398,29 @@ export function EditMode({ doc, update }: Props) {
   return (
     <div className="edit-shell">
       <div className="edit-toolbar">
-        <span className="edit-hint">
-          Select text to highlight or add a margin note · drag <b>⠿</b> to move a
-          paragraph · Alt-click a highlight to remove it
-        </span>
+        {arrowMode ? (
+          <span className="edit-hint arrowing">
+            {arrowFrom
+              ? "Now click the paragraph it should point to."
+              : "Click the paragraph you want to move…"}{" "}
+            <button className="link-btn" onClick={cancelArrow}>
+              cancel (Esc)
+            </button>
+          </span>
+        ) : (
+          <span className="edit-hint">
+            Select text to highlight or add a note · drag <b>⠿</b> to move a
+            paragraph · Alt-click a highlight to remove it
+          </span>
+        )}
         <button
           className={`arrow-btn ${arrowMode ? "on" : ""}`}
           onClick={() => {
-            setArrowMode((v) => !v);
-            setArrowFrom(null);
+            if (arrowMode) cancelArrow();
+            else setArrowMode(true);
           }}
         >
-          {arrowMode
-            ? arrowFrom
-              ? "click target paragraph…"
-              : "click source paragraph…"
-            : "↳ Draw move arrow"}
+          {arrowMode ? "Cancel arrow" : "↳ Draw arrow"}
         </button>
       </div>
 
