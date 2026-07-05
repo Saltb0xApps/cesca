@@ -6,6 +6,8 @@ import { EditMode } from "./EditMode";
 import { VersionPanel } from "./VersionPanel";
 import { SettingsMenu } from "./SettingsMenu";
 import { Shortcuts } from "./Shortcuts";
+import { GoalRing } from "./GoalRing";
+import type { Stats } from "../types";
 import { reconcileBlocks, pruneAnnotations, blocksToText } from "../lib/text";
 import { applySettings, loadSettings, saveSettings } from "../lib/settings";
 import type { Settings } from "../lib/settings";
@@ -21,6 +23,10 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
   const [showSettings, setShowSettings] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [format, setFormat] = useState<Settings>(() => loadSettings());
+  const [stats, setStats] = useState<Stats | null>(null);
+  const refreshStats = useCallback(() => {
+    api.getStats().then(setStats).catch(() => {});
+  }, []);
 
   // Apply this essay's formatting to the page; restore the device default on leave.
   useEffect(() => {
@@ -46,6 +52,7 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
       setFormat(d.format ?? loadSettings());
       setFolders(f);
       loadedRef.current = true;
+      refreshStats();
     });
     return () => {
       alive = false;
@@ -68,8 +75,9 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
       setDoc((cur) =>
         cur ? { ...cur, updatedAt: saved.updatedAt } : cur
       );
+      refreshStats();
     }, 700);
-  }, []);
+  }, [refreshStats]);
 
   const update = useCallback(
     (updater: (d: Doc) => Doc) => {
@@ -246,6 +254,8 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
           >
             ⌘
           </button>
+
+          {stats && <GoalRing today={stats.today} goal={stats.goal} />}
 
           <span className="wordcount" title="Words in this essay">
             {(() => {

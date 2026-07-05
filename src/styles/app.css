@@ -345,6 +345,11 @@ button {
   color: #cfcfcf;
   white-space: nowrap;
 }
+.goal-ring {
+  display: inline-flex;
+  align-items: center;
+  cursor: default;
+}
 
 /* gallery */
 .gallery {
