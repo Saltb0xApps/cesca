@@ -247,6 +247,14 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
             ⌘
           </button>
 
+          <span className="wordcount" title="Words in this essay">
+            {(() => {
+              const t = blocksToText(doc.blocks).trim();
+              return t ? t.split(/\s+/).length : 0;
+            })()}{" "}
+            words
+          </span>
+
           <span className={`status status-${status}`}>
             {status === "saving"
               ? "saving…"

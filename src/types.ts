@@ -75,3 +75,11 @@ export interface VersionMeta {
   label: string;
   wordCount: number;
 }
+
+export interface Stats {
+  goal: number;
+  today: number;
+  streak: number;
+  todayMet: boolean;
+  recent: { date: string; words: number }[];
+}

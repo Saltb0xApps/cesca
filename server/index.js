@@ -23,6 +23,7 @@ const DATA_DIR = process.env.DATA_DIR
   : path.join(ROOT, "data");
 const VERSIONS_DIR = path.join(DATA_DIR, "versions");
 const FOLDERS_FILE = path.join(DATA_DIR, "folders.json");
+const STATS_FILE = path.join(DATA_DIR, "stats.json");
 const DIST_DIR = path.join(ROOT, "dist");
 
 const PORT = process.env.PORT || 3001;
@@ -184,6 +185,89 @@ async function writeFolders(folders) {
   await fsp.writeFile(FOLDERS_FILE, JSON.stringify(folders, null, 2), "utf8");
 }
 
+/* --------------------------- writing stats ------------------------------- */
+// Tracks a daily writing goal. `days` maps YYYY-MM-DD -> words added that day
+// (positive additions only). `docCounts` remembers each doc's last-seen word
+// count so we can measure the delta on the next save.
+
+function dayKey(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
+}
+
+async function readStats() {
+  try {
+    const s = JSON.parse(await fsp.readFile(STATS_FILE, "utf8"));
+    return { goal: 500, days: {}, docCounts: {}, ...s };
+  } catch {
+    return { goal: 500, days: {}, docCounts: {} };
+  }
+}
+
+async function writeStats(stats) {
+  await fsp.writeFile(STATS_FILE, JSON.stringify(stats, null, 2), "utf8");
+}
+
+// Record a save: add positive word deltas to today's tally. When `baseline` is
+// true we only set the doc's remembered count (used for imports / seeds) so the
+// existing words don't count as "written today".
+async function recordSave(id, wc, baseline = false) {
+  const stats = await readStats();
+  const prev = stats.docCounts[id] ?? 0;
+  if (!baseline && wc > prev) {
+    const k = dayKey();
+    stats.days[k] = (stats.days[k] || 0) + (wc - prev);
+  }
+  stats.docCounts[id] = wc;
+  await writeStats(stats);
+}
+
+function computeStreak(stats) {
+  const goal = stats.goal || 1;
+  let streak = 0;
+  const d = new Date();
+  const todayMet = (stats.days[dayKey(d)] || 0) >= goal;
+  if (!todayMet) d.setDate(d.getDate() - 1); // today unfinished: count up to yesterday
+  while ((stats.days[dayKey(d)] || 0) >= goal) {
+    streak += 1;
+    d.setDate(d.getDate() - 1);
+  }
+  return { streak, todayMet };
+}
+
+/* ------------------------------- stats API ------------------------------- */
+
+app.get("/api/stats", async (_req, res) => {
+  const stats = await readStats();
+  const { streak, todayMet } = computeStreak(stats);
+  // last 14 days for a small sparkline
+  const recent = [];
+  const d = new Date();
+  d.setDate(d.getDate() - 13);
+  for (let i = 0; i < 14; i++) {
+    const k = dayKey(d);
+    recent.push({ date: k, words: stats.days[k] || 0 });
+    d.setDate(d.getDate() + 1);
+  }
+  res.json({
+    goal: stats.goal || 500,
+    today: stats.days[dayKey()] || 0,
+    streak,
+    todayMet,
+    recent,
+  });
+});
+
+app.put("/api/stats", async (req, res) => {
+  const stats = await readStats();
+  const g = Number(req.body?.goal);
+  if (Number.isFinite(g) && g > 0) stats.goal = Math.round(g);
+  await writeStats(stats);
+  const { streak, todayMet } = computeStreak(stats);
+  res.json({ goal: stats.goal, today: stats.days[dayKey()] || 0, streak, todayMet });
+});
+
 /* ------------------------------ folders ---------------------------------- */
 
 app.get("/api/folders", async (_req, res) => {
@@ -266,6 +350,7 @@ app.post("/api/docs", async (req, res) => {
     annotations: { highlights: [], notes: [], arrows: [] },
   };
   await writeDoc(doc);
+  await recordSave(id, 0, true); // start the counter at zero for a fresh essay
   res.json(doc);
 });
 
@@ -296,6 +381,7 @@ app.put("/api/docs/:id", async (req, res) => {
     format: b.format === undefined ? existing.format : b.format,
   };
   await writeDoc(doc);
+  await recordSave(req.params.id, wordCount(doc), b.baseline === true);
   res.json(doc);
 });
 
@@ -310,6 +396,13 @@ app.delete("/api/docs/:id", async (req, res) => {
       recursive: true,
       force: true,
     });
+  } catch {
+    /* ignore */
+  }
+  try {
+    const stats = await readStats();
+    delete stats.docCounts[req.params.id];
+    await writeStats(stats);
   } catch {
     /* ignore */
   }

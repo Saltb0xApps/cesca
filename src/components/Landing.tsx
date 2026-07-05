@@ -3,6 +3,7 @@ import { api } from "../api";
 import type { DocSummary, Folder } from "../types";
 import { timeAgo, dateLabel } from "../lib/format";
 import { splitText, guessType, uid } from "../lib/text";
+import { GoalCard } from "./GoalCard";
 
 type SortKey = "edited" | "added";
 type ViewKey = "gallery" | "list";
@@ -73,6 +74,7 @@ export function Landing({ onOpen }: { onOpen: (id: string) => void }) {
         "Imported";
       const doc = await api.createDoc(title, fid);
       await api.saveDoc(doc.id, {
+        baseline: true, // imported words don't count toward today's goal
         blocks: splitText(text).map((t) => ({
           id: uid(),
           type: guessType(t),
@@ -107,6 +109,11 @@ export function Landing({ onOpen }: { onOpen: (id: string) => void }) {
     await api.deleteDoc(id);
     refresh();
   }
+
+  const totalWords = useMemo(
+    () => filtered.reduce((sum, d) => sum + (d.wordCount || 0), 0),
+    [filtered]
+  );
 
   const counts = useMemo(() => {
     const map: Record<string, number> = { all: docs.length, unfiled: 0 };
@@ -193,6 +200,7 @@ export function Landing({ onOpen }: { onOpen: (id: string) => void }) {
       </aside>
 
       <main className="library">
+        <GoalCard refreshKey={docs.length} />
         <header className="library-head">
           <div className="library-title">
             <h1>
@@ -202,7 +210,9 @@ export function Landing({ onOpen }: { onOpen: (id: string) => void }) {
                 ? "Unfiled"
                 : folders.find((f) => f.id === folderId)?.name || "Essays"}
             </h1>
-            <span className="library-meta">{filtered.length} pieces</span>
+            <span className="library-meta">
+              {filtered.length} pieces · {totalWords.toLocaleString()} words
+            </span>
           </div>
 
           <div className="controls">

@@ -25,6 +25,10 @@ and you can snapshot **versions** over time and restore any of them.
 - **Version history** — snapshot the current draft any time, preview old
   snapshots, and restore.
 - **Autosave** — changes save as you type.
+- **Word count & daily goal** — live word count per essay and for the whole
+  library, plus a **words-per-day goal** on the landing page with a progress
+  bar, a 14-day sparkline, and a streak counter. Only words you *write* count;
+  imports don't inflate the tally.
 
 ## Run it
 

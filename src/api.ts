@@ -1,4 +1,4 @@
-import type { Doc, DocSummary, Folder, VersionMeta } from "./types";
+import type { Doc, DocSummary, Folder, Stats, VersionMeta } from "./types";
 
 const base = "/api";
 
@@ -34,7 +34,7 @@ export const api = {
       body: JSON.stringify({ title, folderId }),
     }).then(j<Doc>),
   getDoc: (id: string) => fetch(`${base}/docs/${id}`).then(j<Doc>),
-  saveDoc: (id: string, doc: Partial<Doc>) =>
+  saveDoc: (id: string, doc: Partial<Doc> & { baseline?: boolean }) =>
     fetch(`${base}/docs/${id}`, {
       method: "PUT",
       headers: { "content-type": "application/json" },
@@ -58,4 +58,13 @@ export const api = {
     fetch(`${base}/docs/${id}/versions/${ts}/restore`, {
       method: "POST",
     }).then(j<Doc>),
+
+  // writing stats / daily goal
+  getStats: () => fetch(`${base}/stats`).then(j<Stats>),
+  setGoal: (goal: number) =>
+    fetch(`${base}/stats`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goal }),
+    }).then(j<Stats>),
 };
