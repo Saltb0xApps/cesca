@@ -211,7 +211,8 @@ export function Landing({ onOpen }: { onOpen: (id: string) => void }) {
                 : folders.find((f) => f.id === folderId)?.name || "Essays"}
             </h1>
             <span className="library-meta">
-              {filtered.length} pieces · {totalWords.toLocaleString()} words
+              {filtered.length} {filtered.length === 1 ? "piece" : "pieces"} ·{" "}
+              {totalWords.toLocaleString()} words
             </span>
           </div>
 

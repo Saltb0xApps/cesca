@@ -528,6 +528,8 @@ async function seedIfEmpty() {
       annotations: { highlights: [], notes: [], arrows: [] },
     };
     await writeDoc(doc);
+    // Baseline the welcome essay so editing it doesn't count as words written today.
+    await recordSave(id, wordCount(doc), true);
     console.log("  Seeded a welcome essay.");
   } catch (e) {
     console.warn("  Could not seed welcome essay:", e.message);
