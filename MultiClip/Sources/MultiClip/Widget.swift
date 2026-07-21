@@ -109,8 +109,10 @@ final class ClipWidget: NSObject {
         effect.blendingMode = .behindWindow
         effect.state = .active
         effect.wantsLayer = true
-        effect.layer?.cornerRadius = 14
+        effect.layer?.cornerRadius = 16
         effect.layer?.masksToBounds = true
+        effect.layer?.borderWidth = 1
+        effect.layer?.borderColor = NSColor(calibratedWhite: 1, alpha: 0.12).cgColor
         previewView.autoresizingMask = [.width, .height]
         effect.addSubview(previewView)
         previewPanel.contentView = effect
@@ -322,7 +324,7 @@ final class ClipWidget: NSObject {
         dotsPanel.setFrame(dotsFrame, display: true)
 
         // Preview: beside the dots, wherever there's room.
-        let previewSize = NSSize(width: 320, height: CGFloat(currentSlotCount) * 30 + 12)
+        let previewSize = NSSize(width: 340, height: CGFloat(currentSlotCount) * 34 + 12)
         var origin: NSPoint
         if orientation == .vertical {
             // Prefer the left of the dots, fall back to the right.
@@ -439,6 +441,10 @@ final class ClipWidget: NSObject {
 final class DotsView: NSView {
     override var isFlipped: Bool { true }
 
+    // Without this, a non-activating panel swallows the first click, which
+    // made the dots impossible to drag.
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
     private var pressMouse: NSPoint?
     private var pressOrigin: NSPoint?
     private var isDragging = false
@@ -536,6 +542,10 @@ final class DotsView: NSView {
 final class PreviewView: NSView {
     override var isFlipped: Bool { true }
 
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    private let contentInset: CGFloat = 6
+
     private var hoveredRow: Int?
     private var pressPoint: NSPoint?
     private var pressIndex: Int?
@@ -547,7 +557,7 @@ final class PreviewView: NSView {
     }
 
     private var rowHeight: CGFloat {
-        bounds.height / CGFloat(max(slotList.count, 1))
+        (bounds.height - contentInset * 2) / CGFloat(max(slotList.count, 1))
     }
 
     override func updateTrackingAreas() {
@@ -583,13 +593,16 @@ final class PreviewView: NSView {
     private func rowIndex(at point: NSPoint) -> Int? {
         let slots = slotList
         guard !slots.isEmpty else { return nil }
-        let index = Int(point.y / (bounds.height / CGFloat(slots.count)))
+        let index = Int((point.y - contentInset) / rowHeight)
         return slots.indices.contains(index) ? index : nil
     }
 
+    private func rowMidY(_ row: Int) -> CGFloat {
+        contentInset + rowHeight * (CGFloat(row) + 0.5)
+    }
+
     private func deleteRect(forRow row: Int) -> NSRect {
-        let midY = rowHeight * (CGFloat(row) + 0.5)
-        return NSRect(x: bounds.width - 30, y: midY - 9, width: 18, height: 18)
+        NSRect(x: bounds.width - 34, y: rowMidY(row) - 9, width: 18, height: 18)
     }
 
     // MARK: Reordering & deleting
@@ -608,7 +621,7 @@ final class PreviewView: NSView {
         if !isReordering, abs(point.y - pressPoint.y) < 5 { return }
         isReordering = true
         let count = slotList.count
-        dragTargetIndex = min(max(Int(point.y / rowHeight), 0), count - 1)
+        dragTargetIndex = min(max(Int((point.y - contentInset) / rowHeight), 0), count - 1)
         needsDisplay = true
     }
 
@@ -652,43 +665,67 @@ final class PreviewView: NSView {
             draggedDisplayRow = to
         }
 
-        let rowH = bounds.height / CGFloat(slots.count)
+        let rowH = rowHeight
         let paragraph = NSMutableParagraphStyle()
         paragraph.lineBreakMode = .byTruncatingTail
 
         for i in 0..<slots.count {
-            let midY = rowH * (CGFloat(i) + 0.5)
-            let rowRect = NSRect(x: 6, y: rowH * CGFloat(i) + 2, width: bounds.width - 12, height: rowH - 4)
+            let midY = rowMidY(i)
+            let rowRect = NSRect(
+                x: 8,
+                y: contentInset + rowH * CGFloat(i) + 1.5,
+                width: bounds.width - 16,
+                height: rowH - 3
+            )
+
+            // Hairline separator above each row but the first.
+            if i > 0 {
+                NSColor(calibratedWhite: 1, alpha: 0.07).setFill()
+                NSRect(x: 14, y: contentInset + rowH * CGFloat(i) - 0.5, width: bounds.width - 28, height: 1).fill()
+            }
 
             if i == draggedDisplayRow {
                 NSColor(calibratedWhite: 1, alpha: 0.16).setFill()
-                NSBezierPath(roundedRect: rowRect, xRadius: 8, yRadius: 8).fill()
+                NSBezierPath(roundedRect: rowRect, xRadius: 9, yRadius: 9).fill()
             } else if i == hoveredRow, !isReordering {
                 NSColor(calibratedWhite: 1, alpha: 0.07).setFill()
-                NSBezierPath(roundedRect: rowRect, xRadius: 8, yRadius: 8).fill()
+                NSBezierPath(roundedRect: rowRect, xRadius: 9, yRadius: 9).fill()
             }
 
-            let r: CGFloat = 6
-            let dot = NSBezierPath(ovalIn: NSRect(x: 20 - r, y: midY - r, width: r * 2, height: r * 2))
+            // Numbered badge, colored like the dot.
+            let badgeR: CGFloat = 9
+            let badgeRect = NSRect(x: 24 - badgeR, y: midY - badgeR, width: badgeR * 2, height: badgeR * 2)
             widgetDotColor(slots[i].state).setFill()
-            dot.fill()
+            NSBezierPath(ovalIn: badgeRect).fill()
+            let badgeParagraph = NSMutableParagraphStyle()
+            badgeParagraph.alignment = .center
+            NSAttributedString(string: "\(i + 1)", attributes: [
+                .font: NSFont.systemFont(ofSize: 10, weight: .bold),
+                .foregroundColor: NSColor.white,
+                .paragraphStyle: badgeParagraph,
+            ]).draw(in: NSRect(x: badgeRect.minX, y: badgeRect.minY + 3, width: badgeRect.width, height: 13))
 
+            // Slot content (or a quiet placeholder).
             let text: String
+            let font: NSFont
             let color: NSColor
             if let slotText = slots[i].text {
                 text = slotText.replacingOccurrences(of: "\n", with: " ")
-                color = NSColor(calibratedWhite: 0.95, alpha: 1)
+                    .trimmingCharacters(in: .whitespaces)
+                font = .systemFont(ofSize: 12.5)
+                color = NSColor(calibratedWhite: 0.96, alpha: 1)
             } else {
-                text = "(empty)"
-                color = NSColor(calibratedWhite: 0.55, alpha: 1)
+                text = "Empty — press ⌘C to fill"
+                font = .systemFont(ofSize: 12)
+                color = NSColor(calibratedWhite: 0.45, alpha: 1)
             }
             NSAttributedString(string: text, attributes: [
-                .font: NSFont.systemFont(ofSize: 12),
+                .font: font,
                 .foregroundColor: color,
                 .paragraphStyle: paragraph,
-            ]).draw(in: NSRect(x: 36, y: midY - 8, width: bounds.width - 96, height: 17))
+            ]).draw(in: NSRect(x: 42, y: midY - 8.5, width: bounds.width - 108, height: 18))
 
-            // Right side: ✕ to delete on the hovered row, hotkey hint otherwise.
+            // Right side: ✕ to delete on the hovered row, key-cap hint otherwise.
             if i == hoveredRow, !isReordering, slots[i].text != nil {
                 let xRect = deleteRect(forRow: i)
                 NSColor(calibratedWhite: 1, alpha: 0.18).setFill()
@@ -701,13 +738,27 @@ final class PreviewView: NSView {
                     .paragraphStyle: xParagraph,
                 ]).draw(in: NSRect(x: xRect.minX, y: xRect.minY + 2.5, width: xRect.width, height: 13))
             } else {
+                // Key-cap style chip: ⌘⌥n
+                let chipSize = NSSize(width: 42, height: 18)
+                let chipRect = NSRect(
+                    x: bounds.width - chipSize.width - 12,
+                    y: midY - chipSize.height / 2,
+                    width: chipSize.width,
+                    height: chipSize.height
+                )
+                NSColor(calibratedWhite: 1, alpha: 0.08).setFill()
+                let chip = NSBezierPath(roundedRect: chipRect, xRadius: 5, yRadius: 5)
+                chip.fill()
+                NSColor(calibratedWhite: 1, alpha: 0.14).setStroke()
+                chip.lineWidth = 1
+                chip.stroke()
                 let hintParagraph = NSMutableParagraphStyle()
-                hintParagraph.alignment = .right
+                hintParagraph.alignment = .center
                 NSAttributedString(string: "⌘⌥\(i + 1)", attributes: [
-                    .font: NSFont.systemFont(ofSize: 11),
-                    .foregroundColor: NSColor(calibratedWhite: 0.5, alpha: 1),
+                    .font: NSFont.systemFont(ofSize: 10.5, weight: .medium),
+                    .foregroundColor: NSColor(calibratedWhite: 0.7, alpha: 1),
                     .paragraphStyle: hintParagraph,
-                ]).draw(in: NSRect(x: bounds.width - 56, y: midY - 7, width: 44, height: 15))
+                ]).draw(in: NSRect(x: chipRect.minX, y: chipRect.minY + 2.5, width: chipRect.width, height: 14))
             }
         }
     }
