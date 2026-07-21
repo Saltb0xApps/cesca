@@ -93,8 +93,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         lastCopyText = text
         lastCopyTime = now
 
-        slots[nextIndex] = Slot(text: text, state: .filled)
-        nextIndex = (nextIndex + 1) % slotCount
+        // Fill the first empty slot if there is one (e.g. after a deletion),
+        // otherwise cycle round-robin.
+        let targetIndex = slots.firstIndex(where: { $0.state == .empty }) ?? (nextIndex % slotCount)
+        slots[targetIndex] = Slot(text: text, state: .filled)
+        nextIndex = (targetIndex + 1) % slotCount
+        redrawDockIcon()
+    }
+
+    /// Moves a slot to a new position (drag-reorder in the preview panel).
+    /// Hotkeys always match the visible order: ⌘⌥1 is the top row.
+    func moveSlot(from: Int, to: Int) {
+        guard slots.indices.contains(from), slots.indices.contains(to), from != to else { return }
+        let moved = slots.remove(at: from)
+        slots.insert(moved, at: to)
+        redrawDockIcon()
+    }
+
+    /// Empties a single slot (the ✕ button in the preview panel).
+    func clearSlot(_ index: Int) {
+        guard slots.indices.contains(index) else { return }
+        slots[index] = Slot()
         redrawDockIcon()
     }
 

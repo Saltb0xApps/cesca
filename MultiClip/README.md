@@ -33,10 +33,13 @@ your windows.
 - **Hover them** and the dots grow slightly while a translucent, blurred
   preview panel (native macOS frosted glass) fades in beside them, showing
   what each slot holds.
-- **Click a dot or a preview row** while the preview is up to paste that
-  slot straight into the app you're working in (clicking doesn't steal
-  focus). A dot turns **green** once it has been pasted. Clicks while the
-  preview is closed do nothing, so you can't paste by accident.
+- **Pasting is always `⌘⌥1` … `⌘⌥5`** — the number matches the row order in
+  the preview (top row = 1). Clicking never pastes, so nothing happens by
+  accident. A dot turns **green** once its slot has been pasted.
+- **Drag a preview row up or down** to reorder your copies — the hotkey
+  numbers follow the new order.
+- **Hover a preview row and click the ✕** on its right to delete just that
+  item; the freed slot is the next one to be filled when you copy again.
 - **Drag them anywhere** — grab the dots and drop them wherever you want on
   screen. The position is remembered.
 - **Right-click them** to customize everything:

@@ -8,8 +8,9 @@ import AppKit
 //   • Hovering them fades in a translucent, blurred preview panel (native
 //     macOS material, like Spotlight) showing what each slot holds, and the
 //     dots grow slightly.
-//   • Click a dot or a preview row (while the preview is up) to paste that
-//     slot into the app you're in.
+//   • Pasting is done with ⌘⌥1…⌘⌥5 (top/left row first) — clicking never
+//     pastes. In the preview you can drag rows up and down to reorder the
+//     slots, and hovering a row shows an ✕ to delete just that item.
 //   • Right-click for settings: position presets, horizontal/vertical
 //     layout, dot size, number of slots, reset, hide.
 //
@@ -488,18 +489,8 @@ final class DotsView: NSView {
         if isDragging {
             isDragging = false
             ClipWidget.shared.dragEnded()
-            return
         }
-        // Pasting from the dots only works while the preview is up, so a
-        // stray click can never paste something you haven't seen.
-        guard ClipWidget.shared.previewShown, let slots = AppDelegate.shared?.slots else { return }
-        let point = convert(event.locationInWindow, from: nil)
-        let vertical = ClipWidget.shared.orientation == .vertical
-        let cell = (vertical ? bounds.height : bounds.width) / CGFloat(slots.count)
-        let index = Int((vertical ? point.y : point.x) / cell)
-        if slots.indices.contains(index) {
-            AppDelegate.shared?.pasteSlot(index)
-        }
+        // Clicking the dots never pastes — pasting is ⌘⌥1…⌘⌥5.
     }
 
     override func rightMouseDown(with event: NSEvent) {
@@ -545,12 +536,26 @@ final class DotsView: NSView {
 final class PreviewView: NSView {
     override var isFlipped: Bool { true }
 
+    private var hoveredRow: Int?
+    private var pressPoint: NSPoint?
+    private var pressIndex: Int?
+    private var isReordering = false
+    private var dragTargetIndex: Int?
+
+    private var slotList: [Slot] {
+        AppDelegate.shared?.slots ?? []
+    }
+
+    private var rowHeight: CGFloat {
+        bounds.height / CGFloat(max(slotList.count, 1))
+    }
+
     override func updateTrackingAreas() {
         super.updateTrackingAreas()
         trackingAreas.forEach(removeTrackingArea)
         addTrackingArea(NSTrackingArea(
             rect: .zero,
-            options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
+            options: [.mouseEnteredAndExited, .mouseMoved, .activeAlways, .inVisibleRect],
             owner: self,
             userInfo: nil
         ))
@@ -561,15 +566,71 @@ final class PreviewView: NSView {
     }
 
     override func mouseExited(with event: NSEvent) {
+        hoveredRow = nil
+        needsDisplay = true
         ClipWidget.shared.hoverChanged(preview: false)
     }
 
-    override func mouseUp(with event: NSEvent) {
-        guard let slots = AppDelegate.shared?.slots, !slots.isEmpty else { return }
+    override func mouseMoved(with event: NSEvent) {
         let point = convert(event.locationInWindow, from: nil)
+        let row = rowIndex(at: point)
+        if row != hoveredRow {
+            hoveredRow = row
+            needsDisplay = true
+        }
+    }
+
+    private func rowIndex(at point: NSPoint) -> Int? {
+        let slots = slotList
+        guard !slots.isEmpty else { return nil }
         let index = Int(point.y / (bounds.height / CGFloat(slots.count)))
-        if slots.indices.contains(index) {
-            AppDelegate.shared?.pasteSlot(index)
+        return slots.indices.contains(index) ? index : nil
+    }
+
+    private func deleteRect(forRow row: Int) -> NSRect {
+        let midY = rowHeight * (CGFloat(row) + 0.5)
+        return NSRect(x: bounds.width - 30, y: midY - 9, width: 18, height: 18)
+    }
+
+    // MARK: Reordering & deleting
+
+    override func mouseDown(with event: NSEvent) {
+        let point = convert(event.locationInWindow, from: nil)
+        pressPoint = point
+        pressIndex = rowIndex(at: point)
+        isReordering = false
+        dragTargetIndex = nil
+    }
+
+    override func mouseDragged(with event: NSEvent) {
+        guard let pressPoint, let pressIndex, slotList.indices.contains(pressIndex) else { return }
+        let point = convert(event.locationInWindow, from: nil)
+        if !isReordering, abs(point.y - pressPoint.y) < 5 { return }
+        isReordering = true
+        let count = slotList.count
+        dragTargetIndex = min(max(Int(point.y / rowHeight), 0), count - 1)
+        needsDisplay = true
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        defer {
+            pressPoint = nil
+            pressIndex = nil
+            isReordering = false
+            dragTargetIndex = nil
+            needsDisplay = true
+        }
+        if isReordering, let from = pressIndex, let to = dragTargetIndex {
+            AppDelegate.shared?.moveSlot(from: from, to: to)
+            return
+        }
+        // Plain click: only the ✕ deletes — clicking never pastes
+        // (pasting is ⌘⌥1…⌘⌥5).
+        let point = convert(event.locationInWindow, from: nil)
+        if let row = rowIndex(at: point),
+           slotList[row].text != nil,
+           deleteRect(forRow: row).insetBy(dx: -4, dy: -4).contains(point) {
+            AppDelegate.shared?.clearSlot(row)
         }
     }
 
@@ -577,15 +638,35 @@ final class PreviewView: NSView {
         NSMenu.popUpContextMenu(ClipWidget.shared.contextMenu(), with: event, for: self)
     }
 
+    // MARK: Drawing
+
     override func draw(_ dirtyRect: NSRect) {
-        let slots = AppDelegate.shared?.slots ?? []
+        var slots = slotList
         guard !slots.isEmpty else { return }
-        let rowHeight = bounds.height / CGFloat(slots.count)
+
+        // While reordering, preview the new arrangement live.
+        var draggedDisplayRow: Int?
+        if isReordering, let from = pressIndex, let to = dragTargetIndex, slots.indices.contains(from) {
+            let moved = slots.remove(at: from)
+            slots.insert(moved, at: to)
+            draggedDisplayRow = to
+        }
+
+        let rowH = bounds.height / CGFloat(slots.count)
         let paragraph = NSMutableParagraphStyle()
         paragraph.lineBreakMode = .byTruncatingTail
 
         for i in 0..<slots.count {
-            let midY = rowHeight * (CGFloat(i) + 0.5)
+            let midY = rowH * (CGFloat(i) + 0.5)
+            let rowRect = NSRect(x: 6, y: rowH * CGFloat(i) + 2, width: bounds.width - 12, height: rowH - 4)
+
+            if i == draggedDisplayRow {
+                NSColor(calibratedWhite: 1, alpha: 0.16).setFill()
+                NSBezierPath(roundedRect: rowRect, xRadius: 8, yRadius: 8).fill()
+            } else if i == hoveredRow, !isReordering {
+                NSColor(calibratedWhite: 1, alpha: 0.07).setFill()
+                NSBezierPath(roundedRect: rowRect, xRadius: 8, yRadius: 8).fill()
+            }
 
             let r: CGFloat = 6
             let dot = NSBezierPath(ovalIn: NSRect(x: 20 - r, y: midY - r, width: r * 2, height: r * 2))
@@ -607,13 +688,27 @@ final class PreviewView: NSView {
                 .paragraphStyle: paragraph,
             ]).draw(in: NSRect(x: 36, y: midY - 8, width: bounds.width - 96, height: 17))
 
-            let hintParagraph = NSMutableParagraphStyle()
-            hintParagraph.alignment = .right
-            NSAttributedString(string: "⌘⌥\(i + 1)", attributes: [
-                .font: NSFont.systemFont(ofSize: 11),
-                .foregroundColor: NSColor(calibratedWhite: 0.5, alpha: 1),
-                .paragraphStyle: hintParagraph,
-            ]).draw(in: NSRect(x: bounds.width - 56, y: midY - 7, width: 44, height: 15))
+            // Right side: ✕ to delete on the hovered row, hotkey hint otherwise.
+            if i == hoveredRow, !isReordering, slots[i].text != nil {
+                let xRect = deleteRect(forRow: i)
+                NSColor(calibratedWhite: 1, alpha: 0.18).setFill()
+                NSBezierPath(ovalIn: xRect).fill()
+                let xParagraph = NSMutableParagraphStyle()
+                xParagraph.alignment = .center
+                NSAttributedString(string: "✕", attributes: [
+                    .font: NSFont.systemFont(ofSize: 10, weight: .semibold),
+                    .foregroundColor: NSColor(calibratedWhite: 0.95, alpha: 1),
+                    .paragraphStyle: xParagraph,
+                ]).draw(in: NSRect(x: xRect.minX, y: xRect.minY + 2.5, width: xRect.width, height: 13))
+            } else {
+                let hintParagraph = NSMutableParagraphStyle()
+                hintParagraph.alignment = .right
+                NSAttributedString(string: "⌘⌥\(i + 1)", attributes: [
+                    .font: NSFont.systemFont(ofSize: 11),
+                    .foregroundColor: NSColor(calibratedWhite: 0.5, alpha: 1),
+                    .paragraphStyle: hintParagraph,
+                ]).draw(in: NSRect(x: bounds.width - 56, y: midY - 7, width: 44, height: 15))
+            }
         }
     }
 }
