@@ -196,11 +196,13 @@ final class ClipWidget: NSObject {
         let dotsFrame: NSRect
         switch edge {
         case .bottom:
-            // Hug the very bottom edge of the screen (over the Dock area,
-            // like Wispr Flow) so the dots don't cover window content.
+            // As low as possible while staying visible: the Dock draws over
+            // anything placed inside its strip, so sit right on top of the
+            // visible-area floor (which is the screen bottom when the Dock
+            // is hidden or on another edge).
             dotsFrame = NSRect(
                 x: (full.midX - dotsSize.width / 2).rounded(),
-                y: full.minY + 3,
+                y: vf.minY + 1,
                 width: dotsSize.width,
                 height: dotsSize.height
             )
