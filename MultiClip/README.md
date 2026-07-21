@@ -37,10 +37,17 @@ your windows.
   slot straight into the app you're working in (clicking doesn't steal
   focus). A dot turns **green** once it has been pasted. Clicks while the
   preview is closed do nothing, so you can't paste by accident.
-- **Right-click them** to choose where they live — **bottom center** or
-  **on the side** (right edge, dots stacked vertically) — or to hide them.
-  Your choice is remembered. You can bring them back or move them any time
-  from the Dock icon's right-click menu too.
+- **Drag them anywhere** — grab the dots and drop them wherever you want on
+  screen. The position is remembered.
+- **Right-click them** to customize everything:
+  - **Position** — snap to bottom center or the right edge, or just drag;
+  - **Layout** — dots in a horizontal row or a vertical stack;
+  - **Dot Size** — small, medium, or large;
+  - **Number of Slots** — 2 to 5 (hotkeys become ⌘⌥1 … ⌘⌥5, and the Dock
+    icon shows the same number of buttons; changing this clears the slots);
+  - plus **Reset Slots** and **Hide Dots**.
+  Every choice is remembered across launches. The Dock icon's right-click
+  menu can re-show hidden dots.
 
 > The paste hotkeys are `⌘⌥1/2/3` (not plain `⌘1/2/3`) so they don't clash
 > with tab switching in browsers.

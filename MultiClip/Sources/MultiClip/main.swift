@@ -16,7 +16,8 @@ import Carbon.HIToolbox
 // expanded) to paste it, right-click to move it to the bottom/side or
 // hide it.
 
-let slotCount = 3
+let slotCountKey = "slotCount"
+var slotCount = min(max(UserDefaults.standard.object(forKey: slotCountKey) as? Int ?? 3, 2), 5)
 private let doubleTapWindow: TimeInterval = 0.5
 private let hotKeySignature: OSType = 0x4D43_4C50 // 'MCLP'
 
@@ -60,6 +61,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AppDelegate.shared = self
         NSApp.setActivationPolicy(.regular)
         redrawDockIcon()
+        installHotKeyHandler()
         registerHotKeys()
         installResetKeyMonitors()
         promptForAccessibilityIfNeeded()
@@ -101,6 +103,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         nextIndex = 0
         lastCopyText = nil
         redrawDockIcon()
+    }
+
+    /// Changes how many slots there are (2–5). Clears everything, since the
+    /// slots and their hotkeys are renumbered.
+    func setSlotCount(_ count: Int) {
+        let clamped = min(max(count, 2), 5)
+        guard clamped != slotCount else { return }
+        slotCount = clamped
+        UserDefaults.standard.set(clamped, forKey: slotCountKey)
+        registerHotKeys()
+        reset()
+        ClipWidget.shared.settingsChanged()
     }
 
     // MARK: - ⌘ + C C reset detection
@@ -195,9 +209,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    // MARK: - Global hotkeys (⌘⌥1 / ⌘⌥2 / ⌘⌥3)
+    // MARK: - Global hotkeys (⌘⌥1 … ⌘⌥5, one per slot)
 
-    private func registerHotKeys() {
+    private func installHotKeyHandler() {
         var eventType = EventTypeSpec(
             eventClass: OSType(kEventClassKeyboard),
             eventKind: UInt32(kEventHotKeyPressed)
@@ -219,13 +233,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             return noErr
         }, 1, &eventType, nil, nil)
+    }
 
-        let keyCodes = [UInt32(kVK_ANSI_1), UInt32(kVK_ANSI_2), UInt32(kVK_ANSI_3)]
-        for (i, keyCode) in keyCodes.enumerated() {
+    private func registerHotKeys() {
+        for ref in hotKeyRefs {
+            if let ref {
+                UnregisterEventHotKey(ref)
+            }
+        }
+        hotKeyRefs.removeAll()
+
+        let keyCodes = [kVK_ANSI_1, kVK_ANSI_2, kVK_ANSI_3, kVK_ANSI_4, kVK_ANSI_5].map { UInt32($0) }
+        for i in 0..<min(slotCount, keyCodes.count) {
             var ref: EventHotKeyRef?
             let id = EventHotKeyID(signature: hotKeySignature, id: UInt32(i + 1))
             RegisterEventHotKey(
-                keyCode,
+                keyCodes[i],
                 UInt32(cmdKey) | UInt32(optionKey),
                 id,
                 GetApplicationEventTarget(),
@@ -247,9 +270,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSColor(calibratedRed: 0.11, green: 0.11, blue: 0.12, alpha: 1).setFill()
             tile.fill()
 
-            for i in 0..<slotCount {
-                let cell = NSRect(x: 20 + CGFloat(i) * 32, y: 34, width: 24, height: 60)
-                let pill = NSBezierPath(roundedRect: cell, xRadius: 8, yRadius: 8)
+            let count = currentSlots.count
+            let areaX: CGFloat = 16
+            let areaWidth: CGFloat = 96
+            let cellWidth = areaWidth / CGFloat(count)
+            let pillWidth = min(cellWidth - 6, 26)
+            let fontSize: CGFloat = count >= 4 ? 15 : 22
+
+            for i in 0..<count {
+                let cellMidX = areaX + cellWidth * (CGFloat(i) + 0.5)
+                let cell = NSRect(x: cellMidX - pillWidth / 2, y: 34, width: pillWidth, height: 60)
+                let pill = NSBezierPath(roundedRect: cell, xRadius: min(8, pillWidth / 3), yRadius: min(8, pillWidth / 3))
 
                 let fill: NSColor
                 let numberColor: NSColor
@@ -270,7 +301,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 let paragraph = NSMutableParagraphStyle()
                 paragraph.alignment = .center
                 let attrs: [NSAttributedString.Key: Any] = [
-                    .font: NSFont.systemFont(ofSize: 22, weight: .bold),
+                    .font: NSFont.systemFont(ofSize: fontSize, weight: .bold),
                     .foregroundColor: numberColor,
                     .paragraphStyle: paragraph,
                 ]
@@ -319,12 +350,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let bottomItem = NSMenuItem(title: "Dots at the Bottom", action: #selector(dockWidgetBottom), keyEquivalent: "")
         bottomItem.target = self
-        bottomItem.state = ClipWidget.shared.edge == .bottom ? .on : .off
+        bottomItem.state = ClipWidget.shared.placement == .bottom ? .on : .off
         menu.addItem(bottomItem)
 
         let sideItem = NSMenuItem(title: "Dots on the Side", action: #selector(dockWidgetSide), keyEquivalent: "")
         sideItem.target = self
-        sideItem.state = ClipWidget.shared.edge == .side ? .on : .off
+        sideItem.state = ClipWidget.shared.placement == .side ? .on : .off
         menu.addItem(sideItem)
 
         return menu
@@ -339,11 +370,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func dockWidgetBottom() {
-        ClipWidget.shared.setEdge(.bottom)
+        ClipWidget.shared.setPlacement(.bottom)
     }
 
     @objc private func dockWidgetSide() {
-        ClipWidget.shared.setEdge(.side)
+        ClipWidget.shared.setPlacement(.side)
     }
 
     @objc private func dockLoadSlot(_ sender: NSMenuItem) {
