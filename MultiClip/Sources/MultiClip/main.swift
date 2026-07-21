@@ -10,6 +10,10 @@ import Carbon.HIToolbox
 //
 // The Dock icon shows three numbered buttons:
 //   gray  = empty, blue = holds a copy, green = has been pasted.
+//
+// A floating three-dot pill (see Widget.swift) also stays on top of every
+// app and space; hover it while holding ⌘ to preview the slots, click a
+// dot to paste it, right-click to move it to the bottom/side or hide it.
 
 private let slotCount = 3
 private let doubleTapWindow: TimeInterval = 0.5
@@ -52,6 +56,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         registerHotKeys()
         installResetKeyMonitors()
         promptForAccessibilityIfNeeded()
+        ClipWidget.shared.start()
 
         pollTimer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: true) { [weak self] _ in
             self?.pollPasteboard()
@@ -92,9 +97,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.handleKeyDown(event)
         }
         let flagsHandler: (NSEvent) -> Void = { [weak self] event in
-            if !event.modifierFlags.contains(.command) {
+            let commandDown = event.modifierFlags.contains(.command)
+            if !commandDown {
                 self?.awaitingSecondC = false
             }
+            ClipWidget.shared.setCommandDown(commandDown)
         }
 
         // Global monitors cover every other app; local ones cover our own.
@@ -260,6 +267,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return true
         }
         NSApp.applicationIconImage = image
+        ClipWidget.shared.refresh()
     }
 
     // MARK: - Dock menu
@@ -288,7 +296,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let resetItem = NSMenuItem(title: "Reset Slots   (hold ⌘, tap C twice)", action: #selector(dockReset), keyEquivalent: "")
         resetItem.target = self
         menu.addItem(resetItem)
+
+        menu.addItem(.separator())
+        let toggleTitle = ClipWidget.shared.isShown ? "Hide Floating Dots" : "Show Floating Dots"
+        let toggleItem = NSMenuItem(title: toggleTitle, action: #selector(dockToggleWidget), keyEquivalent: "")
+        toggleItem.target = self
+        menu.addItem(toggleItem)
+
+        let bottomItem = NSMenuItem(title: "Dots at the Bottom", action: #selector(dockWidgetBottom), keyEquivalent: "")
+        bottomItem.target = self
+        bottomItem.state = ClipWidget.shared.edge == .bottom ? .on : .off
+        menu.addItem(bottomItem)
+
+        let sideItem = NSMenuItem(title: "Dots on the Side", action: #selector(dockWidgetSide), keyEquivalent: "")
+        sideItem.target = self
+        sideItem.state = ClipWidget.shared.edge == .side ? .on : .off
+        menu.addItem(sideItem)
+
         return menu
+    }
+
+    @objc private func dockToggleWidget() {
+        if ClipWidget.shared.isShown {
+            ClipWidget.shared.hide()
+        } else {
+            ClipWidget.shared.show()
+        }
+    }
+
+    @objc private func dockWidgetBottom() {
+        ClipWidget.shared.setEdge(.bottom)
+    }
+
+    @objc private func dockWidgetSide() {
+        ClipWidget.shared.setEdge(.side)
     }
 
     @objc private func dockLoadSlot(_ sender: NSMenuItem) {
