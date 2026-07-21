@@ -28,10 +28,12 @@ A small pill with three dots floats above everything — every app, every
 desktop/space, even full-screen apps — using the same colors as the Dock
 buttons (gray/blue/green).
 
-- **Hover it while holding `⌘`** and it grows a bit and shows a preview of
-  what each slot holds.
-- **Click a dot** to paste that slot straight into the app you're working in
-  (clicking doesn't steal focus from your app).
+- **Hover it** and it grows a bit and shows a preview of what each slot
+  holds.
+- **While it's expanded, click a dot** to paste that slot straight into the
+  app you're working in (clicking doesn't steal focus from your app). A dot
+  turns **green** once it has been pasted. Clicks on the collapsed pill do
+  nothing, so you can't paste by accident.
 - **Right-click it** to choose where it lives — **bottom center** (just above
   the Dock) or **on the side** (right edge) — or to hide it. Your choice is
   remembered. You can bring it back or move it any time from the Dock icon's
@@ -41,9 +43,9 @@ buttons (gray/blue/green).
 > with tab switching in browsers.
 
 The reset gesture requires holding `⌘` down the whole time — you press and
-hold `⌘`, then rapidly tap `C` twice. If you release `⌘` between the two
-taps (i.e. two separate `⌘C` copies), nothing is reset; that just copies
-normally into the next slot.
+hold `⌘`, then rapidly tap `C` twice. This works even without any
+permissions granted: copying the same thing twice within ~0.7 s is also
+detected on the clipboard itself and treated as a reset.
 
 ## Build & run
 
@@ -64,6 +66,23 @@ The first launch asks for **Accessibility** access
 This is what lets `⌘⌥1/2/3` type the paste into the frontmost app for you.
 Until it's granted, the hotkeys still load the slot onto the clipboard — you
 just press `⌘V` yourself.
+
+## Troubleshooting
+
+**Auto-paste or the reset gesture stopped working after rebuilding?**
+Rebuilding re-signs the app, and macOS silently invalidates the old
+Accessibility grant — even though the checkbox in System Settings still
+looks enabled. Fix it with:
+
+```sh
+tccutil reset Accessibility com.cesca.multiclip
+```
+
+then relaunch the app and grant Accessibility again when prompted.
+
+**A dot turned green** — green just means "this slot has been pasted".
+Pasting happens when you press `⌘⌥1/2/3` or click a dot in the expanded
+pill. Reset (hold `⌘`, tap `C` `C`) turns everything back to gray.
 
 ## Notes
 

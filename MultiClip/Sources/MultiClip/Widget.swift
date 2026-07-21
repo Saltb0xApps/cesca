@@ -4,8 +4,8 @@ import AppKit
 // that stays visible on every space and every app, including full screen.
 //
 //   • Three dots mirror the slots: gray = empty, blue = copied, green = pasted.
-//   • Hover it while holding ⌘ and it grows to preview what each slot holds.
-//   • Click a dot to paste that slot into the app you're in.
+//   • Hover it and it grows to preview what each slot holds.
+//   • While it's expanded, click a dot to paste that slot into the app you're in.
 //   • Right-click it to move it to the bottom or the side, or hide it.
 
 enum WidgetEdge: String {
@@ -25,7 +25,6 @@ final class ClipWidget {
     private(set) var edge: WidgetEdge
     private(set) var expanded = false
     private var hovering = false
-    private var commandDown = false
 
     var isShown: Bool { panel.isVisible }
 
@@ -84,12 +83,6 @@ final class ClipWidget {
         view.needsDisplay = true
     }
 
-    func setCommandDown(_ down: Bool) {
-        guard down != commandDown else { return }
-        commandDown = down
-        updateExpansion()
-    }
-
     func setHovering(_ inside: Bool) {
         guard inside != hovering else { return }
         hovering = inside
@@ -97,7 +90,7 @@ final class ClipWidget {
     }
 
     private func updateExpansion() {
-        let shouldExpand = hovering && commandDown
+        let shouldExpand = hovering
         guard shouldExpand != expanded else { return }
         expanded = shouldExpand
         applyFrame(animated: true)
@@ -175,6 +168,9 @@ final class WidgetView: NSView {
     }
 
     override func mouseUp(with event: NSEvent) {
+        // Only paste when expanded, so you can see what you're about to paste —
+        // a stray click on the collapsed pill never pastes anything.
+        guard ClipWidget.shared.expanded else { return }
         let point = convert(event.locationInWindow, from: nil)
         if let index = slotIndex(at: point) {
             AppDelegate.shared?.pasteSlot(index)

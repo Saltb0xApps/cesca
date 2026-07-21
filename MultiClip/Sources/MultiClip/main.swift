@@ -12,8 +12,9 @@ import Carbon.HIToolbox
 //   gray  = empty, blue = holds a copy, green = has been pasted.
 //
 // A floating three-dot pill (see Widget.swift) also stays on top of every
-// app and space; hover it while holding ⌘ to preview the slots, click a
-// dot to paste it, right-click to move it to the bottom/side or hide it.
+// app and space; hover it to preview the slots, click a dot (while
+// expanded) to paste it, right-click to move it to the bottom/side or
+// hide it.
 
 let slotCount = 3
 private let doubleTapWindow: TimeInterval = 0.5
@@ -38,6 +39,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var lastChangeCount = NSPasteboard.general.changeCount
     private var suppressCaptureUntil = Date.distantPast
+
+    // Permission-free reset fallback: two copies of the same content in
+    // quick succession (what ⌘+C C produces) reset the slots even when the
+    // key monitors can't see the keyboard (Accessibility not granted).
+    private var lastCopyText: String?
+    private var lastCopyTime = Date.distantPast
 
     // Double-C reset tracking: ⌘ must stay held between the two C taps.
     private var awaitingSecondC = false
@@ -76,6 +83,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         guard let text = pb.string(forType: .string), !text.isEmpty else { return }
 
+        let now = Date()
+        if text == lastCopyText, now.timeIntervalSince(lastCopyTime) <= doubleTapWindow + 0.2 {
+            reset()
+            return
+        }
+        lastCopyText = text
+        lastCopyTime = now
+
         slots[nextIndex] = Slot(text: text, state: .filled)
         nextIndex = (nextIndex + 1) % slotCount
         redrawDockIcon()
@@ -84,6 +99,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func reset() {
         slots = Array(repeating: Slot(), count: slotCount)
         nextIndex = 0
+        lastCopyText = nil
         redrawDockIcon()
     }
 
@@ -97,11 +113,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.handleKeyDown(event)
         }
         let flagsHandler: (NSEvent) -> Void = { [weak self] event in
-            let commandDown = event.modifierFlags.contains(.command)
-            if !commandDown {
+            if !event.modifierFlags.contains(.command) {
                 self?.awaitingSecondC = false
             }
-            ClipWidget.shared.setCommandDown(commandDown)
         }
 
         // Global monitors cover every other app; local ones cover our own.
