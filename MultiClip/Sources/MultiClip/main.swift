@@ -15,7 +15,7 @@ import Carbon.HIToolbox
 // app and space; hover it while holding ⌘ to preview the slots, click a
 // dot to paste it, right-click to move it to the bottom/side or hide it.
 
-private let slotCount = 3
+let slotCount = 3
 private let doubleTapWindow: TimeInterval = 0.5
 private let hotKeySignature: OSType = 0x4D43_4C50 // 'MCLP'
 
