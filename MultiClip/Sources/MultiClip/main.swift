@@ -5,13 +5,14 @@ import Carbon.HIToolbox
 //
 //   ⌘C           captures into the next free slot (1 → 2 → 3, then cycles)
 //   ⌘⌥1 / 2 / 3  pastes that slot into the frontmost app
-//   ⌘C ⌘C        (twice within 0.6 s) resets all slots
+//   ⌘ + C C      hold ⌘ and tap C twice quickly to reset all slots
+//                (releasing ⌘ between the two Cs does NOT reset)
 //
 // The Dock icon shows three numbered buttons:
 //   gray  = empty, blue = holds a copy, green = has been pasted.
 
 private let slotCount = 3
-private let doubleCopyWindow: TimeInterval = 0.6
+private let doubleTapWindow: TimeInterval = 0.5
 private let hotKeySignature: OSType = 0x4D43_4C50 // 'MCLP'
 
 enum SlotState {
@@ -32,11 +33,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var nextIndex = 0
 
     private var lastChangeCount = NSPasteboard.general.changeCount
-    private var lastCopyText: String?
-    private var lastCopyTime = Date.distantPast
+    private var suppressCaptureUntil = Date.distantPast
+
+    // Double-C reset tracking: ⌘ must stay held between the two C taps.
+    private var awaitingSecondC = false
+    private var firstCDownTime = Date.distantPast
 
     private var pollTimer: Timer?
     private var hotKeyRefs: [EventHotKeyRef?] = []
+    private var keyMonitors: [Any] = []
 
     // MARK: - Lifecycle
 
@@ -45,6 +50,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.regular)
         redrawDockIcon()
         registerHotKeys()
+        installResetKeyMonitors()
         promptForAccessibilityIfNeeded()
 
         pollTimer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: true) { [weak self] _ in
@@ -59,17 +65,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard pb.changeCount != lastChangeCount else { return }
         lastChangeCount = pb.changeCount
 
-        guard let text = pb.string(forType: .string), !text.isEmpty else { return }
+        // Right after a double-C reset, the second C's copy still lands on the
+        // pasteboard — swallow it so it doesn't refill slot 1.
+        guard Date() >= suppressCaptureUntil else { return }
 
-        let now = Date()
-        if text == lastCopyText, now.timeIntervalSince(lastCopyTime) <= doubleCopyWindow {
-            // ⌘C ⌘C — same content copied twice in quick succession: reset.
-            reset()
-            lastCopyText = nil
-            return
-        }
-        lastCopyText = text
-        lastCopyTime = now
+        guard let text = pb.string(forType: .string), !text.isEmpty else { return }
 
         slots[nextIndex] = Slot(text: text, state: .filled)
         nextIndex = (nextIndex + 1) % slotCount
@@ -80,6 +80,57 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         slots = Array(repeating: Slot(), count: slotCount)
         nextIndex = 0
         redrawDockIcon()
+    }
+
+    // MARK: - ⌘ + C C reset detection
+
+    /// Watches raw key events so the reset gesture is: hold ⌘, tap C twice
+    /// quickly. Releasing ⌘ between the taps cancels the gesture, so two
+    /// separate ⌘C copies never trigger a reset.
+    private func installResetKeyMonitors() {
+        let keyDownHandler: (NSEvent) -> Void = { [weak self] event in
+            self?.handleKeyDown(event)
+        }
+        let flagsHandler: (NSEvent) -> Void = { [weak self] event in
+            if !event.modifierFlags.contains(.command) {
+                self?.awaitingSecondC = false
+            }
+        }
+
+        // Global monitors cover every other app; local ones cover our own.
+        if let m = NSEvent.addGlobalMonitorForEvents(matching: .keyDown, handler: keyDownHandler) {
+            keyMonitors.append(m)
+        }
+        if let m = NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged, handler: flagsHandler) {
+            keyMonitors.append(m)
+        }
+        keyMonitors.append(NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            keyDownHandler(event)
+            return event
+        } as Any)
+        keyMonitors.append(NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { event in
+            flagsHandler(event)
+            return event
+        } as Any)
+    }
+
+    private func handleKeyDown(_ event: NSEvent) {
+        guard event.keyCode == UInt16(kVK_ANSI_C),
+              event.modifierFlags.contains(.command) else {
+            awaitingSecondC = false
+            return
+        }
+
+        let now = Date()
+        if awaitingSecondC, now.timeIntervalSince(firstCDownTime) <= doubleTapWindow {
+            // Second C while ⌘ stayed held — reset.
+            awaitingSecondC = false
+            suppressCaptureUntil = now.addingTimeInterval(0.8)
+            reset()
+        } else {
+            awaitingSecondC = true
+            firstCDownTime = now
+        }
     }
 
     // MARK: - Pasting
@@ -234,7 +285,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(item)
         }
         menu.addItem(.separator())
-        let resetItem = NSMenuItem(title: "Reset Slots   (⌘C ⌘C)", action: #selector(dockReset), keyEquivalent: "")
+        let resetItem = NSMenuItem(title: "Reset Slots   (hold ⌘, tap C twice)", action: #selector(dockReset), keyEquivalent: "")
         resetItem.target = self
         menu.addItem(resetItem)
         return menu

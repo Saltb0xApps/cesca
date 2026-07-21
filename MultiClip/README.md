@@ -9,7 +9,7 @@ live **1 · 2 · 3 buttons in your Dock** that light up as you copy and paste.
 |---|---|
 | `⌘C` | Captures what you copied into the next slot (1 → 2 → 3, then cycles back to 1) |
 | `⌘⌥1`, `⌘⌥2`, `⌘⌥3` | Pastes that slot into whatever app you're in |
-| `⌘C` `⌘C` (twice quickly) | Resets all three slots |
+| Hold `⌘`, tap `C` `C` (twice quickly) | Resets all three slots |
 
 The Dock icon shows the three slots and updates in real time:
 
@@ -22,6 +22,11 @@ load one onto the clipboard, or reset.
 
 > The paste hotkeys are `⌘⌥1/2/3` (not plain `⌘1/2/3`) so they don't clash
 > with tab switching in browsers.
+
+The reset gesture requires holding `⌘` down the whole time — you press and
+hold `⌘`, then rapidly tap `C` twice. If you release `⌘` between the two
+taps (i.e. two separate `⌘C` copies), nothing is reset; that just copies
+normally into the next slot.
 
 ## Build & run
 
