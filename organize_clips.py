@@ -13,11 +13,14 @@ Requirements:
     - ANTHROPIC_API_KEY set in the environment (or an `ant auth login` profile)
 
 Usage:
-    python organize_clips.py ~/Videos/clips                    # dry run by default? no — moves files
     python organize_clips.py ~/Videos/clips --dry-run          # preview only
+    python organize_clips.py ~/Videos/clips                    # organize (moves files)
+    python organize_clips.py ~/Videos/clips --dates-only       # just <YYYYMMDD>/ folders, no AI
     python organize_clips.py ~/Videos/clips --copy             # copy instead of move
     python organize_clips.py ~/Videos/clips --dest ~/Videos/organized
     python organize_clips.py ~/Videos/clips --category-first   # <category>/<YYYYMMDD>/ layout
+
+With --dates-only, neither the anthropic package nor an API key is needed.
 """
 
 from __future__ import annotations
@@ -33,7 +36,10 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-import anthropic
+try:
+    import anthropic
+except ImportError:  # fine as long as --dates-only is used
+    anthropic = None
 
 VIDEO_EXTENSIONS = {
     ".mp4", ".mov", ".avi", ".mkv", ".m4v", ".webm",
@@ -211,13 +217,19 @@ def main() -> None:
                         help="Destination root (default: <source>/organized)")
     parser.add_argument("--copy", action="store_true", help="Copy files instead of moving them")
     parser.add_argument("--dry-run", action="store_true", help="Show what would happen without touching files")
+    parser.add_argument("--dates-only", action="store_true",
+                        help="Skip AI categorization; organize into <YYYYMMDD>/ folders only (no API key needed)")
     parser.add_argument("--category-first", action="store_true",
                         help="Use <category>/<YYYYMMDD>/ layout instead of <YYYYMMDD>/<category>/")
     parser.add_argument("--model", default=MODEL, help=f"Claude model to use (default: {MODEL})")
     args = parser.parse_args()
 
-    which_or_die("ffmpeg")
     which_or_die("ffprobe")
+    if not args.dates_only:
+        which_or_die("ffmpeg")
+        if anthropic is None:
+            sys.exit("error: the `anthropic` package is required for categorization — "
+                     "run `pip install anthropic`, or use --dates-only")
 
     source = args.source.expanduser().resolve()
     if not source.is_dir():
@@ -231,7 +243,7 @@ def main() -> None:
     print(f"Found {len(videos)} clip(s) under {source}")
     print(f"Destination: {dest_root}  ({'copy' if args.copy else 'move'}{', dry-run' if args.dry_run else ''})\n")
 
-    client = anthropic.Anthropic()
+    client = None if args.dates_only else anthropic.Anthropic()
     manifest: list[dict] = []
     errors = 0
 
@@ -240,14 +252,17 @@ def main() -> None:
         try:
             probe = ffprobe_json(video)
             date = clip_date(video, probe)
-            frames = extract_frames(video, clip_duration(probe))
-            if frames:
-                category, description = categorize(client, frames, video.name)
+            if args.dates_only:
+                category, description = "", ""
+                target_dir = dest_root / date
             else:
-                category, description = "misc", "no frames could be extracted"
-
-            parts = (category, date) if args.category_first else (date, category)
-            target_dir = dest_root.joinpath(*parts)
+                frames = extract_frames(video, clip_duration(probe))
+                if frames:
+                    category, description = categorize(client, frames, video.name)
+                else:
+                    category, description = "misc", "no frames could be extracted"
+                parts = (category, date) if args.category_first else (date, category)
+                target_dir = dest_root.joinpath(*parts)
             target = unique_destination(target_dir / video.name)
 
             print(f"[{i}/{len(videos)}] {rel}  ->  {target.relative_to(dest_root)}")

@@ -50,11 +50,19 @@ Actually organize (moves files into `~/Videos/clips/organized/` by default):
 python organize_clips.py ~/Videos/clips
 ```
 
+Just want date folders, no AI? Use `--dates-only` — clips go straight into
+`YYYYMMDD/` folders with no API key (and no `anthropic` package) needed:
+
+```sh
+python organize_clips.py ~/Videos/clips --dates-only
+```
+
 Useful options:
 
 | Option | What it does |
 |---|---|
 | `--dry-run` | Show the plan without moving anything |
+| `--dates-only` | Skip AI categorization; only `YYYYMMDD/` folders (no API key needed) |
 | `--copy` | Copy files instead of moving them |
 | `--dest DIR` | Put the organized files somewhere else |
 | `--category-first` | Use `category/YYYYMMDD/` layout instead of `YYYYMMDD/category/` |
