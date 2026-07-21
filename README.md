@@ -61,6 +61,22 @@ any device on the **same Wi-Fi** can connect to your Mac.
 The data lives on your Mac, so every device edits the same essays. (Add it to
 your iPad home screen via Share → *Add to Home Screen* for an app-like window.)
 
+## Use it as a Mac app
+
+Prefer a real app in your Dock instead of a browser tab? Margins ships as an
+Electron desktop app that stores every essay as a `.md` file in
+`~/Documents/Margins`. Quick start:
+
+```bash
+npm install
+npm run app        # build + open the desktop app
+# or build an installable .dmg:
+npm run dist:mac   # produces release/Margins-*.dmg → drag to Applications
+```
+
+See **[DESKTOP.md](DESKTOP.md)** for the full walkthrough (including the
+first-launch "unidentified developer" step and where your files live).
+
 ## Make it live without the Mac
 
 To reach your essays from anywhere (not just on your home Wi-Fi), deploy it to

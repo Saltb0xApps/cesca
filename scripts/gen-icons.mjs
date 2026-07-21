@@ -1,6 +1,7 @@
 // One-off icon generator for the PWA. Run: node scripts/gen-icons.mjs
 // Renders monochrome "M" icons (no font dependency — the M is a stroked path).
 import sharp from "sharp";
+import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -27,4 +28,13 @@ await png(rounded, 512, "icon-512.png");
 await png(square, 512, "icon-maskable-512.png");
 await png(square, 180, "apple-touch-icon.png");
 await png(rounded, 32, "favicon-32.png");
+
+// macOS app icon for electron-builder (build/icon.png, 1024px).
+const buildDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "build");
+fs.mkdirSync(buildDir, { recursive: true });
+await sharp(Buffer.from(rounded))
+  .resize(1024, 1024)
+  .png()
+  .toFile(path.join(buildDir, "icon.png"));
+console.log("wrote build/icon.png");
 console.log("done");
