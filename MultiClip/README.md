@@ -24,20 +24,23 @@ load one onto the clipboard, or reset.
 
 ## The floating dots
 
-A small pill with three dots floats above everything — every app, every
-desktop/space, even full-screen apps — using the same colors as the Dock
-buttons (gray/blue/green).
+Three small bare dots (no background) float above everything — every app,
+every desktop/space, even full-screen apps — using the same colors as the
+Dock buttons (gray/blue/green). At the bottom they hug the very bottom edge
+of the screen (over the Dock area, Wispr Flow style) so they don't cover
+your windows.
 
-- **Hover it** and it grows a bit and shows a preview of what each slot
-  holds.
-- **While it's expanded, click a dot** to paste that slot straight into the
-  app you're working in (clicking doesn't steal focus from your app). A dot
-  turns **green** once it has been pasted. Clicks on the collapsed pill do
-  nothing, so you can't paste by accident.
-- **Right-click it** to choose where it lives — **bottom center** (just above
-  the Dock) or **on the side** (right edge) — or to hide it. Your choice is
-  remembered. You can bring it back or move it any time from the Dock icon's
-  right-click menu too.
+- **Hover them** and the dots grow slightly while a translucent, blurred
+  preview panel (native macOS frosted glass) fades in beside them, showing
+  what each slot holds.
+- **Click a dot or a preview row** while the preview is up to paste that
+  slot straight into the app you're working in (clicking doesn't steal
+  focus). A dot turns **green** once it has been pasted. Clicks while the
+  preview is closed do nothing, so you can't paste by accident.
+- **Right-click them** to choose where they live — **bottom center** or
+  **on the side** (right edge, dots stacked vertically) — or to hide them.
+  Your choice is remembered. You can bring them back or move them any time
+  from the Dock icon's right-click menu too.
 
 > The paste hotkeys are `⌘⌥1/2/3` (not plain `⌘1/2/3`) so they don't clash
 > with tab switching in browsers.
