@@ -18,8 +18,46 @@ import Carbon.HIToolbox
 
 let slotCountKey = "slotCount"
 var slotCount = min(max(UserDefaults.standard.object(forKey: slotCountKey) as? Int ?? 3, 2), 5)
-private let doubleTapWindow: TimeInterval = 0.5
+private let doubleTapWindow: TimeInterval = 0.6
+private let doubleCopyResetWindow: TimeInterval = 1.0
 private let hotKeySignature: OSType = 0x4D43_4C50 // 'MCLP'
+
+let hotkeyComboKey = "hotkeyCombo"
+
+/// The modifier combination used with 1…5 to paste a slot.
+enum HotkeyCombo: String, CaseIterable {
+    case cmdOpt
+    case cmdCtrl
+    case ctrlOpt
+    case cmdShift
+
+    var carbonFlags: UInt32 {
+        switch self {
+        case .cmdOpt: return UInt32(cmdKey) | UInt32(optionKey)
+        case .cmdCtrl: return UInt32(cmdKey) | UInt32(controlKey)
+        case .ctrlOpt: return UInt32(controlKey) | UInt32(optionKey)
+        case .cmdShift: return UInt32(cmdKey) | UInt32(shiftKey)
+        }
+    }
+
+    var display: String {
+        switch self {
+        case .cmdOpt: return "⌘⌥"
+        case .cmdCtrl: return "⌘⌃"
+        case .ctrlOpt: return "⌃⌥"
+        case .cmdShift: return "⌘⇧"
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .cmdOpt: return "⌘ Command + ⌥ Option + number  (default)"
+        case .cmdCtrl: return "⌘ Command + ⌃ Control + number"
+        case .ctrlOpt: return "⌃ Control + ⌥ Option + number"
+        case .cmdShift: return "⌘ Command + ⇧ Shift + number"
+        }
+    }
+}
 
 enum SlotState {
     case empty
@@ -55,6 +93,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var hotKeyRefs: [EventHotKeyRef?] = []
     private var keyMonitors: [Any] = []
 
+    private(set) var hotkeyCombo = HotkeyCombo(rawValue: UserDefaults.standard.string(forKey: hotkeyComboKey) ?? "") ?? .cmdOpt
+
     // MARK: - Lifecycle
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -67,8 +107,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         promptForAccessibilityIfNeeded()
         ClipWidget.shared.start()
 
-        pollTimer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: true) { [weak self] _ in
+        // Fast poll so two quick ⌘C presses are seen as two separate
+        // pasteboard changes (the reset gesture) instead of being merged.
+        pollTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
             self?.pollPasteboard()
+        }
+
+        if !UserDefaults.standard.bool(forKey: "didShowWelcome") {
+            UserDefaults.standard.set(true, forKey: "didShowWelcome")
+            SettingsWindowController.shared.show()
         }
     }
 
@@ -86,7 +133,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let text = pb.string(forType: .string), !text.isEmpty else { return }
 
         let now = Date()
-        if text == lastCopyText, now.timeIntervalSince(lastCopyTime) <= doubleTapWindow + 0.2 {
+        if text == lastCopyText, now.timeIntervalSince(lastCopyTime) <= doubleCopyResetWindow {
             reset()
             return
         }
@@ -268,7 +315,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let id = EventHotKeyID(signature: hotKeySignature, id: UInt32(i + 1))
             RegisterEventHotKey(
                 keyCodes[i],
-                UInt32(cmdKey) | UInt32(optionKey),
+                hotkeyCombo.carbonFlags,
                 id,
                 GetApplicationEventTarget(),
                 0,
@@ -276,6 +323,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             )
             hotKeyRefs.append(ref)
         }
+    }
+
+    /// Changes the paste shortcut modifiers (Settings window).
+    func setHotkeyCombo(_ combo: HotkeyCombo) {
+        guard combo != hotkeyCombo else { return }
+        hotkeyCombo = combo
+        UserDefaults.standard.set(combo.rawValue, forKey: hotkeyComboKey)
+        registerHotKeys()
+        redrawDockIcon()
     }
 
     // MARK: - Dock icon
@@ -343,7 +399,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if let text = slot.text {
                 let flattened = text.replacingOccurrences(of: "\n", with: " ")
                 let preview = flattened.count > 30 ? String(flattened.prefix(30)) + "…" : flattened
-                title = "\(i + 1): \(preview)   (⌘⌥\(i + 1))"
+                title = "\(i + 1): \(preview)   (\(hotkeyCombo.display)\(i + 1))"
             } else {
                 title = "\(i + 1): (empty)"
             }
@@ -377,7 +433,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         sideItem.state = ClipWidget.shared.placement == .side ? .on : .off
         menu.addItem(sideItem)
 
+        let notchItem = NSMenuItem(title: "Notch Island (top center)", action: #selector(dockWidgetNotch), keyEquivalent: "")
+        notchItem.target = self
+        notchItem.state = ClipWidget.shared.placement == .notch ? .on : .off
+        menu.addItem(notchItem)
+
+        menu.addItem(.separator())
+        let settingsItem = NSMenuItem(title: "Settings…", action: #selector(dockSettings), keyEquivalent: "")
+        settingsItem.target = self
+        menu.addItem(settingsItem)
+
         return menu
+    }
+
+    @objc private func dockWidgetNotch() {
+        ClipWidget.shared.setPlacement(.notch)
+    }
+
+    @objc private func dockSettings() {
+        SettingsWindowController.shared.show()
     }
 
     @objc private func dockToggleWidget() {

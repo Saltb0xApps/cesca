@@ -60,6 +60,24 @@ hold `⌘`, then rapidly tap `C` twice. This works even without any
 permissions granted: copying the same thing twice within ~0.7 s is also
 detected on the clipboard itself and treated as a reset.
 
+## First launch & settings
+
+The first time you open MultiClip, a welcome window explains the app and
+lets you pick your preferences — all of them can be changed later via
+**right-click on the dots → Settings…** or the Dock icon menu:
+
+- **Paste shortcut** — which modifiers go with the number keys
+  (default `⌘⌥`; also `⌘⌃`, `⌃⌥`, or `⌘⇧`)
+- **Number of dots** — 2 to 5 slots
+- **Dots position** — bottom, right side, or the **notch island**
+
+### Notch island mode
+
+Positions the widget as a black island at the top center of the screen,
+blending with the MacBook camera notch. It stays invisible until you hover
+it — then it smoothly grows downward, revealing the dots in its lower
+strip, with the frosted preview panel appearing underneath.
+
 ## Build & run
 
 Requires macOS 13+ and the Xcode Command Line Tools (`xcode-select --install`).

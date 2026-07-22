@@ -20,6 +20,7 @@ import AppKit
 enum WidgetPlacement: String {
     case bottom
     case side
+    case notch
     case custom
 }
 
@@ -171,7 +172,7 @@ final class ClipWidget: NSObject {
         UserDefaults.standard.set(newPlacement.rawValue, forKey: Self.placementKey)
         // The presets imply an orientation; custom keeps whatever is set.
         switch newPlacement {
-        case .bottom: setOrientation(.horizontal)
+        case .bottom, .notch: setOrientation(.horizontal)
         case .side: setOrientation(.vertical)
         case .custom: break
         }
@@ -251,22 +252,28 @@ final class ClipWidget: NSObject {
     private func showPreview() {
         guard !previewShown, dotsPanel.isVisible else { return }
         previewShown = true
-        layoutPanels()
+        layoutPanels(animatingDots: true)
 
         let target = previewPanel.frame
         var start = target
-        if orientation == .vertical {
-            start.origin.x += 8
-        } else {
-            start.origin.y -= 8
+        switch placement {
+        case .notch:
+            start.origin.y += 10
+        default:
+            if orientation == .vertical {
+                start.origin.x += 10
+            } else {
+                start.origin.y -= 10
+            }
         }
         previewPanel.setFrame(start, display: false)
         previewPanel.alphaValue = 0
         previewPanel.orderFrontRegardless()
 
         NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.16
-            context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            context.duration = 0.28
+            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            context.allowsImplicitAnimation = true
             previewPanel.animator().alphaValue = 1
             previewPanel.animator().setFrame(target, display: true)
         }
@@ -276,8 +283,10 @@ final class ClipWidget: NSObject {
     private func hidePreview() {
         guard previewShown else { return }
         previewShown = false
+        layoutPanels(animatingDots: true)
         NSAnimationContext.runAnimationGroup({ context in
-            context.duration = 0.14
+            context.duration = 0.22
+            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
             self.previewPanel.animator().alphaValue = 0
         }, completionHandler: { [weak self] in
             guard let self, !self.previewShown else { return }
@@ -298,18 +307,25 @@ final class ClipWidget: NSObject {
             : NSSize(width: cell * count, height: thickness)
     }
 
-    private func layoutPanels() {
+    private func layoutPanels(animatingDots: Bool = false) {
         guard let screen = dotsPanel.screen ?? NSScreen.main ?? NSScreen.screens.first else { return }
         let vf = screen.visibleFrame
         let full = screen.frame
 
-        let dotsSize = dotsPanelSize()
+        var dotsSize = dotsPanelSize()
         var dotsOrigin: NSPoint
         switch placement {
         case .bottom:
             dotsOrigin = NSPoint(x: (full.midX - dotsSize.width / 2).rounded(), y: vf.minY + 1)
         case .side:
             dotsOrigin = NSPoint(x: full.maxX - dotsSize.width - 4, y: (vf.midY - dotsSize.height / 2).rounded())
+        case .notch:
+            // A black island hugging the camera notch; grows downward on
+            // hover to reveal the dots in its lower part.
+            let notchHeight = screen.safeAreaInsets.top > 0 ? screen.safeAreaInsets.top : 34
+            let height = notchHeight + (previewShown ? 30 : 0)
+            dotsSize = NSSize(width: 230, height: height)
+            dotsOrigin = NSPoint(x: (full.midX - dotsSize.width / 2).rounded(), y: full.maxY - height)
         case .custom:
             let defaults = UserDefaults.standard
             dotsOrigin = NSPoint(
@@ -321,12 +337,27 @@ final class ClipWidget: NSObject {
         dotsOrigin.x = min(max(dotsOrigin.x, full.minX), full.maxX - dotsSize.width)
         dotsOrigin.y = min(max(dotsOrigin.y, full.minY), full.maxY - dotsSize.height)
         let dotsFrame = NSRect(origin: dotsOrigin, size: dotsSize)
-        dotsPanel.setFrame(dotsFrame, display: true)
+
+        if animatingDots, placement == .notch {
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.24
+                context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                dotsPanel.animator().setFrame(dotsFrame, display: true)
+            }
+        } else {
+            dotsPanel.setFrame(dotsFrame, display: true)
+        }
 
         // Preview: beside the dots, wherever there's room.
         let previewSize = NSSize(width: 340, height: CGFloat(currentSlotCount) * 34 + 12)
         var origin: NSPoint
-        if orientation == .vertical {
+        if placement == .notch {
+            // Below the island, centered.
+            origin = NSPoint(
+                x: (dotsFrame.midX - previewSize.width / 2).rounded(),
+                y: dotsFrame.minY - previewSize.height - 8
+            )
+        } else if orientation == .vertical {
             // Prefer the left of the dots, fall back to the right.
             var x = dotsFrame.minX - previewSize.width - 8
             if x < vf.minX + 8 {
@@ -361,6 +392,10 @@ final class ClipWidget: NSObject {
         side.target = self
         side.state = placement == .side ? .on : .off
         positionMenu.addItem(side)
+        let notch = NSMenuItem(title: "Notch Island (top center)", action: #selector(menuNotch), keyEquivalent: "")
+        notch.target = self
+        notch.state = placement == .notch ? .on : .off
+        positionMenu.addItem(notch)
         positionMenu.addItem(.separator())
         let dragHint = NSMenuItem(title: "…or just drag the dots anywhere", action: nil, keyEquivalent: "")
         dragHint.isEnabled = false
@@ -408,6 +443,10 @@ final class ClipWidget: NSObject {
 
         menu.addItem(.separator())
 
+        let settings = NSMenuItem(title: "Settings…", action: #selector(menuSettings), keyEquivalent: "")
+        settings.target = self
+        menu.addItem(settings)
+
         let reset = NSMenuItem(title: "Reset Slots", action: #selector(menuReset), keyEquivalent: "")
         reset.target = self
         menu.addItem(reset)
@@ -421,6 +460,8 @@ final class ClipWidget: NSObject {
 
     @objc private func menuBottom() { setPlacement(.bottom) }
     @objc private func menuSide() { setPlacement(.side) }
+    @objc private func menuNotch() { setPlacement(.notch) }
+    @objc private func menuSettings() { SettingsWindowController.shared.show() }
     @objc private func menuHorizontal() { setOrientation(.horizontal) }
     @objc private func menuVertical() { setOrientation(.vertical) }
     @objc private func menuReset() { AppDelegate.shared?.reset() }
@@ -475,6 +516,8 @@ final class DotsView: NSView {
     }
 
     override func mouseDragged(with event: NSEvent) {
+        // The notch island is pinned to the camera housing — not draggable.
+        guard ClipWidget.shared.placement != .notch else { return }
         guard let pressMouse, let pressOrigin, let window else { return }
         let mouse = NSEvent.mouseLocation
         let dx = mouse.x - pressMouse.x
@@ -506,6 +549,12 @@ final class DotsView: NSView {
     override func draw(_ dirtyRect: NSRect) {
         let slots = AppDelegate.shared?.slots ?? []
         guard !slots.isEmpty else { return }
+
+        if ClipWidget.shared.placement == .notch {
+            drawIsland(slots)
+            return
+        }
+
         let vertical = ClipWidget.shared.orientation == .vertical
         let radius = ClipWidget.shared.dotRadius
 
@@ -534,6 +583,38 @@ final class DotsView: NSView {
         }
 
         context.restoreGraphicsState()
+    }
+
+    /// Notch-island style: a black shape that blends with the camera
+    /// housing, flat against the top edge with rounded bottom corners.
+    /// The dots appear in the lower strip when the island is expanded.
+    private func drawIsland(_ slots: [Slot]) {
+        NSColor.black.setFill()
+        // Extend the rect above the top edge so only the bottom corners
+        // show their rounding.
+        let island = NSBezierPath(
+            roundedRect: NSRect(x: 0, y: -12, width: bounds.width, height: bounds.height + 12),
+            xRadius: 12,
+            yRadius: 12
+        )
+        island.fill()
+
+        guard ClipWidget.shared.previewShown else { return }
+
+        // Dots centered in the expanded lower strip.
+        let radius: CGFloat = 5
+        let stripMidY = bounds.height - 15
+        let cell = bounds.width / CGFloat(slots.count)
+        for i in 0..<slots.count {
+            let center = NSPoint(x: cell * (CGFloat(i) + 0.5), y: stripMidY)
+            let dotRect = NSRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2)
+            let dot = NSBezierPath(ovalIn: dotRect)
+            widgetDotColor(slots[i].state).setFill()
+            dot.fill()
+            NSColor.white.withAlphaComponent(0.35).setStroke()
+            dot.lineWidth = 1
+            dot.stroke()
+        }
     }
 }
 
@@ -754,7 +835,8 @@ final class PreviewView: NSView {
                 chip.stroke()
                 let hintParagraph = NSMutableParagraphStyle()
                 hintParagraph.alignment = .center
-                NSAttributedString(string: "⌘⌥\(i + 1)", attributes: [
+                let combo = AppDelegate.shared?.hotkeyCombo.display ?? "⌘⌥"
+                NSAttributedString(string: "\(combo)\(i + 1)", attributes: [
                     .font: NSFont.systemFont(ofSize: 10.5, weight: .medium),
                     .foregroundColor: NSColor(calibratedWhite: 0.7, alpha: 1),
                     .paragraphStyle: hintParagraph,
