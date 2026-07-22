@@ -23,6 +23,7 @@ private let doubleCopyResetWindow: TimeInterval = 1.0
 private let hotKeySignature: OSType = 0x4D43_4C50 // 'MCLP'
 
 let hotkeyComboKey = "hotkeyCombo"
+let appVersion = "1.2"
 
 /// The modifier combination used with 1…5 to paste a slot.
 enum HotkeyCombo: String, CaseIterable {
@@ -99,6 +100,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppDelegate.shared = self
+
+        // Belt and suspenders against stale builds: if an older instance is
+        // still running, terminate it so this (newer) one takes over.
+        if let bundleID = Bundle.main.bundleIdentifier {
+            for app in NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
+            where app != NSRunningApplication.current {
+                app.forceTerminate()
+            }
+        }
+
         NSApp.setActivationPolicy(.regular)
         redrawDockIcon()
         installHotKeyHandler()
@@ -313,7 +324,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         for i in 0..<min(slotCount, keyCodes.count) {
             var ref: EventHotKeyRef?
             let id = EventHotKeyID(signature: hotKeySignature, id: UInt32(i + 1))
-            RegisterEventHotKey(
+            let status = RegisterEventHotKey(
                 keyCodes[i],
                 hotkeyCombo.carbonFlags,
                 id,
@@ -321,6 +332,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 0,
                 &ref
             )
+            if status != noErr {
+                NSLog("MultiClip: failed to register hotkey \(hotkeyCombo.display)\(i + 1) (status \(status))")
+            }
             hotKeyRefs.append(ref)
         }
     }
@@ -394,6 +408,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
         let menu = NSMenu()
+        let versionItem = NSMenuItem(title: "MultiClip v\(appVersion)", action: nil, keyEquivalent: "")
+        versionItem.isEnabled = false
+        menu.addItem(versionItem)
+        menu.addItem(.separator())
         for (i, slot) in slots.enumerated() {
             let title: String
             if let text = slot.text {

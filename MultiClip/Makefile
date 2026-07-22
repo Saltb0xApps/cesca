@@ -19,6 +19,9 @@ app: build
 	@echo "then relaunch and grant the permission again."
 
 run: app
+	@# 'open' won't relaunch an already-running app, so kill any old
+	@# instance first - otherwise rebuilds silently keep running old code.
+	-pkill -x MultiClip 2>/dev/null; sleep 0.5
 	open $(APP)
 
 clean:

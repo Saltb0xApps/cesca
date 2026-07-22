@@ -20,7 +20,7 @@ final class SettingsWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "MultiClip"
+        window.title = "MultiClip v\(appVersion)"
         window.isReleasedWhenClosed = false
         super.init(window: window)
         buildUI()
