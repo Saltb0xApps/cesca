@@ -1,68 +1,64 @@
-# Margins as a Mac app
+# Use Margins as an app on your Mac
 
-This turns Margins into a real macOS application you can keep in your Dock and
-open any time — no Terminal needed after the first setup. Your essays are saved
-as **`.md` files in `~/Documents/Margins`**, so they're easy to find in Finder,
-included in Time Machine / iCloud backups, and never tied to the app itself.
+No installers, no Gatekeeper warnings. Margins runs a tiny local server and you
+open it in your browser — and you can pin it to your Dock so it feels and opens
+like a normal app. Your essays are saved as **`.md` files in `~/Documents/Margins`**,
+so they're easy to find in Finder, backed up by Time Machine / iCloud, and never
+tied to the app.
 
-## One-time setup (in Terminal)
+## Everyday use (simple)
 
-```bash
-cd ~/Desktop/cesca        # wherever you cloned it
-git pull                  # get the latest
-npm install               # downloads Electron the first time (~1–2 min)
-```
-
-## Option A — just run it as an app (quickest)
+In Terminal, in the project folder:
 
 ```bash
-npm run app
+npm run margins
 ```
 
-This builds the app and opens it in its own window. Great for everyday use. To
-stop it, close the window (and `Ctrl-C` in Terminal). Run `npm run app` whenever
-you want it again.
+This builds the app and starts it. Open **http://localhost:3001** in your
+browser. When you're done, press `Ctrl-C` in Terminal. Run `npm run margins`
+again whenever you want it.
 
-## Option B — build a real installable app (put it in Applications)
+## Always on + pinned to your Dock (recommended)
+
+This makes Margins start automatically every time you log in and stay running in
+the background, at a fixed address — so you never touch Terminal again.
 
 ```bash
-npm run dist:mac
+npm run autostart
 ```
 
-When it finishes, open the `release/` folder — you'll find **`Margins-0.1.0.dmg`**
-(and `Margins-0.1.0-arm64.dmg` on Apple Silicon). Double-click the `.dmg`, then
-drag **Margins** into your **Applications** folder. Now it's a normal Mac app:
-launch it from Spotlight or the Dock, keep it there for good.
+Then open **http://localhost:4321** and add it to your Dock:
 
-### First launch: "unidentified developer"
+- **Safari 17+:** File → **Add to Dock**.
+- **Chrome/Edge:** ⋮ menu → **Cast, Save, and Share → Install page as app…**
+  (or the install icon in the address bar).
 
-Because this is your own app (not signed with an Apple Developer account),
-macOS may refuse to open it the first time. To allow it:
+Now Margins has its own icon in your Dock and opens in its own window like any
+Mac app — but with none of the "unidentified developer / malware" nonsense,
+because it's just your browser opening a page on your own computer.
 
-- **Right-click** the Margins app → **Open** → **Open** in the dialog, **or**
-- **System Settings → Privacy & Security** → scroll down → **Open Anyway**.
+To turn off auto-start later:
 
-You only need to do this once.
+```bash
+launchctl unload ~/Library/LaunchAgents/com.margins.server.plist
+rm ~/Library/LaunchAgents/com.margins.server.plist
+```
 
 ## Where your writing lives
 
 - Every essay is a `.md` file in **`~/Documents/Margins`**.
 - Saved versions live in `~/Documents/Margins/versions/`.
-- In the app menu: **File → Reveal Essays Folder in Finder** (or **Margins →
-  Where are my essays?**) opens that folder any time.
 
-Because the files are plain markdown in your Documents folder:
+Because they're plain markdown in your Documents folder:
 
 - **Time Machine** and **iCloud Desktop & Documents** back them up automatically.
-- You can open, read, or edit them in any other app (iA Writer, Obsidian, etc.).
-- Reinstalling or updating Margins never touches them.
+- You can open them in any other app (iA Writer, Obsidian, etc.).
+- Updating Margins never touches them.
 
-## Updating the app
+## Updating
 
 ```bash
 git pull
 npm install        # only if dependencies changed
-npm run dist:mac   # rebuild; reinstall from the new .dmg
+npm run margins    # or, if you use auto-start: npm run autostart
 ```
-
-Your essays in `~/Documents/Margins` are untouched by updates.

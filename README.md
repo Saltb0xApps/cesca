@@ -63,19 +63,19 @@ your iPad home screen via Share → *Add to Home Screen* for an app-like window.
 
 ## Use it as a Mac app
 
-Prefer a real app in your Dock instead of a browser tab? Margins ships as an
-Electron desktop app that stores every essay as a `.md` file in
-`~/Documents/Margins`. Quick start:
+Want it in your Dock like a normal app? No installer needed — Margins runs a
+tiny local server and you open it in the browser (and can pin it to the Dock).
+Every essay is a `.md` file in `~/Documents/Margins`.
 
 ```bash
 npm install
-npm run app        # build + open the desktop app
-# or build an installable .dmg:
-npm run dist:mac   # produces release/Margins-*.dmg → drag to Applications
+npm run margins     # build + run; open http://localhost:3001
+# or have it always-on and start on login:
+npm run autostart   # then open http://localhost:4321 and "Add to Dock"
 ```
 
-See **[DESKTOP.md](DESKTOP.md)** for the full walkthrough (including the
-first-launch "unidentified developer" step and where your files live).
+See **[DESKTOP.md](DESKTOP.md)** for the full walkthrough (Dock pinning,
+auto-start, and where your files live).
 
 ## Make it live without the Mac
 
