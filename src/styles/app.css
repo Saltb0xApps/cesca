@@ -1,15 +1,22 @@
 :root {
-  --ink: #111111;
-  --paper: #ffffff;
-  --frame: #c8c8c8;
-  --panel: #f1f1f1;
-  --rule: #e2e2e2;
-  --muted: #8a8a8a;
-  /* monochrome highlight tones */
-  --hl-light: #e6e6e6;
-  --hl-mid: #c2c2c2;
-  --mono: "Courier New", "Courier", "DejaVu Sans Mono", ui-monospace, monospace;
-  --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  /* warm, vintage typewriter palette — monochrome, just aged */
+  --ink: #23201a;
+  --paper: #f7f3ea;
+  --frame: #d5cfc1;
+  --panel: #efeade;
+  --rule: #ddd6c7;
+  --muted: #8b8475;
+  /* highlight tones (warm greys) */
+  --hl-light: #e6e0d1;
+  --hl-mid: #cec6b2;
+  /* one typewriter typeface for the whole app (American Typewriter ships on
+     macOS; Courier / Courier Prime are the fallbacks elsewhere) */
+  --type: "American Typewriter", "Courier Prime", "Courier New", "Courier",
+    "DejaVu Sans Mono", ui-monospace, monospace;
+  --mono: var(--type);
+  --sans: var(--type);
+  /* faint paper grain, reused on sheets and cards */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
   /* user-tunable prose + page (overridden at runtime by settings) */
   --prose-font: var(--mono);
   --prose-size: 16px;
@@ -30,6 +37,7 @@ body {
   font-family: var(--sans);
   color: var(--ink);
   background: var(--frame);
+  letter-spacing: 0.01em;
   -webkit-font-smoothing: antialiased;
 }
 button {
@@ -63,8 +71,8 @@ button {
   width: 34px;
   height: 34px;
   border-radius: 999px;
-  background: #fff;
-  color: #111;
+  background: var(--paper);
+  color: var(--ink);
   font-weight: 800;
   display: grid;
   place-items: center;
@@ -110,8 +118,8 @@ button {
   color: #fff;
 }
 .folder.active {
-  background: #fff;
-  color: #111;
+  background: var(--paper);
+  color: var(--ink);
   font-weight: 700;
 }
 .folder-name {
@@ -170,16 +178,17 @@ button {
   line-height: 1;
 }
 .new-essay {
-  background: #fff;
-  color: #111;
+  background: var(--paper);
+  color: var(--ink);
   border: 0;
   padding: 12px;
-  border-radius: 10px;
+  border-radius: 8px;
   font-weight: 700;
   font-size: 14px;
+  letter-spacing: 0.02em;
 }
 .new-essay:hover {
-  background: #ddd;
+  background: #e6dfce;
 }
 .import-btn {
   background: transparent;
@@ -196,7 +205,7 @@ button {
 }
 
 .library {
-  background: #fafafa;
+  background: var(--panel);
   overflow-y: auto;
   padding: 30px 40px;
   padding-top: calc(30px + env(safe-area-inset-top));
@@ -227,7 +236,7 @@ button {
   align-items: center;
 }
 .search {
-  border: 1px solid #d4d4d4;
+  border: 1px solid var(--rule);
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 13px;
@@ -236,12 +245,12 @@ button {
 }
 .seg {
   display: flex;
-  border: 1px solid #d4d4d4;
+  border: 1px solid var(--rule);
   border-radius: 8px;
   overflow: hidden;
 }
 .seg button {
-  background: #fff;
+  background: var(--paper);
   border: 0;
   padding: 8px 12px;
   font-size: 12px;
@@ -255,10 +264,11 @@ button {
 /* daily goal card */
 .goal-card {
   border: 1px solid var(--ink);
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 16px 18px;
   margin-bottom: 24px;
-  background: #fff;
+  background-color: var(--paper);
+  background-image: var(--grain);
 }
 .goal-top {
   display: flex;
@@ -299,14 +309,14 @@ button {
 }
 .goal-bar {
   height: 8px;
-  background: #ededed;
+  background: #e4dece;
   border-radius: 999px;
   margin: 12px 0 10px;
   overflow: hidden;
 }
 .goal-fill {
   height: 100%;
-  background: #111;
+  background: var(--ink);
   border-radius: 999px;
   transition: width 0.3s ease;
 }
@@ -323,11 +333,11 @@ button {
 }
 .spark {
   width: 7px;
-  background: #d3d3d3;
+  background: #cbc3b1;
   border-radius: 2px 2px 0 0;
 }
 .spark.hit {
-  background: #111;
+  background: var(--ink);
 }
 .goal-set {
   background: transparent;
@@ -379,19 +389,20 @@ button {
   flex-direction: column;
 }
 .card-paper {
-  background: #fff;
+  background-color: var(--paper);
+  background-image: var(--grain);
   border: 1px solid var(--rule);
-  border-radius: 4px;
+  border-radius: 3px;
   height: 240px;
   padding: 22px 20px;
   position: relative;
   overflow: hidden;
-  box-shadow: 6px 8px 0 rgba(0, 0, 0, 0.06);
+  box-shadow: 5px 7px 0 rgba(35, 30, 22, 0.09);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 .card:hover .card-paper {
   transform: translate(-2px, -2px);
-  box-shadow: 9px 12px 0 rgba(0, 0, 0, 0.09);
+  box-shadow: 8px 11px 0 rgba(35, 30, 22, 0.13);
 }
 .card-title {
   font-family: var(--mono);
@@ -417,7 +428,7 @@ button {
   right: 0;
   bottom: 0;
   height: 70px;
-  background: linear-gradient(transparent, #fff);
+  background: linear-gradient(transparent, var(--paper));
 }
 .card-pill {
   position: absolute;
@@ -466,7 +477,7 @@ button {
   position: fixed;
   transform: translateX(-100%);
   z-index: 60;
-  background: #fff;
+  background: var(--paper);
   border: 1px solid #111;
   border-radius: 10px;
   padding: 5px;
@@ -545,7 +556,7 @@ button {
   cursor: pointer;
 }
 .row:hover {
-  background: #fff;
+  background: var(--paper);
 }
 .row-head {
   font-size: 10px;
@@ -665,7 +676,7 @@ button {
   font-weight: 700;
 }
 .mode-toggle button.on {
-  background: #fff;
+  background: var(--paper);
   color: #111;
 }
 .status {
@@ -692,8 +703,9 @@ button {
 
 /* paper */
 .paper {
-  background: var(--paper);
-  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.14);
+  background-color: var(--paper);
+  background-image: var(--grain);
+  box-shadow: 0 2px 24px rgba(35, 30, 22, 0.16);
 }
 .paper-frame {
   max-width: var(--page-w);
@@ -765,7 +777,7 @@ button {
   padding: 0;
 }
 .arrow-btn {
-  background: #fff;
+  background: var(--paper);
   border: 1px solid var(--ink);
   border-radius: 8px;
   padding: 7px 12px;
@@ -906,7 +918,7 @@ mark.hl-mid {
   background: var(--hl-mid);
 }
 mark.hl-invert {
-  background: #111;
+  background: var(--ink);
   color: #fff;
 }
 
@@ -1024,7 +1036,7 @@ mark.hl-invert {
 .drawer {
   width: 380px;
   max-width: 90vw;
-  background: #fff;
+  background: var(--paper);
   height: 100%;
   padding: 22px;
   overflow-y: auto;
@@ -1063,7 +1075,7 @@ mark.hl-invert {
 .version-list li:hover,
 .version-list li.active {
   border-color: var(--ink);
-  background: #fafafa;
+  background: var(--panel);
 }
 .version-main {
   display: flex;
@@ -1115,7 +1127,7 @@ mark.hl-invert {
   line-height: 1.7;
   white-space: pre-wrap;
   word-wrap: break-word;
-  background: #fafafa;
+  background: var(--panel);
   padding: 14px;
   border-radius: 8px;
   max-height: 40vh;
@@ -1142,7 +1154,7 @@ mark.hl-invert {
   top: calc(100% + 10px);
   right: 0;
   z-index: 61;
-  background: #fff;
+  background: var(--paper);
   color: #111;
   border: 1px solid #111;
   border-radius: 12px;
@@ -1190,7 +1202,7 @@ mark.hl-invert {
   overflow: hidden;
 }
 .set-seg button {
-  background: #fff;
+  background: var(--paper);
   border: 0;
   border-left: 1px solid #ececec;
   padding: 6px 9px;
@@ -1219,7 +1231,7 @@ mark.hl-invert {
   width: 24px;
   height: 24px;
   border: 1px solid #111;
-  background: #fff;
+  background: var(--paper);
   border-radius: 6px;
   font-size: 14px;
   line-height: 1;
@@ -1237,7 +1249,7 @@ mark.hl-invert {
   height: 24px;
   border-radius: 999px;
   border: 1px solid #111;
-  background: #fff;
+  background: var(--paper);
   position: relative;
   padding: 0;
 }
@@ -1256,7 +1268,7 @@ mark.hl-invert {
 }
 .toggle.on .knob {
   left: 22px;
-  background: #fff;
+  background: var(--paper);
 }
 .set-foot {
   font-size: 10px;
@@ -1268,7 +1280,7 @@ mark.hl-invert {
 .shortcuts {
   width: 460px;
   max-width: 92vw;
-  background: #fff;
+  background: var(--paper);
   border-radius: 14px;
   margin: auto;
   padding: 22px;
@@ -1327,7 +1339,7 @@ kbd {
 
 @media print {
   body {
-    background: #fff;
+    background: var(--paper);
   }
   .editor-bar,
   .edit-toolbar,

@@ -20,7 +20,7 @@ export const DEFAULTS: Settings = {
 export const FONTS: Record<FontKey, { label: string; stack: string }> = {
   mono: {
     label: "Typewriter",
-    stack: `"Courier New", "Courier", "DejaVu Sans Mono", ui-monospace, monospace`,
+    stack: `"American Typewriter", "Courier Prime", "Courier New", "Courier", "DejaVu Sans Mono", ui-monospace, monospace`,
   },
   serif: {
     label: "Serif",
