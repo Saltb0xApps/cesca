@@ -4,6 +4,7 @@ import type { DocSummary, Folder } from "../types";
 import { timeAgo, dateLabel } from "../lib/format";
 import { splitText, guessType, uid } from "../lib/text";
 import { GoalCard } from "./GoalCard";
+import { StoragePanel } from "./StoragePanel";
 
 type SortKey = "edited" | "added";
 type ViewKey = "gallery" | "list";
@@ -23,6 +24,7 @@ export function Landing({ onOpen }: { onOpen: (id: string) => void }) {
   const [menu, setMenu] = useState<{ id: string; x: number; y: number } | null>(
     null
   );
+  const [showStorage, setShowStorage] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
 
   async function refresh() {
@@ -212,9 +214,14 @@ export function Landing({ onOpen }: { onOpen: (id: string) => void }) {
           ))}
         </nav>
 
-        <button className="import-btn" onClick={() => fileInput.current?.click()}>
-          Import .md
-        </button>
+        <div className="sidebar-foot">
+          <button className="import-btn" onClick={() => fileInput.current?.click()}>
+            Import .md
+          </button>
+          <button className="import-btn" onClick={() => setShowStorage(true)}>
+            Files &amp; storage
+          </button>
+        </div>
         <input
           ref={fileInput}
           type="file"
@@ -349,6 +356,8 @@ export function Landing({ onOpen }: { onOpen: (id: string) => void }) {
           </div>
         </>
       )}
+
+      {showStorage && <StoragePanel onClose={() => setShowStorage(false)} />}
     </div>
   );
 }

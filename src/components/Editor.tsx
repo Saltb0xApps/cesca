@@ -41,6 +41,16 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
   };
   const makeDefault = () => saveSettings(format);
 
+  // Quick view zoom (separate from the per-essay text size), remembered globally.
+  const [zoom, setZoom] = useState(() => {
+    const z = parseFloat(localStorage.getItem("m.zoom") || "1");
+    return Number.isFinite(z) && z >= 0.7 && z <= 2 ? z : 1;
+  });
+  useEffect(() => localStorage.setItem("m.zoom", String(zoom)), [zoom]);
+  const zoomBy = (d: number) =>
+    setZoom((z) => Math.min(2, Math.max(0.7, Math.round((z + d) * 100) / 100)));
+  const resetZoom = () => setZoom(1);
+
   const loadedRef = useRef(false);
   const timer = useRef<number | null>(null);
 
@@ -115,6 +125,15 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
       } else if (k === "/") {
         e.preventDefault();
         setShowShortcuts((v) => !v);
+      } else if (k === "=" || k === "+") {
+        e.preventDefault();
+        zoomBy(0.1);
+      } else if (k === "-" || k === "_") {
+        e.preventDefault();
+        zoomBy(-0.1);
+      } else if (k === "0") {
+        e.preventDefault();
+        resetZoom();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -174,7 +193,10 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
   if (!doc) return <div className="editor-loading">Opening…</div>;
 
   return (
-    <div className={`editor mode-${mode}`}>
+    <div
+      className={`editor mode-${mode}`}
+      style={{ ["--zoom" as string]: String(zoom) }}
+    >
       <header className="editor-bar">
         <button className="ghost" onClick={handleBack}>
           ← Library
@@ -254,6 +276,14 @@ export function Editor({ id, onBack }: { id: string; onBack: () => void }) {
           >
             ⌘
           </button>
+
+          <div className="zoom" title="Zoom (⌘+ / ⌘− / ⌘0)">
+            <button onClick={() => zoomBy(-0.1)}>−</button>
+            <button className="zoom-val" onClick={resetZoom}>
+              {Math.round(zoom * 100)}%
+            </button>
+            <button onClick={() => zoomBy(0.1)}>+</button>
+          </div>
 
           {stats && <GoalRing today={stats.today} goal={stats.goal} />}
 

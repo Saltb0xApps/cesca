@@ -10,6 +10,7 @@
 
 import express from "express";
 import os from "node:os";
+import { spawn } from "node:child_process";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
@@ -17,22 +18,47 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
-// DATA_DIR is configurable so a cloud host can point it at a persistent volume.
-const DATA_DIR = process.env.DATA_DIR
+const DIST_DIR = path.join(ROOT, "dist");
+
+// Where your .md files live. Precedence: a folder you picked in the app
+// (~/.margins/config.json) > the DATA_DIR env var > the repo's data folder.
+// These are `let` so the app can change the storage folder at runtime.
+let DATA_DIR;
+let VERSIONS_DIR;
+let FOLDERS_FILE;
+let STATS_FILE;
+
+const CONFIG_DIR = path.join(os.homedir(), ".margins");
+const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
+const DEFAULT_DATA = process.env.DATA_DIR
   ? path.resolve(process.env.DATA_DIR)
   : path.join(ROOT, "data");
-const VERSIONS_DIR = path.join(DATA_DIR, "versions");
-const FOLDERS_FILE = path.join(DATA_DIR, "folders.json");
-const STATS_FILE = path.join(DATA_DIR, "stats.json");
-const DIST_DIR = path.join(ROOT, "dist");
+
+function readConfig() {
+  try {
+    return JSON.parse(fs.readFileSync(CONFIG_FILE, "utf8"));
+  } catch {
+    return {};
+  }
+}
+function writeConfig(cfg) {
+  fs.mkdirSync(CONFIG_DIR, { recursive: true });
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify(cfg, null, 2));
+}
+function applyDataDir(dir) {
+  DATA_DIR = path.resolve(dir);
+  VERSIONS_DIR = path.join(DATA_DIR, "versions");
+  FOLDERS_FILE = path.join(DATA_DIR, "folders.json");
+  STATS_FILE = path.join(DATA_DIR, "stats.json");
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.mkdirSync(VERSIONS_DIR, { recursive: true });
+}
+applyDataDir(readConfig().dataDir || DEFAULT_DATA);
 
 const PORT = process.env.PORT || 3001;
 const PASSWORD = process.env.APP_PASSWORD; // optional; protects everything when set
 const META_OPEN = "<!--margins";
 const META_CLOSE = "-->";
-
-fs.mkdirSync(DATA_DIR, { recursive: true });
-fs.mkdirSync(VERSIONS_DIR, { recursive: true });
 
 const app = express();
 
@@ -266,6 +292,65 @@ app.put("/api/stats", async (req, res) => {
   await writeStats(stats);
   const { streak, todayMet } = computeStreak(stats);
   res.json({ goal: stats.goal, today: stats.days[dayKey()] || 0, streak, todayMet });
+});
+
+/* ------------------------------ storage ---------------------------------- */
+// Let the user see and choose where their .md files are saved.
+
+app.get("/api/storage", (_req, res) => {
+  const home = os.homedir();
+  const options = [
+    { label: "Documents", path: path.join(home, "Documents", "Margins") },
+    { label: "Desktop", path: path.join(home, "Desktop", "Margins") },
+  ];
+  const iCloud = path.join(home, "Library", "Mobile Documents", "com~apple~CloudDocs");
+  if (fs.existsSync(iCloud)) {
+    options.push({ label: "iCloud Drive", path: path.join(iCloud, "Margins") });
+  }
+  res.json({ dataDir: DATA_DIR, home, options, platform: process.platform });
+});
+
+app.put("/api/storage", async (req, res) => {
+  let target = String(req.body?.dataDir || "").trim();
+  if (!target) return res.status(400).json({ error: "A folder path is required." });
+  if (target.startsWith("~")) target = path.join(os.homedir(), target.slice(1));
+  target = path.resolve(target);
+
+  if (target === DATA_DIR) return res.json({ dataDir: DATA_DIR });
+  if (target.startsWith(DATA_DIR + path.sep)) {
+    return res.status(400).json({ error: "Pick a folder outside the current one." });
+  }
+  try {
+    const old = DATA_DIR;
+    await fsp.mkdir(target, { recursive: true });
+    // Move everything from the old folder into the new one so nothing is lost.
+    for (const name of await fsp.readdir(old)) {
+      const from = path.join(old, name);
+      const to = path.join(target, name);
+      await fsp.cp(from, to, { recursive: true, force: true });
+      await fsp.rm(from, { recursive: true, force: true });
+    }
+    writeConfig({ ...readConfig(), dataDir: target });
+    applyDataDir(target);
+    res.json({ dataDir: DATA_DIR, moved: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post("/api/storage/reveal", (_req, res) => {
+  const cmd =
+    process.platform === "darwin"
+      ? "open"
+      : process.platform === "win32"
+      ? "explorer"
+      : "xdg-open";
+  try {
+    spawn(cmd, [DATA_DIR], { detached: true, stdio: "ignore" }).unref();
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 /* ------------------------------ folders ---------------------------------- */

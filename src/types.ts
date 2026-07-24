@@ -83,3 +83,10 @@ export interface Stats {
   todayMet: boolean;
   recent: { date: string; words: number }[];
 }
+
+export interface StorageInfo {
+  dataDir: string;
+  home: string;
+  options: { label: string; path: string }[];
+  platform: string;
+}

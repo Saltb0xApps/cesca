@@ -1,4 +1,11 @@
-import type { Doc, DocSummary, Folder, Stats, VersionMeta } from "./types";
+import type {
+  Doc,
+  DocSummary,
+  Folder,
+  Stats,
+  StorageInfo,
+  VersionMeta,
+} from "./types";
 
 const base = "/api";
 
@@ -67,4 +74,14 @@ export const api = {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ goal }),
     }).then(j<Stats>),
+
+  // where .md files are saved
+  getStorage: () => fetch(`${base}/storage`).then(j<StorageInfo>),
+  setStorage: (dataDir: string) =>
+    fetch(`${base}/storage`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ dataDir }),
+    }).then(j<{ dataDir: string; moved?: boolean }>),
+  revealStorage: () => fetch(`${base}/storage/reveal`, { method: "POST" }).then(j),
 };
