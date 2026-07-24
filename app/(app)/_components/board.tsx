@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useToast } from "./toast";
 
 interface Row {
   pageId: string;
@@ -21,13 +22,13 @@ interface PostsResponse {
 }
 
 const COLUMNS: Array<{ key: string; title: string; statuses: string[] }> = [
-  { key: "scheduled", title: "Scheduled & Ready", statuses: ["Ready to publish"] },
+  { key: "scheduled", title: "Scheduled & Ready", statuses: ["Ready to publish", "Draft"] },
   { key: "publishing", title: "Publishing", statuses: ["Publishing"] },
   { key: "published", title: "Published", statuses: ["Published"] },
   { key: "failed", title: "Failed", statuses: ["Failed"] },
 ];
 
-function parseUrls(text: string): Array<{ platform: string; url: string }> {
+function parseUrls(text: string) {
   return text
     .split("\n")
     .map((line) => {
@@ -65,11 +66,13 @@ function formatScheduled(iso: string | null): string {
 }
 
 export default function Board() {
+  const toast = useToast();
   const [data, setData] = useState<PostsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [accountFilter, setAccountFilter] = useState<string>("all");
+  const [publishing, setPublishing] = useState<Set<string>>(new Set());
 
   const refresh = useCallback(async () => {
     try {
@@ -111,22 +114,43 @@ export default function Board() {
     return out;
   }, [visibleRows]);
 
-  async function logout() {
-    await fetch("/api/logout", { method: "POST" });
-    window.location.href = "/login";
+  async function publishNow(row: Row) {
+    if (publishing.has(row.pageId)) return;
+    setPublishing((s) => new Set([...s, row.pageId]));
+    try {
+      const res = await fetch(
+        `/api/rows/${row.pageId}/publish?account=${encodeURIComponent(row.account)}`,
+        { method: "POST" },
+      );
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}));
+        toast(b.error || `HTTP ${res.status}`, "error");
+      } else {
+        toast("Published!", "success");
+      }
+      await refresh();
+    } catch (e) {
+      toast((e as Error).message, "error");
+    } finally {
+      setPublishing((s) => {
+        const n = new Set(s);
+        n.delete(row.pageId);
+        return n;
+      });
+    }
   }
 
   const accounts = data?.accounts || [];
   const showAccountFilter = accounts.length > 1;
 
   return (
-    <div className="app">
-      <header className="topbar">
-        <div className="brand">Cesca</div>
-        <div className="topbar-right">
+    <>
+      <div className="main-header">
+        <h1 className="page-title">Board</h1>
+        <div className="main-header-right">
           {showAccountFilter && (
             <select
-              className="select"
+              className="select-inline"
               value={accountFilter}
               onChange={(e) => setAccountFilter(e.target.value)}
             >
@@ -140,34 +164,33 @@ export default function Board() {
           )}
           {error && <span className="error-pill">{error}</span>}
           {lastUpdated && (
-            <span className="muted small">
-              updated {timeAgo(lastUpdated.toISOString())}
-            </span>
+            <span className="muted small">updated {timeAgo(lastUpdated.toISOString())}</span>
           )}
-          <button className="ghost" onClick={refresh}>
+          <button className="btn btn-ghost" onClick={refresh}>
             Refresh
           </button>
-          <button className="ghost" onClick={logout}>
-            Sign out
-          </button>
         </div>
-      </header>
+      </div>
 
-      {loading && !data ? (
-        <div className="loading">Loading…</div>
-      ) : (
-        <div className="board">
-          {COLUMNS.map((col) => (
-            <Column
-              key={col.key}
-              title={col.title}
-              rows={grouped[col.key]}
-              showAccount={showAccountFilter && accountFilter === "all"}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+      <div className="main-content">
+        {loading && !data ? (
+          <div className="empty">Loading…</div>
+        ) : (
+          <div className="board">
+            {COLUMNS.map((col) => (
+              <Column
+                key={col.key}
+                title={col.title}
+                rows={grouped[col.key]}
+                showAccount={showAccountFilter && accountFilter === "all"}
+                publishNow={publishNow}
+                publishing={publishing}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 
@@ -175,10 +198,14 @@ function Column({
   title,
   rows,
   showAccount,
+  publishNow,
+  publishing,
 }: {
   title: string;
   rows: Row[];
   showAccount: boolean;
+  publishNow: (r: Row) => void;
+  publishing: Set<string>;
 }) {
   return (
     <section className="column">
@@ -190,7 +217,13 @@ function Column({
           <div className="empty">—</div>
         ) : (
           rows.map((r) => (
-            <Card key={r.pageId} row={r} showAccount={showAccount} />
+            <Card
+              key={r.pageId}
+              row={r}
+              showAccount={showAccount}
+              publishNow={publishNow}
+              publishing={publishing.has(r.pageId)}
+            />
           ))
         )}
       </div>
@@ -198,10 +231,21 @@ function Column({
   );
 }
 
-function Card({ row, showAccount }: { row: Row; showAccount: boolean }) {
+function Card({
+  row,
+  showAccount,
+  publishNow,
+  publishing,
+}: {
+  row: Row;
+  showAccount: boolean;
+  publishNow: (r: Row) => void;
+  publishing: boolean;
+}) {
   const urls = parseUrls(row.publishedUrls);
+  const canPublishNow = row.status === "Ready to publish" || row.status === "Draft" || row.status === "Failed";
   return (
-    <article className="card">
+    <article className="post-card">
       {showAccount && <div className="account-tag">{row.account}</div>}
       <div className="card-title">{row.name || "(untitled)"}</div>
       <div className="chips">
@@ -211,7 +255,7 @@ function Card({ row, showAccount }: { row: Row; showAccount: boolean }) {
           </span>
         ))}
       </div>
-      {row.scheduledFor && row.status === "Ready to publish" && (
+      {row.scheduledFor && (row.status === "Ready to publish" || row.status === "Draft") && (
         <div className="meta">⏰ {formatScheduled(row.scheduledFor)}</div>
       )}
       {row.publishedAt && row.status === "Published" && (
@@ -230,6 +274,21 @@ function Card({ row, showAccount }: { row: Row; showAccount: boolean }) {
         </ul>
       )}
       {row.lastError && <div className="card-error">{row.lastError}</div>}
+      {canPublishNow && (
+        <div style={{ marginTop: "auto", display: "flex", justifyContent: "flex-end" }}>
+          <button
+            className="btn btn-primary"
+            style={{ fontSize: 12, padding: "6px 10px" }}
+            onClick={(e) => {
+              e.stopPropagation();
+              publishNow(row);
+            }}
+            disabled={publishing}
+          >
+            {publishing ? "Publishing…" : "Publish now"}
+          </button>
+        </div>
+      )}
     </article>
   );
 }

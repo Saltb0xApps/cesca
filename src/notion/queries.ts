@@ -60,6 +60,11 @@ function richText(p: any): string {
   return plainText(p?.rich_text || []);
 }
 
+export async function fetchOneRowAsReady(pageId: string): Promise<ReadyRow> {
+  const page = await notion.pages.retrieve({ page_id: pageId });
+  return mapRow(page as any);
+}
+
 function mapRow(page: any): ReadyRow {
   const p = page.properties;
   return {

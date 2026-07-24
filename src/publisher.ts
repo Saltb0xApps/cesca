@@ -123,7 +123,7 @@ function validateFor(
   }
 }
 
-async function publishRow(row: ReadyRow, account: Account) {
+export async function publishRow(row: ReadyRow, account: Account) {
   await markPublishing(row.pageId);
 
   const cache = new MediaCache();
