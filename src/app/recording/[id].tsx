@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 
+import { KindSelector } from '@/components/KindSelector';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { Screen } from '@/components/Screen';
 import { StatusPill } from '@/components/StatusPill';
@@ -19,6 +20,7 @@ import { formatDayTime, formatDuration, formatTime } from '@/lib/format';
 import { recordingExists, uriForRecording } from '@/lib/recordingFiles';
 import { useAppStore } from '@/lib/store';
 import { colors, radius, spacing, type } from '@/lib/theme';
+import { KIND_META } from '@/lib/types';
 import { processRecording } from '@/services/sync';
 
 export default function RecordingDetailScreen() {
@@ -27,6 +29,7 @@ export default function RecordingDetailScreen() {
   const entry = useAppStore((s) => s.recordings.find((r) => r.id === id));
   const setArchived = useAppStore((s) => s.setArchived);
   const deleteRecording = useAppStore((s) => s.deleteRecording);
+  const setKind = useAppStore((s) => s.setKind);
 
   const audioUri = useMemo(() => {
     if (!entry) return null;
@@ -85,11 +88,26 @@ export default function RecordingDetailScreen() {
           <Text style={styles.metaText}>{formatDuration(entry.durationMillis)}</Text>
         </View>
 
-        {entry.status === 'synced' && entry.syncedAt ? (
-          <Text style={styles.syncedNote}>
-            Added to the end of your Notion page at {formatTime(entry.syncedAt)}.
+        {entry.syncedAt ? (
+          // Already on a Notion page — the kind is a fact now, not a choice.
+          <Text style={styles.kindNote}>
+            {KIND_META[entry.kind].icon} {KIND_META[entry.kind].label} · added to
+            the end of your {entry.kind === 'knowledge' ? 'Knowledge' : 'Braindump'}{' '}
+            page at {formatTime(entry.syncedAt)}.
           </Text>
-        ) : null}
+        ) : (
+          <View style={styles.kindEdit}>
+            <KindSelector
+              value={entry.kind}
+              disabled={entry.status === 'transcribing' || entry.status === 'syncing'}
+              onChange={(kind) => {
+                if (kind === entry.kind) return;
+                setKind(entry.id, kind);
+                processRecording(entry.id).catch(() => {});
+              }}
+            />
+          </View>
+        )}
 
         {entry.error ? (
           <View style={styles.errorBox}>
@@ -99,7 +117,13 @@ export default function RecordingDetailScreen() {
 
         {retryable ? (
           <PrimaryButton
-            label={entry.transcript ? 'Retry Notion sync' : 'Retry transcription & sync'}
+            label={
+              entry.kind === 'local'
+                ? 'Retry transcription'
+                : entry.transcript
+                  ? 'Retry Notion sync'
+                  : 'Retry transcription & sync'
+            }
             onPress={() => processRecording(entry.id)}
             style={{ marginBottom: spacing.md }}
           />
@@ -215,7 +239,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   metaText: { color: colors.textFaint, fontSize: type.small, fontVariant: ['tabular-nums'] },
-  syncedNote: { color: colors.success, fontSize: type.small, marginBottom: spacing.sm },
+  kindNote: {
+    color: colors.textDim,
+    fontSize: type.small,
+    lineHeight: 19,
+    marginBottom: spacing.md,
+  },
+  kindEdit: { marginBottom: spacing.md },
   errorBox: {
     backgroundColor: 'rgba(229, 72, 77, 0.12)',
     borderColor: colors.danger,

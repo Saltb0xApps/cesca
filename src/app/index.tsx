@@ -104,6 +104,24 @@ export default function HomeScreen() {
                 <View style={styles.recordDot} />
                 <Text style={styles.recordBtnText}>Record</Text>
               </Pressable>
+              <View style={styles.altRow}>
+                <Pressable
+                  onPress={() =>
+                    router.push({ pathname: '/record', params: { kind: 'knowledge' } })
+                  }
+                  style={({ pressed }) => [styles.altBtn, pressed && { opacity: 0.7 }]}
+                >
+                  <Text style={styles.altText}>📚 Knowledge note</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() =>
+                    router.push({ pathname: '/record', params: { kind: 'local' } })
+                  }
+                  style={({ pressed }) => [styles.altBtn, pressed && { opacity: 0.7 }]}
+                >
+                  <Text style={styles.altText}>📱 Just for me</Text>
+                </Pressable>
+              </View>
             </View>
 
             {active.length > 0 && <Text style={styles.sectionLabel}>Recordings</Text>}
@@ -205,6 +223,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   recordBtnText: { color: '#FFFFFF', fontSize: type.body, fontWeight: '700' },
+  altRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm + 2 },
+  altBtn: {
+    flex: 1,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceAlt,
+    paddingVertical: 10,
+  },
+  altText: { color: colors.textDim, fontSize: type.small, fontWeight: '600' },
   sectionLabel: {
     color: colors.textFaint,
     fontSize: type.tiny,

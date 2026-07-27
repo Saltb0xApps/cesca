@@ -101,6 +101,28 @@ describe('buildTranscriptBlocks', () => {
     });
     expect(blocks.map((b) => b.type)).toEqual(['heading_3', 'paragraph']);
   });
+
+  it('uses the mic icon by default and a custom icon when given', () => {
+    const heading = (blocks: ReturnType<typeof buildTranscriptBlocks>) =>
+      (blocks[0] as any).heading_3.rich_text[0].text.content as string;
+
+    const dump = buildTranscriptBlocks({
+      dateLine: 'Sun, Jul 27',
+      durationLine: null,
+      question: null,
+      transcript: 'x',
+    });
+    expect(heading(dump).startsWith('🎙 ')).toBe(true);
+
+    const knowledge = buildTranscriptBlocks({
+      dateLine: 'Sun, Jul 27',
+      durationLine: null,
+      question: null,
+      transcript: 'x',
+      icon: '📚',
+    });
+    expect(heading(knowledge).startsWith('📚 ')).toBe(true);
+  });
 });
 
 describe('batchBlocks', () => {

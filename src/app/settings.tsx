@@ -36,6 +36,7 @@ export default function SettingsScreen() {
   const [notionToken, setNotionToken] = useState('');
   const [openaiKey, setOpenaiKey] = useState('');
   const [pageInput, setPageInput] = useState(settings.notionPageInput);
+  const [knowledgeInput, setKnowledgeInput] = useState(settings.knowledgePageInput);
   const [reminderEnabled, setReminderEnabled] = useState(settings.reminderEnabled);
   const [timeText, setTimeText] = useState(
     formatHHMM(settings.reminderHour, settings.reminderMinute),
@@ -52,22 +53,32 @@ export default function SettingsScreen() {
   }, []);
 
   const parsedPageId = parseNotionPageId(pageInput);
+  const parsedKnowledgeId = parseNotionPageId(knowledgeInput);
 
   const testConnection = async () => {
     if (!notionToken.trim() || !parsedPageId) {
       Alert.alert(
         'Missing details',
-        'Enter the integration token and a valid page link first.',
+        'Enter the integration token and a valid Braindump page link first.',
       );
       return;
     }
     setTesting(true);
     try {
-      const { pageTitle } = await testNotionConnection({
+      const lines: string[] = [];
+      const braindump = await testNotionConnection({
         token: notionToken.trim(),
         pageId: parsedPageId,
       });
-      Alert.alert('Connected ✓', `Transcripts will be appended to “${pageTitle}”.`);
+      lines.push(`Braindumps → “${braindump.pageTitle}”`);
+      if (parsedKnowledgeId) {
+        const knowledge = await testNotionConnection({
+          token: notionToken.trim(),
+          pageId: parsedKnowledgeId,
+        });
+        lines.push(`Knowledge → “${knowledge.pageTitle}”`);
+      }
+      Alert.alert('Connected ✓', lines.join('\n'));
     } catch (e) {
       Alert.alert('Connection failed', e instanceof Error ? e.message : String(e));
     } finally {
@@ -83,7 +94,14 @@ export default function SettingsScreen() {
     }
     if (pageInput.trim() && !parsedPageId) {
       Alert.alert(
-        'Notion page link looks off',
+        'Braindump page link looks off',
+        'Paste the full page URL from Share → Copy link (or the 32-character page ID).',
+      );
+      return;
+    }
+    if (knowledgeInput.trim() && !parsedKnowledgeId) {
+      Alert.alert(
+        'Knowledge page link looks off',
         'Paste the full page URL from Share → Copy link (or the 32-character page ID).',
       );
       return;
@@ -99,6 +117,8 @@ export default function SettingsScreen() {
       updateSettings({
         notionPageInput: pageInput.trim(),
         notionPageId: parsedPageId,
+        knowledgePageInput: knowledgeInput.trim(),
+        knowledgePageId: parsedKnowledgeId,
         reminderEnabled,
         reminderHour: time.hour,
         reminderMinute: time.minute,
@@ -163,7 +183,7 @@ export default function SettingsScreen() {
             secureTextEntry
           />
           <Field
-            label="Page link"
+            label="Braindump page link"
             value={pageInput}
             onChangeText={setPageInput}
             placeholder="https://www.notion.so/Brain-Time-…"
@@ -172,7 +192,20 @@ export default function SettingsScreen() {
                 ? parsedPageId
                   ? `Page ID: ${parsedPageId}`
                   : 'No page ID found in this link yet'
-                : 'Every transcript is appended to the very end of this page.'
+                : 'Nightly braindumps are appended to the very end of this page.'
+            }
+          />
+          <Field
+            label="Knowledge page link (optional)"
+            value={knowledgeInput}
+            onChangeText={setKnowledgeInput}
+            placeholder="https://www.notion.so/Knowledge-…"
+            hint={
+              knowledgeInput.trim()
+                ? parsedKnowledgeId
+                  ? `Page ID: ${parsedKnowledgeId}`
+                  : 'No page ID found in this link yet'
+                : 'Recordings marked 📚 Knowledge land here. Remember to connect your integration to this page too.'
             }
           />
           <PrimaryButton

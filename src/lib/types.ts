@@ -14,11 +14,29 @@ export type RecordingStatus =
   | 'pending' // saved on disk, waiting to be processed
   | 'transcribing' // uploading audio to OpenAI
   | 'syncing' // appending transcript to the Notion page
-  | 'synced' // done — transcript is at the end of the Notion page
+  | 'synced' // done — pipeline complete (for 'local' entries: transcribed, kept on phone)
   | 'error'; // something failed; entry keeps the error message
+
+/**
+ * What a recording is *for*, chosen on the record screen:
+ * - `braindump`  → nightly reflection, appended to the braindump page
+ * - `knowledge`  → a resource worth keeping, appended to the knowledge page
+ * - `local`      → transcribed for reading, but never leaves the phone
+ */
+export type RecordingKind = 'braindump' | 'knowledge' | 'local';
+
+export const KIND_META: Record<
+  RecordingKind,
+  { icon: string; label: string; notionIcon: string }
+> = {
+  braindump: { icon: '🌙', label: 'Braindump', notionIcon: '🎙' },
+  knowledge: { icon: '📚', label: 'Knowledge', notionIcon: '📚' },
+  local: { icon: '📱', label: 'Just for me', notionIcon: '🎙' },
+};
 
 export interface RecordingEntry {
   id: string;
+  kind: RecordingKind;
   /** ISO timestamp of when the recording was made. */
   createdAt: string;
   durationMillis: number;
@@ -43,6 +61,9 @@ export interface AppSettings {
   notionPageInput: string;
   /** Parsed + normalized page ID (dashed UUID), or null if not set/invalid. */
   notionPageId: string | null;
+  /** Same pair for the knowledge page (optional second destination). */
+  knowledgePageInput: string;
+  knowledgePageId: string | null;
   reminderEnabled: boolean;
   /** Local time of the nightly reminder. */
   reminderHour: number;
@@ -62,6 +83,8 @@ export const DEFAULT_QUESTIONS: string[] = [
 export const DEFAULT_SETTINGS: AppSettings = {
   notionPageInput: '',
   notionPageId: null,
+  knowledgePageInput: '',
+  knowledgePageId: null,
   reminderEnabled: true,
   reminderHour: 21,
   reminderMinute: 30,

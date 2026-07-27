@@ -8,6 +8,14 @@ the very end of one specific Notion page. That's it.
 - **Transcribe** — audio goes to OpenAI (`gpt-4o-mini-transcribe`) and comes back as text.
 - **Sync** — the transcript (with date, duration, and the night's question) is appended
   to the end of your chosen Notion page. Automatically, immediately.
+- **Three kinds of recordings**, picked with one tap on the record screen (and
+  changeable later, until a note has landed in Notion):
+  - 🌙 **Braindump** (default) — the nightly ritual, appended to your Braindump page
+    with that night's question.
+  - 📚 **Knowledge** — a resource worth keeping, appended to a second Notion page
+    (set the "Knowledge page link" in Settings).
+  - 📱 **Just for me** — transcribed so you can read/share it, but never synced
+    anywhere; it stays on the phone.
 - **Nightly reminder** — a local notification at your chosen time, rotating through
   your own list of questions. Tapping it drops you straight into recording.
 - **List / archive / delete** — every recording shows its date, status, and transcript.
@@ -27,10 +35,11 @@ the phone talks to Notion and OpenAI directly, and your keys never leave the dev
    **New integration** (Internal). Name it e.g. `Cesca`. Copy the **Internal
    Integration Secret** (`ntn_…`).
 2. In Notion, open (or create) the page that should collect your transcripts —
-   e.g. a page called **Brain Time**.
-3. On that page: **⋯ menu → Connections → add your `Cesca` integration.**
+   e.g. a page called **Brain Time**. If you also want the 📚 Knowledge flow,
+   create/pick a second page (e.g. **Knowledge**).
+3. On each page: **⋯ menu → Connections → add your `Cesca` integration.**
    (Without this step the API returns "page not found".)
-4. Copy the page link (**Share → Copy link**).
+4. Copy the page link(s) (**Share → Copy link**).
 
 ### OpenAI (≈1 minute)
 

@@ -11,6 +11,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Animated, Easing, StyleSheet, Text, View } from 'react-native';
 
+import { KindSelector } from '@/components/KindSelector';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { Screen } from '@/components/Screen';
 import { formatDuration } from '@/lib/format';
@@ -19,12 +20,12 @@ import { persistRecording } from '@/lib/recordingFiles';
 import { VOICE_RECORDING_OPTIONS } from '@/lib/recordingPreset';
 import { useAppStore } from '@/lib/store';
 import { colors, radius, spacing, type } from '@/lib/theme';
-import { RecordingEntry } from '@/lib/types';
+import { RecordingEntry, RecordingKind } from '@/lib/types';
 import { processRecording } from '@/services/sync';
 
 export default function RecordScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ question?: string }>();
+  const params = useLocalSearchParams<{ question?: string; kind?: string }>();
   const settings = useAppStore((s) => s.settings);
   const addRecording = useAppStore((s) => s.addRecording);
 
@@ -34,6 +35,12 @@ export default function RecordScreen() {
     typeof params.question === 'string' && params.question.trim()
       ? params.question
       : questionForDate(new Date(), settings.questions);
+
+  const [kind, setKind] = useState<RecordingKind>(
+    params.kind === 'knowledge' || params.kind === 'local'
+      ? params.kind
+      : 'braindump',
+  );
 
   const recorder = useAudioRecorder(VOICE_RECORDING_OPTIONS);
   const recorderState = useAudioRecorderState(recorder, 250);
@@ -86,10 +93,12 @@ export default function RecordScreen() {
       const audioFile = await persistRecording(tempUri, id);
       const entry: RecordingEntry = {
         id,
+        kind,
         createdAt: new Date().toISOString(),
         durationMillis,
         audioFile,
-        question,
+        // The nightly question only belongs to braindumps.
+        question: kind === 'braindump' ? question : null,
         transcript: null,
         status: 'pending',
         error: null,
@@ -137,8 +146,33 @@ export default function RecordScreen() {
     <Screen>
       <Stack.Screen options={{ gestureEnabled: false }} />
       <View style={styles.body}>
-        <Text style={styles.label}>Tonight’s question</Text>
-        <Text style={styles.question}>{question}</Text>
+        {kind === 'braindump' ? (
+          <>
+            <Text style={styles.label}>Tonight’s question</Text>
+            <Text style={styles.question}>{question}</Text>
+          </>
+        ) : (
+          <>
+            <Text style={styles.label}>
+              {kind === 'knowledge' ? 'Knowledge note' : 'Just for you'}
+            </Text>
+            <Text style={styles.question}>
+              {kind === 'knowledge'
+                ? 'Capture something worth keeping.'
+                : 'This one stays on your phone.'}
+            </Text>
+          </>
+        )}
+        <View style={styles.kindWrap}>
+          <KindSelector value={kind} onChange={setKind} disabled={phase === 'saving'} />
+          <Text style={styles.kindHint}>
+            {kind === 'braindump'
+              ? 'Appends to your Braindump page in Notion.'
+              : kind === 'knowledge'
+                ? 'Appends to your Knowledge page in Notion.'
+                : 'Transcribed for reading — never leaves the phone.'}
+          </Text>
+        </View>
 
         <View style={styles.center}>
           <PulsingDot active={phase === 'recording'} />
@@ -216,6 +250,13 @@ const styles = StyleSheet.create({
     fontSize: type.title - 2,
     fontWeight: '700',
     lineHeight: 34,
+  },
+  kindWrap: { marginTop: spacing.md },
+  kindHint: {
+    color: colors.textFaint,
+    fontSize: type.tiny,
+    marginTop: 6,
+    textAlign: 'center',
   },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   pulseWrap: {

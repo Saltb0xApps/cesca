@@ -4,7 +4,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { StatusPill } from '@/components/StatusPill';
 import { formatDayTime, formatDuration } from '@/lib/format';
 import { colors, radius, spacing, type } from '@/lib/theme';
-import { RecordingEntry } from '@/lib/types';
+import { KIND_META, RecordingEntry } from '@/lib/types';
 
 export function RecordingRow({
   entry,
@@ -34,7 +34,9 @@ export function RecordingRow({
       style={({ pressed }) => [styles.card, pressed && { opacity: 0.8 }]}
     >
       <View style={styles.topRow}>
-        <Text style={styles.date}>{formatDayTime(entry.createdAt)}</Text>
+        <Text style={styles.date}>
+          {KIND_META[entry.kind].icon}  {formatDayTime(entry.createdAt)}
+        </Text>
         <Text style={styles.duration}>{formatDuration(entry.durationMillis)}</Text>
       </View>
 

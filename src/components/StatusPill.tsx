@@ -20,7 +20,9 @@ export function describeStatus(entry: RecordingEntry): Descriptor {
     case 'syncing':
       return { label: 'Syncing to Notion', color: colors.accent, busy: true };
     case 'synced':
-      return { label: 'In Notion ✓', color: colors.success };
+      return entry.kind === 'local'
+        ? { label: 'On phone ✓', color: colors.success }
+        : { label: 'In Notion ✓', color: colors.success };
     case 'error':
       return { label: 'Needs attention', color: colors.danger };
   }

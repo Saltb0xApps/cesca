@@ -91,6 +91,8 @@ export interface TranscriptBlockInput {
   durationLine: string | null;
   question: string | null;
   transcript: string;
+  /** Emoji prefix for the heading; defaults to the mic. */
+  icon?: string;
 }
 
 /**
@@ -101,9 +103,10 @@ export interface TranscriptBlockInput {
 export function buildTranscriptBlocks(input: TranscriptBlockInput): NotionBlock[] {
   const blocks: NotionBlock[] = [];
 
+  const icon = input.icon ?? '🎙';
   const headingText = input.durationLine
-    ? `🎙 ${input.dateLine} · ${input.durationLine}`
-    : `🎙 ${input.dateLine}`;
+    ? `${icon} ${input.dateLine} · ${input.durationLine}`
+    : `${icon} ${input.dateLine}`;
 
   blocks.push({
     object: 'block',

@@ -1,8 +1,11 @@
 # Cesca — agent notes
 
-Nightly voice-note app: record → transcribe via OpenAI → append to the end of one
-Notion page. Expo SDK 57, React Native 0.86, TypeScript strict, expo-router with
-`src/app` routes. No backend; Notion/OpenAI are called directly from the device.
+Nightly voice-note app: record → transcribe via OpenAI → append to the end of a
+Notion page. Recordings have a kind (`braindump` → braindump page, `knowledge` →
+knowledge page, `local` → transcribed but never synced); kind is user-editable
+until `syncedAt` is set. Expo SDK 57, React Native 0.86, TypeScript strict,
+expo-router with `src/app` routes. No backend; Notion/OpenAI are called directly
+from the device.
 
 Expo's APIs change between SDK majors — check the installed typings in
 `node_modules/<pkg>/build/*.d.ts` (or https://docs.expo.dev/versions/v57.0.0/)

@@ -11,6 +11,7 @@ import {
   AppSettings,
   DEFAULT_SETTINGS,
   RecordingEntry,
+  RecordingKind,
   RecordingStatus,
 } from '@/lib/types';
 
@@ -24,6 +25,11 @@ interface AppState {
   /** Removes the entry AND its audio file on disk. The Notion copy is untouched. */
   deleteRecording: (id: string) => void;
   setArchived: (id: string, archived: boolean) => void;
+  /**
+   * Re-classify a recording. Allowed until it has landed on a Notion page
+   * (syncedAt set); re-queues the pipeline so the entry reaches its new home.
+   */
+  setKind: (id: string, kind: RecordingKind) => void;
   updateSettings: (patch: Partial<AppSettings>) => void;
 }
 
@@ -57,12 +63,35 @@ export const useAppStore = create<AppState>()(
           ),
         })),
 
+      setKind: (id, kind) =>
+        set((s) => ({
+          recordings: s.recordings.map((r) =>
+            r.id === id && !r.syncedAt
+              ? { ...r, kind, status: 'pending', error: null }
+              : r,
+          ),
+        })),
+
       updateSettings: (patch) =>
         set((s) => ({ settings: { ...s.settings, ...patch } })),
     }),
     {
       name: 'cesca-store',
-      version: 1,
+      version: 2,
+      migrate: (persisted, version) => {
+        const state = persisted as {
+          recordings?: (Omit<RecordingEntry, 'kind'> & { kind?: RecordingKind })[];
+          settings?: Partial<AppSettings>;
+        };
+        if (version < 2 && state.recordings) {
+          // v1 predates recording kinds — everything was a braindump.
+          state.recordings = state.recordings.map((r) => ({
+            ...r,
+            kind: r.kind ?? 'braindump',
+          }));
+        }
+        return state;
+      },
       // AsyncStorage needs `window` on web; fall back to a no-op store when
       // rendered in Node (e.g. static export) so hydration can't crash.
       storage: createJSONStorage(() =>

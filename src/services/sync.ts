@@ -7,6 +7,7 @@ import { formatDayTime, formatDuration } from '@/lib/format';
 import { loadSecrets } from '@/lib/secrets';
 import { pendingRecordingIds, useAppStore } from '@/lib/store';
 import { recordingExists, uriForRecording } from '@/lib/recordingFiles';
+import { KIND_META } from '@/lib/types';
 import { appendTranscriptToNotion } from '@/services/notion';
 import { transcribeAudio } from '@/services/transcription';
 
@@ -56,21 +57,37 @@ async function runPipeline(id: string): Promise<void> {
       updateRecording(id, { transcript });
     }
 
-    // Step 2 — append to the very end of the Notion page.
+    // "Just for me" recordings stop here — transcribed, never synced.
+    if (entry.kind === 'local') {
+      updateRecording(id, { status: 'synced', error: null });
+      return;
+    }
+
+    // Step 2 — append to the very end of the right Notion page.
     const { settings } = useAppStore.getState();
-    if (!secrets.notionToken || !settings.notionPageId) {
+    if (!secrets.notionToken) {
       throw new Error('Connect Notion in Settings to sync this transcript.');
+    }
+    const pageId =
+      entry.kind === 'knowledge' ? settings.knowledgePageId : settings.notionPageId;
+    if (!pageId) {
+      throw new Error(
+        entry.kind === 'knowledge'
+          ? 'Add a Knowledge page link in Settings to sync knowledge notes.'
+          : 'Add your Braindump page link in Settings to sync this transcript.',
+      );
     }
     updateRecording(id, { status: 'syncing', error: null });
     await appendTranscriptToNotion({
       token: secrets.notionToken,
-      pageId: settings.notionPageId,
+      pageId,
       input: {
         dateLine: formatDayTime(entry.createdAt),
         durationLine:
           entry.durationMillis > 0 ? formatDuration(entry.durationMillis) : null,
         question: entry.question,
         transcript,
+        icon: KIND_META[entry.kind].notionIcon,
       },
     });
     updateRecording(id, {
