@@ -1,9 +1,13 @@
 # 🦴 Pawmodoro — the Dachshund Pomodoro
 
-A cozy pomodoro timer starring **Noodle the dachshund**. While you focus, Noodle
-slowly s-t-r-e-t-c-h-e-s toward a bone at the end of the yard — when the session
-ends, woof!, bone earned, and Noodle naps through your break (and un-stretches
-while resting, obviously).
+A cozy **pixel-art** pomodoro timer starring **Noodle the dachshund**. While
+you focus, Noodle slowly s-t-r-e-t-c-h-e-s toward a bone at the end of the
+yard — one chunky pixel at a time. When the session ends, woof!, bone earned,
+and Noodle naps through your break (un-stretching while he rests, obviously).
+
+Everything on screen is rendered on a pixel grid: the sprite, the 5×7 pixel
+font, the blocky buttons with hard shadows, the checkerboard ground. No font
+files, no images — it's all generated SVG rects.
 
 It's a **Progressive Web App**: no app store, no build step, no dependencies.
 You open it in your phone's browser once, tap *Add to Home Screen*, and it
@@ -15,11 +19,12 @@ behaves like a native app — full screen, its own icon, works offline.
 
 ## Features
 
-- 🐶 Noodle stretches with your progress and naps on breaks (Zzz included)
+- 🐶 Pixel-sprite Noodle stretches with your progress (frame-based tail wag,
+  trot, blinks) and naps on breaks — Zzz included
 - 🦴 Earn a bone per finished focus session — 4 bones triggers a long break
 - ⏱️ Timestamp-based timer: stays accurate when your phone locks or the app sleeps
 - 🔁 Auto-start breaks/focus, configurable durations, long-break cadence
-- 🔊 Synthesized *woof* + chime (no audio files), vibration on phones
+- 🔊 Synthesized *woof* + chiptune chime (no audio files), vibration on phones
 - 🔔 Optional notifications when a session ends in the background
 - 📴 Works offline after first load (service worker cache)
 - 🌙 Automatic dark mode, respects reduced-motion
@@ -68,12 +73,13 @@ Everything is hand-rolled vanilla HTML/CSS/JS:
 
 ```
 pawmodoro/
-├── index.html          # markup + the inline SVG dachshund
-├── style.css           # theme, layout, dog animations (wag/trot/blink/Zzz)
-├── app.js              # timer state machine, audio, notifications, wake lock
+├── index.html          # markup + the pixel scene SVG
+├── style.css           # blocky retro chrome, dark mode, stepped animations
+├── pixel.js            # 5x7 pixel font, sprite maps, and the Noodle renderer
+├── app.js              # timer state machine, frames, audio, notifications
 ├── sw.js               # offline cache
 ├── manifest.webmanifest
-├── icons/              # generated app icons
+├── icons/              # generated pixel-art app icons
 └── tools/make_icons.py # regenerates icons (pure Python, no deps)
 ```
 

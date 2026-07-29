@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Pawmodoro — Dachshund Pomodoro</title>
-  <meta name="description" content="A cozy pomodoro timer where Noodle the dachshund stretches toward a bone while you focus.">
+  <meta name="description" content="A cozy pixel-art pomodoro timer where Noodle the dachshund stretches toward a bone while you focus.">
   <meta name="theme-color" content="#FBF4E8" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#221A13" media="(prefers-color-scheme: dark)">
   <link rel="manifest" href="manifest.webmanifest">
@@ -21,11 +21,11 @@
   <main class="app">
     <header class="top">
       <h1 class="brand">
-        <svg class="brand-bone" viewBox="0 0 64 64" aria-hidden="true"><g fill="currentColor"><circle cx="15" cy="23" r="9"/><circle cx="15" cy="41" r="9"/><circle cx="49" cy="23" r="9"/><circle cx="49" cy="41" r="9"/><rect x="13" y="24" width="38" height="16" rx="8"/></g></svg>
-        Pawmodoro
+        <span class="brand-bone" aria-hidden="true"></span>
+        <span id="brandText" class="brand-text">Pawmodoro</span>
       </h1>
       <button id="settingsBtn" class="icon-btn" aria-label="Settings">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M10.3 4.2a1.8 1.8 0 0 1 3.4 0l.2.8a1.8 1.8 0 0 0 2.6 1l.7-.4a1.8 1.8 0 0 1 2.4 2.4l-.4.7a1.8 1.8 0 0 0 1 2.6l.8.2a1.8 1.8 0 0 1 0 3.4l-.8.2a1.8 1.8 0 0 0-1 2.6l.4.7a1.8 1.8 0 0 1-2.4 2.4l-.7-.4a1.8 1.8 0 0 0-2.6 1l-.2.8a1.8 1.8 0 0 1-3.4 0l-.2-.8a1.8 1.8 0 0 0-2.6-1l-.7.4a1.8 1.8 0 0 1-2.4-2.4l.4-.7a1.8 1.8 0 0 0-1-2.6l-.8-.2a1.8 1.8 0 0 1 0-3.4l.8-.2a1.8 1.8 0 0 0 1-2.6l-.4-.7a1.8 1.8 0 0 1 2.4-2.4l.7.4a1.8 1.8 0 0 0 2.6-1z"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        <span class="pix-icon" data-icon="gear" aria-hidden="true"></span>
       </button>
     </header>
 
@@ -40,63 +40,18 @@
 
     <div class="scene" id="scene">
       <div class="bubble" id="bubble" hidden>Woof!</div>
-      <svg id="dogSvg" viewBox="0 0 460 200" role="img" aria-label="Noodle the dachshund">
-        <!-- ground -->
-        <line class="ground" x1="16" y1="172" x2="444" y2="172"/>
-
-        <!-- bone reward at the end of the track -->
-        <g id="boneTarget" class="bone-target" transform="translate(424,158)">
-          <g class="bone-shape">
-            <circle cx="-14" cy="-5" r="6"/>
-            <circle cx="-14" cy="5" r="6"/>
-            <circle cx="14" cy="-5" r="6"/>
-            <circle cx="14" cy="5" r="6"/>
-            <rect x="-15" y="-5" width="30" height="10" rx="5"/>
-          </g>
-        </g>
-
-        <g id="dog">
-          <!-- tail (pivots at hip) -->
-          <path id="tail" d="M78 112 Q56 100 48 76" fill="none" stroke-linecap="round" stroke-width="11"/>
-
-          <!-- hind legs -->
-          <g class="legs" id="hindLegs">
-            <rect x="66" y="134" width="15" height="38" rx="7.5"/>
-            <rect x="94" y="134" width="15" height="38" rx="7.5"/>
-          </g>
-
-          <!-- the famous stretchy body -->
-          <rect id="body" x="58" y="96" width="132" height="52" rx="26"/>
-
-          <!-- everything forward of the body's front end slides right as time passes -->
-          <g id="front">
-            <g class="legs" id="frontLegs">
-              <rect x="144" y="134" width="15" height="38" rx="7.5"/>
-              <rect x="170" y="134" width="15" height="38" rx="7.5"/>
-            </g>
-            <g id="headG">
-              <path id="neck" d="M168 118 L192 90" stroke-linecap="round" stroke-width="44" fill="none"/>
-              <circle id="head" cx="200" cy="72" r="26"/>
-              <path id="snout" d="M216 76 L246 78" stroke-linecap="round" stroke-width="24" fill="none"/>
-              <circle id="nose" cx="252" cy="77" r="8.5"/>
-              <ellipse id="ear" cx="189" cy="87" rx="12.5" ry="24"/>
-              <g id="collar">
-                <rect x="170" y="90" width="11" height="40" rx="5.5" transform="rotate(-48 176 100)"/>
-                <circle id="tag" cx="186" cy="115" r="4.5"/>
-              </g>
-              <g id="eyeOpen">
-                <circle id="eye" cx="207" cy="63" r="4.6"/>
-                <circle id="glint" cx="208.6" cy="61.4" r="1.5"/>
-              </g>
-              <path id="eyeClosed" d="M200 63 q8 7 16 1" fill="none" stroke-width="3" stroke-linecap="round"/>
-              <g id="zzz" aria-hidden="true">
-                <text x="228" y="42" class="z z1">z</text>
-                <text x="244" y="28" class="z z2">z</text>
-                <text x="262" y="16" class="z z3">z</text>
-              </g>
-            </g>
-          </g>
-        </g>
+      <svg id="dogSvg" viewBox="0 0 92 34" shape-rendering="crispEdges" role="img" aria-label="Noodle the pixel dachshund">
+        <defs>
+          <pattern id="checker" width="2" height="2" patternUnits="userSpaceOnUse">
+            <rect width="1" height="1" class="gA"/>
+            <rect x="1" y="1" width="1" height="1" class="gA"/>
+            <rect x="1" width="1" height="1" class="gB"/>
+            <rect y="1" width="1" height="1" class="gB"/>
+          </pattern>
+        </defs>
+        <rect class="groundStrip" x="1" y="31" width="90" height="2" fill="url(#checker)"/>
+        <g id="boneTarget" class="bone-target"></g>
+        <g id="dog"></g>
       </svg>
     </div>
 
@@ -104,11 +59,11 @@
 
     <div class="controls">
       <button id="resetBtn" class="icon-btn big" aria-label="Reset timer">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 10a8 8 0 1 1 -.6 4.2M4 4v6h6"/></svg>
+        <span class="pix-icon" data-icon="reset" aria-hidden="true"></span>
       </button>
       <button id="startBtn" class="primary">Start</button>
       <button id="skipBtn" class="icon-btn big" aria-label="Skip to next phase">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 5l9 7-9 7zM18 5v14"/></svg>
+        <span class="pix-icon" data-icon="skip" aria-hidden="true"></span>
       </button>
     </div>
 
@@ -118,7 +73,7 @@
 
   <dialog id="settingsDlg">
     <form method="dialog" id="settingsForm">
-      <h2>Settings</h2>
+      <h2 id="settingsTitle">Settings</h2>
       <div class="field"><label for="setFocus">Focus minutes</label><input id="setFocus" type="number" min="1" max="180" inputmode="numeric"></div>
       <div class="field"><label for="setShort">Short break</label><input id="setShort" type="number" min="1" max="60" inputmode="numeric"></div>
       <div class="field"><label for="setLong">Long break</label><input id="setLong" type="number" min="1" max="90" inputmode="numeric"></div>
@@ -132,6 +87,7 @@
     </form>
   </dialog>
 
+  <script src="pixel.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

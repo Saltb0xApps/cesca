@@ -1,97 +1,79 @@
 #!/usr/bin/env python3
-"""Generate Pawmodoro PNG icons with no image-library dependencies.
+"""Generate Pawmodoro pixel-art PNG icons with no image-library dependencies.
 
-Renders a flat dachshund silhouette with signed-distance functions and writes
+Rasterises a hand-drawn sprite grid with nearest-neighbour scaling and writes
 PNGs by hand (zlib + struct). Run from anywhere:
 
     python3 tools/make_icons.py
 """
-import math
 import struct
 import zlib
 from pathlib import Path
 
 OUT = Path(__file__).resolve().parent.parent / "icons"
 
-CREAM = (0xFB, 0xF1, 0xE1)
-BROWN = (0x8E, 0x4E, 0x22)
-EAR = (0x6B, 0x39, 0x15)
-DARK = (0x3A, 0x25, 0x17)
-TERRA = (0xC9, 0x6F, 0x3B)
+PALETTE = {
+    ".": (0xFB, 0xF1, 0xE1),  # cream background
+    "B": (0x8E, 0x4E, 0x22),  # body brown
+    "D": (0x6B, 0x39, 0x15),  # dark brown (ear, tail, far legs)
+    "N": (0x3A, 0x25, 0x17),  # nose / eye
+    "T": (0xD8, 0xA0, 0x5E),  # tan paws
+    "C": (0xC9, 0x6F, 0x3B),  # terracotta (bone, collar)
+    "G": (0xE8, 0xB0, 0x4B),  # gold tag
+    "W": (0xFF, 0xF8, 0xEC),  # eye glint
+}
+
+# 26x26 sprite: compact pixel Noodle + a bone to dream about.
+SPRITE = [
+    "..........................",  # 0
+    "..........................",  # 1
+    "...CC....CC...............",  # 2
+    "...CCCCCCCC...............",  # 3
+    "...CCCCCCCC...............",  # 4
+    "...CC....CC...............",  # 5
+    "..........................",  # 6
+    "..........................",  # 7
+    "..............BBBBBBBB....",  # 8
+    ".............DDDBBBBBB....",  # 9
+    ".............DDDBBBBBB....",  # 10
+    ".............DDDBBNWBB....",  # 11
+    ".............DDDBBNNBBBBNN",  # 12
+    ".............DDDBBBBBBBBNN",  # 13
+    "DD...........DDDBBBBBB....",  # 14
+    ".DD...........BBBBBB......",  # 15
+    "..DD........CCCCCCCC......",  # 16
+    "..BBBBBBBBBBBBBBGBBB......",  # 17
+    "..BBBBBBBBBBBBBBBBBB......",  # 18
+    "..BBBBBBBBBBBBBBBBBB......",  # 19
+    "..BBBBBBBBBBBBBBBBBB......",  # 20
+    "...BBBBBBBBBBBBBBBB.......",  # 21
+    "....BBB.DDD..BBB..DDD.....",  # 22
+    "....BBB.DDD..BBB..DDD.....",  # 23
+    "....BBB.DDD..BBB..DDD.....",  # 24
+    "....TTTT.DDD.TTTT.DDD.....",  # 25
+]
+GRID = len(SPRITE)
 
 
-def clamp(v, lo, hi):
-    return lo if v < lo else hi if v > hi else v
-
-
-def sd_circle(px, py, cx, cy, r):
-    return math.hypot(px - cx, py - cy) - r
-
-
-def sd_seg(px, py, ax, ay, bx, by, r):
-    vx, vy = bx - ax, by - ay
-    t = clamp(((px - ax) * vx + (py - ay) * vy) / (vx * vx + vy * vy), 0.0, 1.0)
-    return math.hypot(px - (ax + t * vx), py - (ay + t * vy)) - r
-
-
-def sd_rrect(px, py, x0, y0, x1, y1, r):
-    cx = clamp(px, x0 + r, x1 - r)
-    cy = clamp(py, y0 + r, y1 - r)
-    return math.hypot(px - cx, py - cy) - r
-
-
-def dog_sdf(x, y):
-    """Dachshund silhouette in unit coords (y down). Negative = inside."""
-    d = sd_rrect(x, y, 0.09, 0.545, 0.71, 0.72, 0.088)         # loooong low body
-    d = min(d, sd_seg(x, y, 0.64, 0.60, 0.705, 0.475, 0.078))  # neck
-    d = min(d, sd_circle(x, y, 0.725, 0.425, 0.095))           # head
-    d = min(d, sd_seg(x, y, 0.78, 0.445, 0.885, 0.455, 0.048)) # snout
-    for lx in (0.165, 0.255, 0.545, 0.635):                    # stubby legs
-        d = min(d, sd_seg(x, y, lx, 0.68, lx, 0.805, 0.033))
-    d = min(d, sd_seg(x, y, 0.105, 0.575, 0.035, 0.455, 0.021))  # tail
-    return d
-
-
-def ear_sdf(x, y):
-    """Floppy ear, drawn darker over the head."""
-    return sd_seg(x, y, 0.695, 0.39, 0.662, 0.535, 0.043)
-
-
-def bone_sdf(x, y, cx, cy, s):
-    """Little bone accent centred at (cx, cy), scale s."""
-    d = sd_seg(x, y, cx - 0.06 * s, cy, cx + 0.06 * s, cy, 0.020 * s)
-    for ex in (cx - 0.06 * s, cx + 0.06 * s):
-        for ey in (cy - 0.020 * s, cy + 0.020 * s):
-            d = min(d, sd_circle(x, y, ex, ey, 0.026 * s))
-    return d
-
-
-def blend(base, top, a):
-    return tuple(int(round(b + (t - b) * a)) for b, t in zip(base, top))
-
-
-def coverage(d_unit, size):
-    # ~1px anti-aliased edge
-    return clamp(0.5 - d_unit * size, 0.0, 1.0)
+def sample(u, v, scale):
+    """Nearest-neighbour sample of the sprite in unit coords, scaled about centre."""
+    x = (u - 0.5) / scale + 0.5
+    y = (v - 0.5) / scale + 0.5
+    i = int(x * GRID)
+    j = int(y * GRID)
+    if 0 <= i < GRID and 0 <= j < GRID:
+        return PALETTE[SPRITE[j][i]]
+    return PALETTE["."]
 
 
 def render(size, scale=1.0):
-    """Render the icon; scale < 1 shrinks art toward centre (maskable safe zone)."""
     rows = []
-    inv = 1.0 / size
-    for j in range(size):
+    for py in range(size):
         row = bytearray()
-        for i in range(size):
-            # map pixel to unit coords, applying safe-zone scale about centre
-            x = ((i + 0.5) * inv - 0.5) / scale + 0.5
-            y = ((j + 0.5) * inv - 0.5) / scale + 0.5
-            px = CREAM
-            px = blend(px, BROWN, coverage(dog_sdf(x, y), size * scale))
-            px = blend(px, EAR, coverage(ear_sdf(x, y), size * scale))                            # ear
-            px = blend(px, CREAM, coverage(sd_circle(x, y, 0.752, 0.398, 0.016), size * scale))  # eye
-            px = blend(px, DARK, coverage(sd_circle(x, y, 0.893, 0.455, 0.027), size * scale))   # nose
-            px = blend(px, TERRA, coverage(bone_sdf(x, y, 0.29, 0.315, 1.0), size * scale))      # bone
-            row += bytes(px)
+        v = (py + 0.5) / size
+        for px in range(size):
+            u = (px + 0.5) / size
+            row += bytes(sample(u, v, scale))
         rows.append(bytes(row))
     return rows
 

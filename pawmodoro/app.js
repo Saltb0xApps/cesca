@@ -52,15 +52,12 @@ const cycleNoteEl = $('#cycleNote');
 const todayNoteEl = $('#todayNote');
 const startBtn = $('#startBtn');
 const dogEl = $('#dog');
-const bodyRect = $('#body');
-const frontG = $('#front');
 const boneTarget = $('#boneTarget');
 const bubbleEl = $('#bubble');
 const boneRowEl = $('#boneRow');
 const liveEl = $('#live');
 
-const BODY_W0 = 132;      // resting body width
-const STRETCH_MAX = 150;  // how far Noodle stretches toward the bone
+const REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ---------------- audio ---------------- */
 let audioCtx = null;
@@ -106,14 +103,14 @@ function chime() {
     const t0 = ac.currentTime + dt;
     const osc = ac.createOscillator();
     const g = ac.createGain();
-    osc.type = 'sine';
+    osc.type = 'square';
     osc.frequency.value = f;
     g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(0.22, t0 + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.5);
+    g.gain.exponentialRampToValueAtTime(0.08, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.4);
     osc.connect(g).connect(ac.destination);
     osc.start(t0);
-    osc.stop(t0 + 0.55);
+    osc.stop(t0 + 0.45);
   });
 }
 
@@ -206,6 +203,13 @@ function nextAfter(phase) {
 
 function announce(msg) { liveEl.textContent = msg; }
 
+let excitedUntil = 0;
+function excite(ms) {
+  excitedUntil = Date.now() + ms;
+  dogEl.classList.add('excited');
+  setTimeout(() => dogEl.classList.remove('excited'), ms);
+}
+
 function handleComplete({ silent = false } = {}) {
   rolloverDay();
   const finished = state.phase;
@@ -222,8 +226,7 @@ function handleComplete({ silent = false } = {}) {
       woof(earnedLong ? 2 : 1);
       boneTarget.classList.add('gone');
       showBubble(earnedLong ? 'Woof woof!' : 'Woof!');
-      dogEl.classList.add('excited');
-      setTimeout(() => dogEl.classList.remove('excited'), 2200);
+      excite(2200);
       if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
       if (document.hidden) notify('Focus complete! 🦴', `Noodle earned a bone. Time for a ${PHASES[next].label.toLowerCase()}.`);
       announce(`Focus complete, bone earned. ${PHASES[next].label} next.`);
@@ -262,30 +265,41 @@ function fmt(ms) {
 
 function renderClock() {
   const ms = remaining();
-  clockEl.textContent = fmt(ms);
+  PIX.setText(clockEl, fmt(ms));
   const label = PHASES[state.phase].label;
   document.title = state.running ? `${fmt(ms)} · ${label} — Pawmodoro` : 'Pawmodoro — Dachshund Pomodoro';
 }
 
-function renderDog() {
+/* Noodle is re-rendered only when his frame signature changes. */
+let frameN = 0;
+let lastDogSig = '';
+function renderDogFrame(force = false) {
   const total = PHASES[state.phase].dur();
   const ms = remaining();
-  let p; // 0 = compact pup, 1 = fully stretched at the bone
-  if (state.phase === 'focus') {
-    p = clamp(1 - ms / total, 0, 1);
-  } else {
-    p = clamp(ms / total, 0, 1); // un-stretches while resting
-  }
-  const dx = p * STRETCH_MAX;
-  bodyRect.setAttribute('width', BODY_W0 + dx);
-  frontG.setAttribute('transform', `translate(${dx} 0)`);
-
   const asleep = state.phase !== 'focus';
+  // 0 = compact pup, kMax = fully stretched at the bone (un-stretches on breaks)
+  const p = asleep ? clamp(ms / total, 0, 1) : clamp(1 - ms / total, 0, 1);
+  const k = Math.round(p * PIX.GEOM.kMax);
+
+  const excited = Date.now() < excitedUntil;
+  let tailFrame = 0;
+  if (!REDUCED && !asleep) {
+    if (excited) tailFrame = frameN % 2;
+    else if (state.running) tailFrame = Math.floor(frameN / 2) % 2;
+  }
+  const bob = !REDUCED && !asleep && state.running && tailFrame === 1;
+  const eyeClosed = !asleep && frameN % 21 === 0 && frameN > 0;
+
   dogEl.classList.toggle('asleep', asleep);
   dogEl.classList.toggle('snoozing', asleep && state.running);
   dogEl.classList.toggle('running', !asleep && state.running);
-
   boneTarget.classList.toggle('gone', asleep);
+
+  const sig = `${asleep}|${k}|${tailFrame}|${eyeClosed}|${bob}`;
+  if (force || sig !== lastDogSig) {
+    lastDogSig = sig;
+    dogEl.innerHTML = PIX.buildDog({ asleep, k, tailFrame, eyeClosed, bob });
+  }
 }
 
 function renderPhaseUI() {
@@ -294,10 +308,11 @@ function renderPhaseUI() {
     btn.classList.toggle('active', btn.dataset.phaseBtn === state.phase);
   });
   const slot = Math.min(state.bonesCycle + 1, settings.longEvery);
-  cycleNoteEl.textContent = state.phase === 'focus'
+  const note = state.phase === 'focus'
     ? `Bone ${slot} of ${settings.longEvery}`
-    : (state.phase === 'short' ? 'Noodle is napping…' : 'Long nap — well earned!');
-  todayNoteEl.textContent = `${state.bonesToday} bone${state.bonesToday === 1 ? '' : 's'} today`;
+    : (state.phase === 'short' ? 'Noodle is napping...' : 'Long nap - well earned!');
+  PIX.setText(cycleNoteEl, note);
+  PIX.setText(todayNoteEl, `${state.bonesToday} bone${state.bonesToday === 1 ? '' : 's'} today`);
 }
 
 function renderBones() {
@@ -307,18 +322,19 @@ function renderBones() {
   for (let i = 0; i < n; i++) {
     const span = document.createElement('span');
     span.className = i < filled ? 'earned' : 'slot';
-    span.innerHTML = '<svg viewBox="0 0 64 48"><g fill="currentColor"><circle cx="13" cy="16" r="9"/><circle cx="13" cy="32" r="9"/><circle cx="51" cy="16" r="9"/><circle cx="51" cy="32" r="9"/><rect x="11" y="16" width="42" height="16" rx="8"/></g></svg>';
+    span.innerHTML = PIX.spriteSVG(PIX.BONE, { '#': 'currentColor' });
     boneRowEl.appendChild(span);
   }
 }
 
 function renderButtons() {
-  startBtn.textContent = state.running ? 'Pause' : (remaining() < PHASES[state.phase].dur() && remaining() > 0 ? 'Resume' : 'Start');
+  const label = state.running ? 'Pause' : (remaining() < PHASES[state.phase].dur() && remaining() > 0 ? 'Resume' : 'Start');
+  PIX.setText(startBtn, label);
 }
 
 function renderAll() {
   renderClock();
-  renderDog();
+  renderDogFrame(true);
   renderPhaseUI();
   renderBones();
   renderButtons();
@@ -326,7 +342,7 @@ function renderAll() {
 
 let bubbleTimer = null;
 function showBubble(text) {
-  bubbleEl.textContent = text;
+  PIX.setText(bubbleEl, text);
   bubbleEl.hidden = false;
   clearTimeout(bubbleTimer);
   bubbleTimer = setTimeout(() => { bubbleEl.hidden = true; }, 2000);
@@ -352,8 +368,7 @@ document.querySelectorAll('[data-phase-btn]').forEach((btn) => {
 $('#scene').addEventListener('click', (e) => {
   if (e.target.closest('button')) return;
   woof(1);
-  dogEl.classList.add('excited');
-  setTimeout(() => dogEl.classList.remove('excited'), 900);
+  excite(900);
 });
 
 /* ---------------- settings dialog ---------------- */
@@ -410,18 +425,36 @@ notifyBtn.addEventListener('click', () => {
 });
 
 /* ---------------- boot ---------------- */
+function bootPixelChrome() {
+  document.querySelectorAll('.pix-icon').forEach((el) => {
+    el.innerHTML = PIX.spriteSVG(PIX.ICONS[el.dataset.icon], { '#': 'currentColor' });
+  });
+  $('.brand-bone').innerHTML = PIX.spriteSVG(PIX.BONE, { '#': 'currentColor' });
+  PIX.setText($('#brandText'), 'Pawmodoro');
+  PIX.setText($('#settingsTitle'), 'Settings');
+  const labels = { focus: 'Focus', short: 'Short', long: 'Long' };
+  document.querySelectorAll('[data-phase-btn]').forEach((btn) => {
+    PIX.setText(btn, labels[btn.dataset.phaseBtn]);
+  });
+  boneTarget.innerHTML =
+    PIX.rectsToSVG(PIX.spriteRects(PIX.BONE, PIX.GEOM.boneX + 1, PIX.GEOM.boneY + 1), { '#': 'var(--ground2)' })
+    + PIX.rectsToSVG(PIX.spriteRects(PIX.BONE, PIX.GEOM.boneX, PIX.GEOM.boneY), { '#': 'var(--bone-fill)' });
+}
+
+bootPixelChrome();
 rolloverDay();
 fastForward();
 renderAll();
 setInterval(() => {
+  frameN += 1;
   if (state.running) {
     if (remaining() <= 0) {
       handleComplete();
     } else {
       renderClock();
-      renderDog();
     }
   }
+  renderDogFrame();
 }, 200);
 
 if ('serviceWorker' in navigator) {

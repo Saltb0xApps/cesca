@@ -1,10 +1,11 @@
 /* Pawmodoro service worker — offline-first app shell. */
-const CACHE = 'pawmodoro-v1';
+const CACHE = 'pawmodoro-v2';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './app.js',
+  './pixel.js',
   './manifest.webmanifest',
   './icons/favicon.svg',
   './icons/icon-192.png',
