@@ -1,4 +1,5 @@
 import AppKit
+import ServiceManagement
 
 // The welcome / settings window. Shown automatically on first launch to
 // explain what MultiClip does, and reachable any time from the Dock menu
@@ -10,12 +11,13 @@ final class SettingsWindowController: NSWindowController {
     private var comboPopup: NSPopUpButton!
     private var countPopup: NSPopUpButton!
     private var positionPopup: NSPopUpButton!
+    private var loginCheckbox: NSButton!
 
     private let positionValues: [WidgetPlacement] = [.bottom, .side, .notch]
 
     private init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 500, height: 430),
+            contentRect: NSRect(x: 0, y: 0, width: 500, height: 470),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -105,6 +107,16 @@ final class SettingsWindowController: NSWindowController {
         positionPopup.target = self
         positionPopup.action = #selector(positionChanged)
         content.addSubview(positionPopup)
+        y -= 42
+
+        // Start at login
+        loginCheckbox = NSButton(
+            checkboxWithTitle: "Start MultiClip automatically when you log in",
+            target: self,
+            action: #selector(loginToggled)
+        )
+        loginCheckbox.frame = NSRect(x: margin, y: y, width: innerWidth, height: 22)
+        content.addSubview(loginCheckbox)
         y -= 66
 
         let tips = NSTextField(wrappingLabelWithString:
@@ -143,6 +155,8 @@ final class SettingsWindowController: NSWindowController {
         } else if let index = positionValues.firstIndex(of: ClipWidget.shared.placement) {
             positionPopup.selectItem(at: index)
         }
+
+        loginCheckbox.state = SMAppService.mainApp.status == .enabled ? .on : .off
     }
 
     // MARK: - Actions
@@ -161,6 +175,19 @@ final class SettingsWindowController: NSWindowController {
         let index = positionPopup.indexOfSelectedItem
         guard positionValues.indices.contains(index) else { return }
         ClipWidget.shared.setPlacement(positionValues[index])
+        refreshValues()
+    }
+
+    @objc private func loginToggled() {
+        do {
+            if loginCheckbox.state == .on {
+                try SMAppService.mainApp.register()
+            } else {
+                try SMAppService.mainApp.unregister()
+            }
+        } catch {
+            NSLog("MultiClip: could not update the login item: \(error)")
+        }
         refreshValues()
     }
 

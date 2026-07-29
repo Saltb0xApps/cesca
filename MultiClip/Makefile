@@ -1,6 +1,6 @@
 APP = MultiClip.app
 
-.PHONY: build app run clean
+.PHONY: build app run install clean
 
 build:
 	swift build -c release
@@ -23,6 +23,18 @@ run: app
 	@# instance first - otherwise rebuilds silently keep running old code.
 	-pkill -x MultiClip 2>/dev/null; sleep 0.5
 	open $(APP)
+
+install: app
+	@# Install into /Applications so the app has a stable home for the
+	@# Accessibility permission and the start-at-login item.
+	-pkill -x MultiClip 2>/dev/null; sleep 0.5
+	rm -rf /Applications/MultiClip.app
+	cp -R $(APP) /Applications/MultiClip.app
+	open /Applications/MultiClip.app
+	@echo ""
+	@echo "Installed to /Applications/MultiClip.app and launched."
+	@echo "Turn on 'Start MultiClip automatically when you log in' in its"
+	@echo "Settings window to keep it always active."
 
 clean:
 	rm -rf .build $(APP)

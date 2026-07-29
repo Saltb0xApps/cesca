@@ -90,6 +90,19 @@ make run
 This builds the app, wraps it in `MultiClip.app`, and opens it. The 1-2-3
 icon appears in your Dock immediately.
 
+### Making it permanent
+
+When you're happy with it, install it properly:
+
+```sh
+make install
+```
+
+This puts the app in `/Applications` (a stable home, so the Accessibility
+permission survives) and launches it. Then open **Settings…** (right-click
+the dots or the Dock icon) and check **"Start MultiClip automatically when
+you log in"** — from then on it's always active, restarting with your Mac.
+
 ### One-time permission
 
 The first launch asks for **Accessibility** access

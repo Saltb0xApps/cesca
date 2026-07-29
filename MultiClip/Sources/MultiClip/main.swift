@@ -3,18 +3,17 @@ import Carbon.HIToolbox
 
 // MultiClip — a tiny multi-slot clipboard that lives in the Dock.
 //
-//   ⌘C           captures into the next free slot (1 → 2 → 3, then cycles)
-//   ⌘⌥1 / 2 / 3  pastes that slot into the frontmost app
-//   ⌘ + C C      hold ⌘ and tap C twice quickly to reset all slots
-//                (releasing ⌘ between the two Cs does NOT reset)
+//   ⌘C             captures into the next free slot (fills 1 → N, cycles)
+//   <combo>+1 … 5  pastes that slot into the frontmost app (default ⌘⌥)
+//   ⌘ + C C        hold ⌘ and tap C twice to reset all slots
 //
-// The Dock icon shows three numbered buttons:
-//   gray  = empty, blue = holds a copy, green = has been pasted.
+// The Dock icon shows one numbered button per slot:
+//   gray = empty, blue = holds a copy, green = has been pasted.
 //
-// A floating three-dot pill (see Widget.swift) also stays on top of every
-// app and space; hover it to preview the slots, click a dot (while
-// expanded) to paste it, right-click to move it to the bottom/side or
-// hide it.
+// Floating dots (Widget.swift) stay on top of every app and space; hover
+// them to preview and organize the slots (drag rows to reorder, ✕ to
+// delete). Settings (Settings.swift) opens on first launch and via the
+// Dock or right-click menus.
 
 let slotCountKey = "slotCount"
 var slotCount = min(max(UserDefaults.standard.object(forKey: slotCountKey) as? Int ?? 3, 2), 5)
@@ -23,7 +22,7 @@ private let doubleCopyResetWindow: TimeInterval = 1.0
 private let hotKeySignature: OSType = 0x4D43_4C50 // 'MCLP'
 
 let hotkeyComboKey = "hotkeyCombo"
-let appVersion = "1.2"
+let appVersion = "1.3"
 
 /// The modifier combination used with 1…5 to paste a slot.
 enum HotkeyCombo: String, CaseIterable {
@@ -144,7 +143,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let text = pb.string(forType: .string), !text.isEmpty else { return }
 
         let now = Date()
-        if text == lastCopyText, now.timeIntervalSince(lastCopyTime) <= doubleCopyResetWindow {
+        // The lower bound filters out apps that write the pasteboard twice
+        // for a single ⌘C (two identical changes milliseconds apart), which
+        // would otherwise look like the reset gesture.
+        let sinceLastCopy = now.timeIntervalSince(lastCopyTime)
+        if text == lastCopyText, sinceLastCopy <= doubleCopyResetWindow, sinceLastCopy >= 0.12 {
             reset()
             return
         }
